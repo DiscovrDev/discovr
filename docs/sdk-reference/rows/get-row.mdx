@@ -1,0 +1,74 @@
+---
+title: "getRow()"
+description: "Get a row"
+---
+
+Returns metadata for a specific row.
+
+A row ID keeps resolving after recommendations refresh, so a rail the user has already opened stays usable. It's only readable by the profile it was built for.
+
+**Auth tier:** session.
+
+## Parameters
+
+| Name   | Type     | Required | Description                       |
+| ------ | -------- | -------- | --------------------------------- |
+| pageId | `string` | Yes      | The unique identifier of the page |
+| rowId  | `string` | Yes      | The unique identifier of the row  |
+
+## Returns
+
+[`Row`](/sdk-reference/types/rows#row) — Row retrieved successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "id": "string",
+  "title": "string",
+  "pageId": "string",
+  "type": "media" /* RowType: "media", "navigation", "provider", "top_n" */,
+  "index": 0,
+  "createdAt": "string" /* date-time */
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { Row } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: Row = await discovr.getRow("example", "example");
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.Row
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: Row = client.getRow(pageId = "example", rowId = "example")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// Row
+let response: Row = try await client.getRow(pageId: "example", rowId: "example")
+print(response)
+```
+
+</CodeGroup>

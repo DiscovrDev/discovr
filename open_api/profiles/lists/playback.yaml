@@ -1,0 +1,189 @@
+# Path operations for playback list endpoints
+
+get:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: Playback
+  summary: Get playback items
+  description: |
+    Returns the profile's in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a "Continue Watching" row.
+
+    Each item includes a `progress` field (0–100) showing how far through the title the user is.
+
+    **Pagination:**
+    Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available.
+  operationId: getPlaybackItems
+  # Never cache: reflects live, cross-device mutable profile state.
+  x-cache-policy: none
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: nextPageToken
+      in: query
+      required: false
+      description: "Opaque token from previous page for pagination"
+      schema:
+        type: string
+    - name: limit
+      in: query
+      required: false
+      description: "Maximum number of items to return (1-50, default: 10)"
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 10
+  responses:
+    "200":
+      description: List of playback items retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/PlaybackListResponse"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"
+
+post:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: Playback
+  summary: Add an item to playback list
+  description: |
+    Records a new playback position for a title. If the title is already being tracked, returns 409 — use PATCH to update an existing entry.
+
+    - `mediaId`: the title to track. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`).
+    - `progress`: how far through the title the user is, as a percentage (0–100). Optional — omit if you don't have a position yet.
+    - `updatedAt`: the ISO 8601 timestamp of when this progress was recorded. Defaults to now. Send the actual client time so resume positions stay accurate if the user is offline.
+  operationId: addPlaybackItem
+  security:
+    - BearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "./schemas.yaml#/AddPlaybackPayload"
+        example:
+          mediaId: "MV_550"
+          progress: 25
+          updatedAt: "2023-01-15T10:30:00.000Z"
+  responses:
+    "201":
+      description: Item added successfully
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SuccessMessage"
+          example:
+            message: "Item added to playback list successfully"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"
+
+patch:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: Playback
+  summary: Update playback progress
+  description: |
+    Updates the playback position for an existing entry. Same fields as the add endpoint. If no entry exists for the `mediaId`, one is created.
+  operationId: updatePlaybackItem
+  security:
+    - BearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "./schemas.yaml#/EditPlaybackPayload"
+        example:
+          mediaId: "MV_550"
+          progress: 75
+          updatedAt: "2023-01-20T14:00:00.000Z"
+  responses:
+    "200":
+      description: Item updated successfully
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SuccessMessage"
+          example:
+            message: "Playback item updated successfully"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"
+
+delete:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: Playback
+  summary: Delete an item from playback list
+  description: |
+    Removes a title from the in-progress list. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`).
+  operationId: deletePlaybackItem
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: mediaId
+      in: path
+      required: true
+      description: |
+        The media ID of the title to remove. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      schema:
+        type: string
+      example: "MV_550"
+  responses:
+    "200":
+      description: Item deleted successfully
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SuccessMessage"
+          example:
+            message: "Playback deleted successfully"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"

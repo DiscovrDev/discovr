@@ -1,0 +1,65 @@
+---
+title: "onSessionRefreshed()"
+description: "Subscribe to session credential changes"
+---
+
+Subscribes to session credential changes. Fires whenever a new session starts — on selectProfile(), on a profile switch, and when the SDK renews an expiring session on your next call. Nearly all of these are routine renewals that change nothing the user can see, so this is for tracking credential state, not content: expiresAt tells you when the current session runs out. To learn when the user's recommendations actually turn over, use onRecommendationsChanged() instead.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+onSessionRefreshed(cb: (state: { profileId: string | null; expiresAt: number | null; snapshotId: string | null }) => void): Unsubscribe
+```
+
+```kotlin Kotlin
+val sessionState: StateFlow<SessionState>  // collect to subscribe
+```
+
+```swift Swift
+var sessionStateStream: AsyncStream<SessionState>  // iterate to subscribe
+```
+
+</CodeGroup>
+
+## Parameters
+
+| Name            | Type       | Required | Description                                                                                       |
+| --------------- | ---------- | -------- | ------------------------------------------------------------------------------------------------- |
+| cb (TypeScript) | `callback` | Yes      | Function called with &#123; profileId, expiresAt, snapshotId &#125; when a new session is minted. |
+
+## Returns
+
+`Unsubscribe` — Unsubscribe function (TS only; Kotlin/Swift use Flow/AsyncStream lifecycle). expiresAt is Unix seconds.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+client.onSessionRefreshed(({ profileId, expiresAt }) => {
+	if (!profileId || !expiresAt) return; // signed out
+	showSessionIndicator(new Date(expiresAt * 1000));
+});
+```
+
+```kotlin Kotlin
+lifecycleScope.launch {
+  client.sessionState.collect { session ->
+    val expiresAt = session.expiresAt ?: return@collect
+    showSessionIndicator(expiresAt)
+  }
+}
+```
+
+```swift Swift
+Task {
+  for await session in await client.sessionStateStream {
+    guard let expiresAt = session.expiresAt else { continue }
+    await showSessionIndicator(Date(timeIntervalSince1970: TimeInterval(expiresAt)))
+  }
+}
+```
+
+</CodeGroup>

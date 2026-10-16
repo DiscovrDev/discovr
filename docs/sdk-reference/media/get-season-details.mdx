@@ -1,0 +1,108 @@
+---
+title: "getSeasonDetails()"
+description: "Get TV season details"
+---
+
+Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.
+
+This is a public endpoint — no authentication required. Returns only generic catalog metadata.
+
+## Parameters
+
+| Name         | Type      | Required | Description                                                                                                                                                                                                          |
+| ------------ | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId      | `string`  | Yes      | The unique identifier of the TV show (e.g., `TV_1396`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+| seasonNumber | `integer` | Yes      | The season number.                                                                                                                                                                                                   |
+| language     | `string`  | No       | ISO 639-1 language code for localised results (e.g., `en`).                                                                                                                                                          |
+
+## Returns
+
+[`SeasonDetailsResponse`](/sdk-reference/types/media#seasondetailsresponse) — Season details returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "show_id": "string",
+  "show_tmdb_id": 1396,
+  "tmdb_internal_id": "string",
+  "id": 3572,
+  "season_tmdb_id": 3572,
+  "name": "string",
+  "overview": "string",
+  "poster_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "season_number": 1,
+  "air_date": "string" /* date */,
+  "episodes": [
+{
+  "episode_tmdb_id": 63056,
+  "episode_number": 1,
+  "name": "string",
+  "overview": "string",
+  "still_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "air_date": "string" /* date */,
+  "runtime": 62,
+  "season_number": 1,
+  "show_id": 1396,
+  "production_code": "string",
+  "vote_average": 9.1,
+  "vote_count": 123,
+  "crew": [
+{ }
+],
+  "guest_stars": [
+{ }
+]
+}
+]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { SeasonDetailsResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+const response: SeasonDetailsResponse = await discovr.getSeasonDetails("example", 1, {
+	language: "en",
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.SeasonDetailsResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SeasonDetailsResponse = client.getSeasonDetails(mediaId = "example", seasonNumber = 1, language = "en")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// SeasonDetailsResponse
+let response: SeasonDetailsResponse = try await client.getSeasonDetails(mediaId: "example", seasonNumber: 1, language: "en")
+print(response)
+```
+
+</CodeGroup>

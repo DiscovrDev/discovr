@@ -1,0 +1,58 @@
+---
+title: "switchProfile()"
+description: "Switch to a different profile"
+---
+
+Changes which viewer is browsing. The new profile starts with its own fresh recommendations — the previous viewer's would be the wrong ones to carry over — and cached responses are dropped for you. Page IDs are unaffected, because they don't belong to a profile. Behaves the same as selectProfile(); use whichever name reads better at the call site.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+switchProfile(profileId: string): Promise<void>
+```
+
+```kotlin Kotlin
+suspend fun switchProfile(profileId: String)
+```
+
+```swift Swift
+func switchProfile(profileId: String) async throws
+```
+
+</CodeGroup>
+
+## Parameters
+
+| Name      | Type     | Required | Description                         |
+| --------- | -------- | -------- | ----------------------------------- |
+| profileId | `string` | Yes      | The ID of the profile to switch to. |
+
+## Returns
+
+`void` — Nothing. Once it resolves, the new profile is active with fresh recommendations.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+// Already on profileA
+await client.switchProfile(profileB.id); // Switch to profileB
+// Existing page data is now stale — rebuild your UI
+const newPage = await client.createPage();
+```
+
+```kotlin Kotlin
+// Switch profiles
+client.switchProfile(anotherProfileId)
+// New session started
+```
+
+```swift Swift
+try await client.switchProfile(profileId: otherId)
+// New session started
+```
+
+</CodeGroup>

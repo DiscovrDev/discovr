@@ -1,0 +1,255 @@
+---
+title: "Managing profiles"
+description: "Create, read, update, and delete profiles—avatarUrl as image or MP4 URLs, Discovr helpers for defaults and GIF search, and safeguards when deleting."
+---
+
+<Note>
+	This guide covers profile CRUD. If you haven’t already, read [Listing and selecting
+	profiles](/guides/profiles/listing-and-selecting-profiles) first — that guide covers
+	`selectProfile()` which you need before calling any browse API.
+</Note>
+
+Listing and CRUD endpoints are **identity-tier**: the SDK sends your stored **refresh token**. You typically call these **after sign-in**, even before a user has tapped “who’s watching” (for example creating the first profile on an empty account).
+
+Forms that edit **display name** and **`avatarUrl`** mirror what’s stored on Discovr. One possible create/edit layout—yours can differ.
+
+<Frame>
+	<img
+		src="/assets/pages/profiles/profiles_edit_light.png"
+		className="dark:hidden"
+		alt="Light theme create or edit profile screen: name field, avatar preview, and save pattern for persisting avatarUrl (image or MP4 URL) via createProfile or updateProfile."
+	/>
+	<img
+		src="/assets/pages/profiles/profiles_edit_dark.png"
+		className="hidden dark:block"
+		alt="Dark theme profile editor: same form pattern—preview portrait, name input, actions to commit profile changes to Discovr identity-tier APIs."
+	/>
+</Frame>
+
+## Profile avatars
+
+The **`avatarUrl`** field is a **plain URL string**. You decide what hosts it—it can reference a **still image**, an **animated image**, or an **MP4** (including short looping video commonly returned beside GIF APIs). Discovr stores whatever URL you pass — no resizing, conversion, or transcoding.
+
+Avatars can be images or videos — you don't control which a user picks. Your app must be able to render both wherever you show a profile picture.
+
+### Choose the view from `avatarMediaType`
+
+Every profile can carry **`avatarMediaType`**, the MIME type of its avatar (`image/png`, `image/jpeg`, `image/webp`, `image/gif`, `video/mp4` or `video/webm`). Choose your view from it, and **don't detect the type from the URL**: uploads are stored without a file extension, so a URL tells you nothing, and the same animation can come back from a GIF host as `.gif`, `.mp4` or neither.
+
+- **You don't have to send it.** When you create or update a profile, Discovr works it out from the URL's file extension. Send `avatarMediaType` yourself only when your URL has no extension, such as an upload to your own storage.
+- **It can be absent.** Profiles created before the field existed, and URLs Discovr couldn't type, don't have one. Treat that as a still image, and fall back to the extension only if you must.
+- **It follows the URL.** `updateProfile` accepts `avatarMediaType` only together with `avatarUrl`, and changing the URL replaces the stored type (or clears it when the new one can't be typed), so it never describes the previous picture. Sending the URL you already have leaves the type as it was.
+
+{/* sample: profiles-managing-profiles-choose-the-avatar-view */}
+
+<CodeGroup>
+
+```typescript TypeScript
+import type { Profile } from "discovr";
+
+type AvatarView = "video" | "animated-image" | "image";
+
+/** Pick the view for a profile's avatar from its stored type, never from the URL. */
+function avatarView(profile: Profile): AvatarView {
+	const type = profile.avatarMediaType;
+	if (type?.startsWith("video/")) return "video";
+	if (type === "image/gif") return "animated-image";
+	// Still images, and profiles with no type recorded.
+	return "image";
+}
+```
+
+```kotlin Kotlin
+import api.discovr.models.AvatarMediaType
+import api.discovr.models.Profile
+
+enum class AvatarView { VIDEO, ANIMATED_IMAGE, IMAGE }
+
+/** Pick the view for a profile's avatar from its stored type, never from the URL. */
+fun avatarView(profile: Profile): AvatarView {
+	val type = profile.avatarMediaType
+	return when {
+		type?.value?.startsWith("video/") == true -> AvatarView.VIDEO
+		type == AvatarMediaType.imageSlashGif -> AvatarView.ANIMATED_IMAGE
+		// Still images, and profiles with no type recorded.
+		else -> AvatarView.IMAGE
+	}
+}
+```
+
+```swift Swift
+import Discovr
+
+enum AvatarView { case video, animatedImage, image }
+
+/// Pick the view for a profile's avatar from its stored type, never from the URL.
+func avatarView(for profile: Profile) -> AvatarView {
+	guard let type = profile.avatarMediaType else { return .image }
+	if type.rawValue.hasPrefix("video/") { return .video }
+	if type == .imageSlashGif { return .animatedImage }
+	// Still images.
+	return .image
+}
+```
+
+</CodeGroup>
+
+### Animate on focus, not all at once
+
+A profile picker can show many animated avatars at the same time. Show each one **still by default** (the first frame of a video or GIF) and animate only the profile that has **focus on a TV or keyboard**, or the **pointer over it on the web**. A grid where every tile loops at once is noisy, costs battery and bandwidth, and is hard on people who are sensitive to motion. Respect the platform's reduced-motion setting (`prefers-reduced-motion`, `UIAccessibility.isReduceMotionEnabled`, `Settings.Global.ANIMATOR_DURATION_SCALE`) by never animating at all: the still frame is the avatar.
+
+**Avatar sources.** A complete picker offers both of these (you can still accept any other HTTPS URL as well):
+
+- **[`getProfileImages()`](/sdk-reference/misc/get-profile-images)** — Public list of curated default avatar image URLs hosted by Discovr; good baseline set with no attribution requirements. It returns 16 by default; pass `limit` (1–50) and send the previous response's `nextToken` as `pageToken` to page through the rest.
+- **[`searchGifs()`](/sdk-reference/misc/search-gifs)** — Klipy-backed GIF search. Each result's **`url`** is the full-size file and is **an MP4 whenever one exists**, otherwise a GIF; **`preview.url`** is a lighter file for grids. Show `preview.url` in your picker and save `url` for the one the user chooses, rather than loading a dozen full-size videos for a grid of thumbnails. Pass `contentfilter` (`off`, `low`, `medium`, `high`) when you need a guaranteed level: if you omit it, the filtering configured for Discovr's Klipy account applies.
+
+<Note>
+	When displaying results from [`searchGifs()`](/sdk-reference/misc/search-gifs), you must include
+	Klipy attribution in your UI — see [Klipy's attribution
+	guidelines](https://docs.klipy.com/api-usage-and-attribution-guidelines) for requirements.
+</Note>
+
+Filtering or tagging sources for your picker (for example substring search across filenames vs Klipy queries) stays **entirely in your app**—those endpoints return lists your UI can combine or prioritize as you prefer.
+
+## Create a profile
+
+[`createProfile(name, avatarUrl)`](/sdk-reference/profiles/create-profile) requires **both** fields. The user’s choice can be any URL your app allows to save (image and/or MP4). Many apps mix **[`getProfileImages()`](/sdk-reference/misc/get-profile-images)** (defaults) and **[`searchGifs()`](/sdk-reference/misc/search-gifs)** (user search) in one picker; others add upload-to-your-CDN flows and pass that URL.
+
+### Steps
+
+<Steps>
+	<Step title="Source candidate avatar URLs">
+		Typical pattern: call [`getProfileImages()`](/sdk-reference/misc/get-profile-images) for Discovr
+		defaults, and [`searchGifs()`](/sdk-reference/misc/search-gifs) with the user’s query for Klipy
+		results (respect Klipy attribution). Merge with any custom URLs you offer. Subset or filter **in
+		your UI** as needed.
+	</Step>
+	<Step title="Collect name + chosen URL">
+		Validate `name`. Persist the chosen media URL as `avatarUrl`—ensure your preview and list cells
+		can **render both image and MP4** URLs if you allow both.
+	</Step>
+	<Step title="Persist">
+		Call [`createProfile()`](/sdk-reference/profiles/create-profile). Use the returned `profileId`
+		when routing to [`selectProfile()`](/sdk-reference/authentication/select-profile) or inviting
+		the user back to [Listing and selecting
+		profiles](/guides/profiles/listing-and-selecting-profiles).
+	</Step>
+</Steps>
+
+{/* sample: profiles-managing-profiles-steps */}
+
+<CodeGroup>
+
+```typescript TypeScript
+const { images } = await client.getProfileImages();
+const avatarUrl = images[0]; // user’s pick from your picker
+
+const { profileId } = await client.createProfile("Alex", avatarUrl);
+await client.selectProfile(profileId);
+```
+
+```kotlin Kotlin
+val images = client.getProfileImages().images
+val avatarUrl = images.first()
+
+val profileId = client.createProfile(name = "Alex", avatarUrl = avatarUrl).profileId
+client.selectProfile(profileId)
+```
+
+```swift Swift
+let imgs = try await client.getProfileImages()
+let avatarUrl = imgs.images[0]
+
+let profileId = try await client.createProfile(name: "Alex", avatarUrl: avatarUrl).profileId
+try await client.selectProfile(profileId: profileId)
+```
+
+</CodeGroup>
+
+## Read one profile for editing
+
+[`getProfile(profileId)`](/sdk-reference/profiles/get-profile) fills your form defaults before update.
+
+{/* sample: profiles-managing-profiles-read-one-profile-for-editing */}
+
+<CodeGroup>
+
+```typescript TypeScript
+const profile = await client.getProfile("profile_abc123xyz");
+console.log(profile.name, profile.avatarUrl);
+```
+
+```kotlin Kotlin
+val profile = client.getProfile(profileId = "profile_abc123xyz")
+println("${profile.name} ${profile.avatarUrl}")
+```
+
+```swift Swift
+let profile = try await client.getProfile(profileId: "profile_abc123xyz")
+print(profile.name, profile.avatarUrl)
+```
+
+</CodeGroup>
+
+## Update a profile
+
+[`updateProfile(profileId, { name?, avatarUrl?, avatarMediaType? })`](/sdk-reference/profiles/update-profile) requires **at least one** of `name` or `avatarUrl`. `avatarMediaType` goes with a new `avatarUrl`, never on its own.
+
+{/* sample: profiles-managing-profiles-update-a-profile */}
+
+<CodeGroup>
+
+```typescript TypeScript
+await client.updateProfile("profile_abc123xyz", {
+	name: "Alex R.",
+});
+```
+
+```kotlin Kotlin
+client.updateProfile(profileId = "profile_abc123xyz", name = "Alex R.")
+```
+
+```swift Swift
+try await client.updateProfile(profileId: "profile_abc123xyz", name: "Alex R.")
+```
+
+</CodeGroup>
+
+## Delete a profile
+
+[`deleteProfile(profileId)`](/sdk-reference/profiles/delete-profile) permanently removes lists and playback data for that profile.
+
+<Note>
+	Deleting an account's **only** profile is allowed. The account is then empty: it can't mint a
+	session token until a new profile is created, so send the user to your create flow rather than
+	leaving them on a dead end. See [Listing and selecting
+	profiles](/guides/profiles/listing-and-selecting-profiles).
+</Note>
+
+If the deleted profile matches [`getActiveProfileId()`](/sdk-reference/authentication/get-active-profile-id), there's no longer a valid viewer active. Send the user back to [Listing and selecting profiles](/guides/profiles/listing-and-selecting-profiles) and [`selectProfile()`](/sdk-reference/authentication/select-profile) someone else — or create a replacement profile — before fetching anything else.
+
+{/* sample: profiles-managing-profiles-delete-a-profile */}
+
+<CodeGroup>
+
+```typescript TypeScript
+await client.deleteProfile("profile_to_remove");
+```
+
+```kotlin Kotlin
+client.deleteProfile(profileId = "profile_to_remove")
+```
+
+```swift Swift
+try await client.deleteProfile(profileId: "profile_to_remove")
+```
+
+</CodeGroup>
+
+## Related SDK reference
+
+[`getProfiles()`](/sdk-reference/profiles/get-profiles) · [`getProfile()`](/sdk-reference/profiles/get-profile) · [`createProfile()`](/sdk-reference/profiles/create-profile) · [`updateProfile()`](/sdk-reference/profiles/update-profile) · [`deleteProfile()`](/sdk-reference/profiles/delete-profile) · [`getProfileImages()`](/sdk-reference/misc/get-profile-images) · [`searchGifs()`](/sdk-reference/misc/search-gifs)
+
+---
+
+**Next:** [Pages — build your first browse screen](/guides/pages)

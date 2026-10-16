@@ -1,0 +1,436 @@
+# Schemas for Page and Row resources
+
+# Named enums for "type" fields (avoids Swift reserved word "Type" when generator would name inline schema "Type")
+RowType:
+  type: string
+  enum: [media, navigation, provider, top_n]
+  description: Type of row - media, navigation, provider, or top_n
+
+MediaItemType:
+  type: string
+  enum: [media]
+  description: Discriminator value indicating a media item
+
+NavigationItemType:
+  type: string
+  enum: [navigation]
+  description: Discriminator value indicating a navigation item
+
+ProviderItemType:
+  type: string
+  enum: [provider]
+  description: Discriminator value indicating a provider item
+
+FilterSpec:
+  type: object
+  description: Filters that shape which titles appear in a page's rows. All filters are optional.
+  properties:
+    genres:
+      type: array
+      items:
+        type: integer
+        format: int32
+        minimum: 1
+      description: Genre IDs to filter by
+    keywords:
+      type: array
+      items:
+        type: integer
+        format: int32
+        minimum: 1
+      description: Keyword IDs to filter by
+    media_type:
+      type: string
+      enum: [movie, tv, all]
+      description: Media type filter
+    region:
+      type: array
+      items:
+        type: string
+        minLength: 1
+      description: Region codes (e.g., "US", "GB")
+    with_runtime_gte:
+      type: integer
+      nullable: true
+      format: int32
+      minimum: 0
+      description: Minimum runtime in minutes
+    with_runtime_lte:
+      type: integer
+      nullable: true
+      format: int32
+      minimum: 0
+      description: Maximum runtime in minutes
+    with_release_date_gte:
+      type: string
+      nullable: true
+      format: date
+      description: Earliest release date (YYYY-MM-DD)
+    with_release_date_lte:
+      type: string
+      nullable: true
+      format: date
+      description: Latest release date (YYYY-MM-DD)
+    with_watch_providers:
+      type: array
+      items:
+        type: string
+        minLength: 1
+      description: Streaming provider IDs
+  additionalProperties: false
+
+Page:
+  type: object
+  description: A recommendation page containing rows of media titles. Its ID comes from its filters alone, so the same page keeps the same ID for every profile, on every device, indefinitely.
+  required:
+    - id
+    - createdAt
+    - hero
+  properties:
+    id:
+      type: string
+      description: Stable identifier for the page. Safe to store, bookmark or put in a URL.
+    createdAt:
+      type: string
+      format: date-time
+      description: When this view of the page was built. Moves when recommendations refresh; it is not the page's own age.
+    hero:
+      type: array
+      minItems: 10
+      maxItems: 10
+      items:
+        $ref: "#/HeroItem"
+      description: Array of exactly 10 featured HeroItems for the hero section
+    name:
+      type: string
+      description: |
+        Human-readable page title, suitable for a breadcrumb (e.g. "Movies & Series • Anime • Fantasy").
+
+        Present only for pages that carry their own name — navigation tiles and
+        built-in pages. A `name` you pass to `POST /pages` is a label for your own
+        use and is not returned here. Absent otherwise — read it defensively.
+  additionalProperties: false
+
+Row:
+  type: object
+  description: A single row within a page — a labeled group of media items with display info and pagination cursor.
+  required:
+    - id
+    - title
+    - pageId
+    - type
+    - index
+    - createdAt
+  properties:
+    id:
+      type: string
+      description: |
+        Opaque reference to this row. Pass it back unchanged to fetch the row's items. It stays valid across a recommendations refresh, so a rail the user has already opened keeps working.
+    title:
+      type: string
+      description: Display title for the row
+    pageId:
+      type: string
+      description: The stable ID of the page this row belongs to — the same value you passed in.
+    type:
+      $ref: "#/RowType"
+      description: Type of row - media rows contain media items, navigation rows contain navigation items, provider rows contain provider items, top_n rows contain media items (same as media rows but distinguished by type)
+    index:
+      type: integer
+      format: int32
+      description: Display order of this row within the page (lower values appear first)
+    createdAt:
+      type: string
+      format: date-time
+      description: Creation timestamp
+  additionalProperties: false
+
+CreatePagePayload:
+  type: object
+  description: Optional filters to shape the recommendation page. Omit for a default page based on the profile's full taste history.
+  properties:
+    pageFilters:
+      description: Filters that shape which titles appear in the page's rows.
+      $ref: "#/FilterSpec"
+    name:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: |
+        Optional label for your own use. It doesn't affect the page you get back
+        and isn't stored — keep your own mapping from page ID to display name if
+        you need one.
+
+        A page's identity comes from its filters alone. Two calls with the same
+        filters return the **same page** whatever you call it, so give pages that
+        should be distinct distinct filters.
+  additionalProperties: false
+
+CreatePageResponse:
+  type: object
+  description: The page's ID and the filters it stands for. Pass the `id` to `GET /pages/{pageId}` or `GET /pages/{pageId}/rows`.
+  required:
+    - id
+  properties:
+    id:
+      type: string
+      description: Stable identifier for the page. Safe to bookmark, store, or put in a URL.
+    pageFilters:
+      description: Filters that shape which titles appear in the page's rows.
+      $ref: "#/FilterSpec"
+  additionalProperties: false
+
+GetRowsResponse:
+  type: object
+  description: Paginated list of rows for the page.
+  required:
+    - rows
+    - hasMore
+  properties:
+    rows:
+      type: array
+      description: Rows in this page, in the order they should be rendered.
+      items:
+        $ref: "#/Row"
+    hasMore:
+      type: boolean
+      description: Whether there are more rows available
+    nextPageToken:
+      type: string
+      description: Opaque token to fetch the next page of results
+  additionalProperties: false
+
+MediaItem:
+  type: object
+  description: A media item in a recommendation row, with display metadata.
+  required:
+    - id
+    - title
+    - overview
+    - media_type
+    - type
+  properties:
+    id:
+      type: string
+      description: Unique identifier for the media item
+    title:
+      type: string
+      description: Title of the media item
+    overview:
+      type: string
+      nullable: true
+      description: Synopsis/summary text for this title.
+    poster_path:
+      type: object
+      description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    backdrop_path:
+      type: object
+      description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    media_type:
+      type: string
+      enum: [movie, tv]
+      description: Type of media
+    year:
+      type: integer
+      description: Release year (the first air year for TV). Absent when the title has no date.
+      example: 1999
+    rating:
+      type: number
+      minimum: 0
+      maximum: 10
+      description: Average viewer rating out of 10, to one decimal. Absent until a title has votes.
+      example: 8.4
+    genres:
+      type: array
+      items:
+        type: string
+      description: Genre names, most relevant first. Absent when none are known.
+      example: ["Drama", "Thriller"]
+    type:
+      $ref: "#/MediaItemType"
+      description: Discriminator field indicating this is a media item
+    ref:
+      type: string
+      description: |
+        This item's `id` with the place it was shown attached.
+
+        Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, adding it to a list, scrobbling it. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.
+
+        A bare `id` always works; `ref` is never required.
+      example: "MV_550@Lw2rC9sYh5TaB8kF"
+  additionalProperties: false
+
+HeroItem:
+  allOf:
+    - $ref: "#/MediaItem"
+    - type: object
+      required:
+        - logo_path
+      properties:
+        logo_path:
+          type: object
+          nullable: true
+          description: Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no logo available.
+          additionalProperties:
+            type: string
+            format: uri
+          example:
+            w185: "https://cdn.example.com/w185/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
+            w500: "https://cdn.example.com/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
+            original: "https://cdn.example.com/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
+  description: |
+    A MediaItem specifically for hero sections. Extends MediaItem but requires
+    the logo_path field to always be present (may be null, but field must exist).
+    overview is inherited from MediaItem.
+
+NavigationItem:
+  type: object
+  description: A tile that drills into another page rather than opening a title — a genre, a decade, a curated collection.
+  required:
+    - id
+    - title
+    - page_id
+    - type
+  properties:
+    id:
+      type: string
+      description: Unique identifier for the navigation item
+    title:
+      type: string
+      description: Title of the navigation item
+    vertical_path:
+      type: object
+      description: |
+        Vertical tile image URLs keyed by size: `original` (800×1200) and `thumbnail` (400×600), pre-rendered at build time.
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        original: "https://cdn.example.com/rows/keyword-nav-vertical.jpg"
+        thumbnail: "https://cdn.example.com/rows/keyword-nav-vertical-thumbnail.jpg"
+      nullable: true
+    horizontal_path:
+      type: object
+      description: |
+        Horizontal tile image URLs keyed by size: `original` (1080×608) and `thumbnail` (540×304), pre-rendered at build time.
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        original: "https://cdn.example.com/rows/keyword-nav-horizontal.jpg"
+        thumbnail: "https://cdn.example.com/rows/keyword-nav-horizontal-thumbnail.jpg"
+      nullable: true
+    page_id:
+      type: string
+      description: ID of the page this navigation item links to
+    ref:
+      type: string
+      description: |
+        This tile's `page_id` with the place it was shown attached.
+
+        Prefer it over `page_id` when opening the page this tile links to. It resolves to the same page and sharpens the user's recommendations. Use it for the profile it was returned to.
+
+        A bare `page_id` always works; `ref` is never required.
+      example: "k7Qm2xR9pT@Ju4nE1oZd6XcV3gP"
+    type:
+      $ref: "#/NavigationItemType"
+      description: Discriminator field indicating this is a navigation item
+  additionalProperties: false
+
+ProviderItem:
+  type: object
+  description: A tile for a streaming service, drilling into what's available on it.
+  required:
+    - id
+    - title
+    - page_id
+    - type
+    - paths
+  properties:
+    id:
+      type: string
+      description: Unique identifier for the provider item
+    title:
+      type: string
+      description: Title of the provider (streaming service name)
+    page_id:
+      type: string
+      description: ID of the page this provider item links to
+    ref:
+      type: string
+      description: |
+        This tile's `page_id` with the place it was shown attached.
+
+        Prefer it over `page_id` when opening the page this tile links to. It resolves to the same page and sharpens the user's recommendations. Use it for the profile it was returned to.
+
+        A bare `page_id` always works; `ref` is never required.
+      example: "k7Qm2xR9pT@Ju4nE1oZd6XcV3gP"
+    type:
+      $ref: "#/ProviderItemType"
+      description: Discriminator field indicating this is a provider item
+    paths:
+      type: object
+      description: Square Logo URLs in various resolutions (keys are resolution IDs like "60", "100", "512", "1024")
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        "60": "https://is1-ssl.mzstatic.com/image/thumb/.../60x60bb.jpg"
+        "100": "https://is1-ssl.mzstatic.com/image/thumb/.../100x100bb.jpg"
+        "512": "https://is1-ssl.mzstatic.com/image/thumb/.../512x512bb.jpg"
+        "1024": "https://is1-ssl.mzstatic.com/image/thumb/.../1024x1024bb.png"
+  additionalProperties: false
+
+RowItem:
+  oneOf:
+    - $ref: "#/MediaItem"
+    - $ref: "#/NavigationItem"
+    - $ref: "#/ProviderItem"
+  discriminator:
+    propertyName: type
+    mapping:
+      media: "#/MediaItem"
+      navigation: "#/NavigationItem"
+      provider: "#/ProviderItem"
+  description: |
+    A row item can be a MediaItem, NavigationItem, or ProviderItem.
+    Use the `type` field to determine which type it is:
+    - `type: "media"` indicates a MediaItem (has `media_type` field)
+    - `type: "navigation"` indicates a NavigationItem (has `page_id` field)
+    - `type: "provider"` indicates a ProviderItem (has `paths` field with resolution URLs)
+
+GetRowItemsResponse:
+  type: object
+  description: Paginated list of items within a row.
+  required:
+    - items
+    - hasMore
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/RowItem"
+      description: Array of row items - can be MediaItem, NavigationItem, or ProviderItem based on the row type
+    hasMore:
+      type: boolean
+      description: Whether there are more items available
+    nextPageToken:
+      type: string
+      description: Opaque token to fetch the next page of results
+  additionalProperties: false

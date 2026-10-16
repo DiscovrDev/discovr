@@ -1,0 +1,49 @@
+---
+title: "clearCache()"
+description: "Drop the SDK's cached responses"
+---
+
+Empties the SDK's response cache, so the next pages, rows, profiles, media or search call goes to the network. You rarely need this: the cache already clears itself on a profile switch, on sign-out, and whenever recommendations turn over. Reach for it when something outside the SDK changed data you've already fetched, or to force a hard refresh from a pull-to-refresh gesture.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+clearCache(): void
+```
+
+```kotlin Kotlin
+suspend fun clearCache()
+```
+
+```swift Swift
+func clearCache() async
+```
+
+</CodeGroup>
+
+## Returns
+
+`void` — Nothing. The next cacheable call refetches.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+client.clearCache();
+const fresh = await client.getRows(pageId);
+```
+
+```kotlin Kotlin
+client.clearCache()
+val fresh = client.getRows(pageId)
+```
+
+```swift Swift
+await client.clearCache()
+let fresh = try await client.getRows(pageId: pageId)
+```
+
+</CodeGroup>

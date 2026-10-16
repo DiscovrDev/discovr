@@ -1,0 +1,134 @@
+---
+title: "Profile context"
+description: "Profile-scoped lists, playback for Continue Watching UX, title overlays with getMediaProfileMeta, scrobbling, and history—all scoped to the active profile."
+---
+
+Profile context is everything that belongs to **this viewer** — their watchlist, what they've liked, where they paused, what they've watched. It's the layer that makes your app feel personal rather than generic.
+
+After selecting a profile, you pull this data to enrich your UI: progress bars on thumbnails, a "Continue Watching" row, a filled heart on the title sheet. This is separate from the recommendation rows on a page — those are chosen by Discovr; profile context is the explicit state your app writes and reads.
+
+The main areas:
+
+- **Continue watching** — the **playback** list: [`getPlaybackItems()`](/sdk-reference/profile-lists/get-playback-items), [`updatePlaybackItem()`](/sdk-reference/profile-lists/update-playback-item), [`addPlaybackItem()`](/sdk-reference/profile-lists/add-playback-item), [`deletePlaybackItem()`](/sdk-reference/profile-lists/delete-playback-item).
+- **Curated lists** — **liked**, **disliked**, **super_liked**, **watchlist**: get / add / delete under [Profile Lists](/sdk-reference/profile-lists/get-liked-items) in the SDK Reference.
+- **Per-title overlay** — [`getMediaProfileMeta(mediaId, profileId)`](/sdk-reference/media/get-media-profile-meta) for resume position, watch history, sentiment booleans, and completion. See [Understanding your media state](/guides/profile-context/media-profile-meta).
+- **Per-season overlay** — [`getSeasonProfileMeta(mediaId, seasonNumber)`](/sdk-reference/media/get-season-profile-meta) for per-episode progress and completion within a single TV season. See [Season progress with getSeasonProfileMeta](/guides/profile-context/season-profile-meta).
+- **Live playback sync** — [`scrobble()`](/sdk-reference/scrobble/scrobble) and [`scrobbleSkip()`](/sdk-reference/scrobble/scrobble-skip) keep watch history and resume position in sync as the user watches. See [Tracking playback with scrobbling](/guides/profile-context/scrobbling).
+- **Watch history** — separate from the resume queue; use the [history APIs](/sdk-reference/profile-lists/get-history-items) for explicit log entries.
+
+| What you want to show          | API to call                                                                                                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Progress bar / "Resume" button | [`getMediaProfileMeta()`](/sdk-reference/media/get-media-profile-meta)                                                                                                          |
+| "Continue Watching" row        | [`getPlaybackItems()`](/sdk-reference/profile-lists/get-playback-items)                                                                                                         |
+| Filled ♥ / watchlist icon     | [`getMediaProfileMeta()`](/sdk-reference/media/get-media-profile-meta)                                                                                                          |
+| Update watchlist / likes       | [`addWatchlistItem()`](/sdk-reference/profile-lists/add-watchlist-item), [`addLikedItem()`](/sdk-reference/profile-lists/add-liked-item)                                        |
+| Keep "Continue Watching" fresh | [`scrobble()`](/sdk-reference/scrobble/scrobble) during playback                                                                                                                |
+| "Completed" badge / checkmark  | [`getMediaProfileMeta()`](/sdk-reference/media/get-media-profile-meta) (title/season) or [`getSeasonProfileMeta()`](/sdk-reference/media/get-season-profile-meta) (per-episode) |
+
+<CardGroup cols={2}>
+	<Card
+		title="Understanding Your Media State"
+		icon="tags"
+		href="/guides/profile-context/media-profile-meta"
+	>
+		Likes, resume position, watch history, completion—layer user state on catalog data for
+		personalized title sheets.
+	</Card>
+	<Card
+		title="Finished episodes with getSeasonProfileMeta"
+		icon="list-check"
+		href="/guides/profile-context/season-profile-meta"
+	>
+		Which episodes of a single TV season the viewer has finished.
+	</Card>
+	<Card
+		title="Tracking Playback with Scrobbling"
+		icon="play"
+		href="/guides/profile-context/scrobbling"
+	>
+		Keep watch history in sync with real-time progress updates as users watch.
+	</Card>
+</CardGroup>
+
+<Note>
+	Everything here is scoped to the active profile, so
+	[`selectProfile()`](/sdk-reference/authentication/select-profile) has to have run first — see
+	[Profiles](/guides/profiles). Examples below use **TypeScript / Kotlin / Swift** tabs.
+</Note>
+
+## Continue watching → playback list
+
+Below is **illustrative** UI: thumbnails and **`progress`** (0–100) on tiles match what **[`getPlaybackItems()`](/sdk-reference/profile-lists/get-playback-items)** returns for the browse surface. When the user opens a title sheet, the same percentages and TV season/episode hints surface through **`getMediaProfileMeta.playback`** ([Understanding getMediaProfileMeta](/guides/profile-context/media-profile-meta)).
+
+<Frame>
+	<div className="dark:hidden">
+		<img
+			src="/assets/pages/profiles/continue_watching_light.png"
+			className="w-full rounded-md"
+			alt="Light-themed horizontal Continue Watching strip: oval avatars labeled “Continue Watching…” with blurred-backdrop thumbnails, media-type badges (movies vs episodes), readable titles, and shaded progress arcs under each poster—matching playback list payloads from getPlaybackItems and the progress field mirrored on a detail sheet via getMediaProfileMeta.playback."
+		/>
+	</div>
+	<div className="hidden dark:block">
+		<img
+			src="/assets/pages/profiles/continue_watching_dark.png"
+			className="w-full rounded-md"
+			alt="Dark-themed same Continue Watching row: luminous poster tiles on a charcoal background with ring progress overlays and typography tuned for OLED; analogous to playback items served for the profile and the resume chrome derived from playback.inlist plus playback.data in getMediaProfileMeta."
+		/>
+	</div>
+</Frame>
+
+Use the **playback** list for “resume from here”: each item exposes **`progress`** (0–100). Fetch with **[`getPlaybackItems`](/sdk-reference/profile-lists/get-playback-items)** (**cursor** via **`nextPageToken`**, **`limit`** 1–50). Prefer **`updatePlaybackItem`** during playback or **`scrobble`** (recommended for one call that aligns history and side effects)—see **[scrobbling](#scrobbling)** below.
+
+## Curated lists (liked, disliked, super liked, watchlist)
+
+Each category is symmetric: **`get*`** enumerates IDs; **`add*`** attaches a **`mediaId`**; **`delete*`** removes it. Wire your UI (“My list”, thumbs, etc.) to the matching SDK operations—return shapes are documented on each Profile Lists SDK page and echoed in **[API Reference](/api-reference/discovr/get-liked-items)**; you can cross-check wire fields in **[Type reference](/sdk-reference/types)** where they appear. Method names follow the **SDK Reference** sidebar under **Profile Lists**.
+
+Items in every one of these lists — and in your playback and history lists — carry a **`ref`** next to their `id`. When your user opens an item from a list, or acts on it, pass the `ref` (see [passing the `ref` when your user acts](/guides/rows#pass-the-ref-when-your-user-acts)). A bare `id` always works.
+
+## Rating a title
+
+Like, dislike and super-like are really one three-way rating: **not for me**, **I like this** and **love this**. A title sits in one of the three at a time. Adding it to one list takes it out of the other two, and the response's `removed` field names the list it left, so you can update your other buttons without refetching. Adding a title to the list it's already in succeeds and changes nothing.
+
+A super-like isn't a bonus on top of a like. It replaces it, which is why "love this" is the natural label.
+
+Build it as a single control with three states, driven by the `liked`, `disliked` and `super_liked` booleans on [`getMediaProfileMeta()`](/sdk-reference/media/get-media-profile-meta). Tapping the state that's already active should clear it with the matching delete call.
+
+| The viewer says | Add                                                                        | Clear                                                                            |
+| --------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Not for me      | [`addDislikedItem()`](/sdk-reference/profile-lists/add-disliked-item)      | [`deleteDislikedItem()`](/sdk-reference/profile-lists/delete-disliked-item)      |
+| I like this     | [`addLikedItem()`](/sdk-reference/profile-lists/add-liked-item)            | [`deleteLikedItem()`](/sdk-reference/profile-lists/delete-liked-item)            |
+| Love this       | [`addSuperLikedItem()`](/sdk-reference/profile-lists/add-super-liked-item) | [`deleteSuperLikedItem()`](/sdk-reference/profile-lists/delete-super-liked-item) |
+
+<Info>
+	Ratings shape the recommendations a viewer gets. Likes and super-likes steer their rows toward
+	titles they'll enjoy, and a dislike steers them away. That makes the control worth building well:
+	it's how a viewer teaches Discovr what they enjoy.
+</Info>
+
+## History vs playback
+
+**History** logs watch events: when a title was started and when it was finished (**duplicates allowed**—see **[`getHistoryItems`](/sdk-reference/profile-lists/get-history-items)** and **[`patchHistoryItem`](/sdk-reference/profile-lists/patch-history-item)**). **Playback** drives “continue watching” and holds the viewer's live place in each title, so a title's resume position is always the latest one, on every device. History's `progress` isn't a live position: it's recorded when a title is started and when it's finished. **`scrobble`** is the everyday path during viewing; **`patch`/add history** suits explicit corrections or tooling. To take a title back to unwatched, use **[`markUnwatched`](/sdk-reference/scrobble/mark-unwatched)**: it clears the history, the Continue Watching entry and a show's completion together (see [Undoing a watch](/guides/profile-context/scrobbling#undoing-a-watch)).
+
+**Completion** is derived from that same history: a movie or episode is complete once progress reaches 80%, a season is complete once every episode in it is complete, and a show is complete once every season is complete. It surfaces on **`getMediaProfileMeta`** (title- and season-level) and **`getSeasonProfileMeta`** (episode-level, one season at a time)—see [Understanding your media state](/guides/profile-context/media-profile-meta#completion-rules).
+
+## Related reading
+
+- [Profiles overview](/guides/profiles) — who selects the profile (`selectProfile`), why lists stay per-viewer.
+- [Understanding Your Media State](/guides/profile-context/media-profile-meta) — Layer user state on catalog data for detail pages.
+- [Tracking Playback with Scrobbling](/guides/profile-context/scrobbling) — Keep watch history in sync during playback.
+- [Media details](/guides/media) — catalog + images; **`getMediaProfileMeta`** overlays profile state.
+- [User UX: Navigation & User Flows](/guides/navigation) — How to integrate Continue Watching into your home page and navigation flows
+- [Error handling](/guides/reference/error-handling) — what to do when a write fails.
+
+## Related SDK reference
+
+- Playback: [`getPlaybackItems()`](/sdk-reference/profile-lists/get-playback-items) · [`updatePlaybackItem()`](/sdk-reference/profile-lists/update-playback-item) · [`addPlaybackItem()`](/sdk-reference/profile-lists/add-playback-item) · [`deletePlaybackItem()`](/sdk-reference/profile-lists/delete-playback-item)
+- Scrobbling: [`scrobble()`](/sdk-reference/scrobble/scrobble) · [`scrobbleSkip()`](/sdk-reference/scrobble/scrobble-skip) — see [Tracking Playback with Scrobbling](/guides/profile-context/scrobbling) guide
+- User state: [`getMediaProfileMeta()`](/sdk-reference/media/get-media-profile-meta) — see [Understanding Your Media State](/guides/profile-context/media-profile-meta) guide
+- Season progress: [`getSeasonProfileMeta()`](/sdk-reference/media/get-season-profile-meta) — see [Season Progress with getSeasonProfileMeta](/guides/profile-context/season-profile-meta) guide
+- History: [`getHistoryItems()`](/sdk-reference/profile-lists/get-history-items) · [`getHistoryItemsByMediaId()`](/sdk-reference/profile-lists/get-history-items-by-media-id) · [`patchHistoryItem()`](/sdk-reference/profile-lists/patch-history-item)
+- Representative lists — liked: [`getLikedItems()`](/sdk-reference/profile-lists/get-liked-items) · watchlist: [`getWatchlistItems()`](/sdk-reference/profile-lists/get-watchlist-items) (mirror pattern for dislike / super-liked SDK pages)
+
+---
+
+**Next:** [Understanding your media state](/guides/profile-context/media-profile-meta)

@@ -1,0 +1,180 @@
+# Path operations for row endpoints
+
+collection:
+  # Collection operations: GET /pages/{pageId}/rows
+  get:
+    tags:
+      - Discovr
+      - Rows
+    summary: List rows
+    description: |
+      Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.
+
+      Row IDs are opaque references — pass them straight back to `GET /pages/{pageId}/rows/{rowId}/items`. They keep working even if recommendations refresh while the user is scrolling, so a rail they've already opened stays readable to the end.
+
+      Pagination continues in the set of results it started with. Very occasionally that set is no longer available and you'll get `409 CURSOR_EXPIRED`; restart pagination on the same page ID.
+
+      **Auth tier:** session.
+    operationId: getRows
+    x-cache-policy: session
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: pageId
+        in: path
+        required: true
+        description: The unique identifier of the page
+        schema:
+          type: string
+      - name: nextPageToken
+        in: query
+        description: Opaque pagination token returned from the previous page
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Maximum number of rows to return
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 5
+    responses:
+      "200":
+        description: List of rows retrieved successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas.yaml#/GetRowsResponse"
+      "400":
+        $ref: "../../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../../shared/responses.yaml#/Unauthorized"
+      "409":
+        $ref: "../../shared/responses.yaml#/CursorExpired"
+      "404":
+        $ref: "../../shared/responses.yaml#/NotFound"
+      "500":
+        $ref: "../../shared/responses.yaml#/InternalServerError"
+      "429":
+        $ref: "../../shared/responses.yaml#/RateLimited"
+      "503":
+        $ref: "../../shared/responses.yaml#/ServiceUnavailable"
+
+item:
+  # Item operations: GET /pages/{pageId}/rows/{rowId}
+  get:
+    tags:
+      - Discovr
+      - Rows
+    summary: Get a row
+    description: |
+      Returns metadata for a specific row.
+
+      A row ID keeps resolving after recommendations refresh, so a rail the user has already opened stays usable. It's only readable by the profile it was built for.
+
+      **Auth tier:** session.
+    operationId: getRow
+    x-cache-policy: session
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: pageId
+        in: path
+        required: true
+        description: The unique identifier of the page
+        schema:
+          type: string
+      - name: rowId
+        in: path
+        required: true
+        description: The unique identifier of the row
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Row retrieved successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas.yaml#/Row"
+      "400":
+        $ref: "../../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../../shared/responses.yaml#/Unauthorized"
+      "409":
+        $ref: "../../shared/responses.yaml#/CursorExpired"
+      "404":
+        $ref: "../../shared/responses.yaml#/NotFound"
+      "500":
+        $ref: "../../shared/responses.yaml#/InternalServerError"
+      "429":
+        $ref: "../../shared/responses.yaml#/RateLimited"
+      "503":
+        $ref: "../../shared/responses.yaml#/ServiceUnavailable"
+
+items:
+  # Sub-collection operations: GET /pages/{pageId}/rows/{rowId}/items
+  get:
+    tags:
+      - Discovr
+      - Rows
+    summary: List row items
+    description: |
+      Returns paginated items within a row. Items include the full display metadata needed to render a media card — title, poster, backdrop, type, and more.
+
+      Row IDs stay valid across a recommendations refresh, so a user can finish scrolling a rail they've already opened.
+
+      **Auth tier:** session.
+    operationId: getRowItems
+    x-cache-policy: session
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: pageId
+        in: path
+        required: true
+        description: The unique identifier of the page
+        schema:
+          type: string
+      - name: rowId
+        in: path
+        required: true
+        description: The unique identifier of the row
+        schema:
+          type: string
+      - name: nextPageToken
+        in: query
+        description: Opaque pagination token returned from the previous page
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Maximum number of items to return
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 10
+
+    responses:
+      "200":
+        description: List of row items retrieved successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas.yaml#/GetRowItemsResponse"
+      "400":
+        $ref: "../../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../../shared/responses.yaml#/Unauthorized"
+      "409":
+        $ref: "../../shared/responses.yaml#/CursorExpired"
+      "404":
+        $ref: "../../shared/responses.yaml#/NotFound"
+      "500":
+        $ref: "../../shared/responses.yaml#/InternalServerError"
+      "429":
+        $ref: "../../shared/responses.yaml#/RateLimited"
+      "503":
+        $ref: "../../shared/responses.yaml#/ServiceUnavailable"

@@ -1,0 +1,68 @@
+---
+title: "pollDeviceCode()"
+description: "Poll for auth token"
+---
+
+The second step of the device code flow. Call this repeatedly after showing the user code or QR code.
+
+While the user hasn't confirmed yet, you'll get `&#123; status: "pending", interval &#125;` — wait `interval`
+seconds and poll again. Once they approve, the response changes to `&#123; refreshToken, publicId, expiresAt &#125;`.
+Store the `refreshToken` securely — it's your long-lived credential for all identity-tier calls.
+
+**Polling interval:** the server sets it and repeats it in every pending answer; it grows the longer
+the code has been waiting, so always use the latest value. The SDKs do this for you. Stop polling when
+you receive a `refreshToken` or a `401` error.
+
+A person can decline on their phone. Your next poll then returns `401` with `device-code-denied`
+straight away (and on every poll after, until the code expires), so you can say so on screen instead
+of waiting out the timeout.
+
+## Parameters
+
+| Name       | Type     | Required | Description                                                    |
+| ---------- | -------- | -------- | -------------------------------------------------------------- |
+| deviceCode | `string` | Yes      | The device code obtained from the request device code endpoint |
+
+## Returns
+
+`PollDeviceCode200Response` — Poll result. Two possible shapes:
+
+- **Authorized**: device code was approved — contains `refreshToken`, `publicId`, `expiresAt`.
+- **Pending**: user has not yet approved — contains `status: "pending"` and the `interval` to wait. Keep polling.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { PollDeviceCode200Response } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+const response: PollDeviceCode200Response = await discovr.pollDeviceCode("dvc_abc123xyz789");
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.PollDeviceCode200Response
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: PollDeviceCode200Response = client.pollDeviceCode(deviceCode = "dvc_abc123xyz789")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// PollDeviceCode200Response
+let response: PollDeviceCode200Response = try await client.pollDeviceCode(deviceCode: "dvc_abc123xyz789")
+print(response)
+```
+
+</CodeGroup>

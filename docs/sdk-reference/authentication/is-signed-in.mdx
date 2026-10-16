@@ -1,0 +1,53 @@
+---
+title: "isSignedIn()"
+description: "Check if a refresh token is held"
+---
+
+Synchronous check whether the SDK has a valid refresh token (user is signed in).
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+isSignedIn(): boolean
+```
+
+```kotlin Kotlin
+val isSignedIn: Boolean
+```
+
+```swift Swift
+var isSignedIn: Bool { get async }
+```
+
+</CodeGroup>
+
+## Returns
+
+`boolean / Bool` — true if signed in; false otherwise.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+if (client.isSignedIn()) {
+	console.log("Signed in");
+} else {
+	console.log("Not signed in");
+}
+```
+
+```kotlin Kotlin
+if (client.isSignedIn) {
+  println("Signed in")
+}
+```
+
+```swift Swift
+let signedIn = await client.isSignedIn
+print(signedIn ? "Signed in" : "Not signed in")
+```
+
+</CodeGroup>

@@ -1,0 +1,72 @@
+---
+title: "Developer Agent Skills & MCP"
+sidebarTitle: "Agent Skills & MCP"
+description: "Connect the Discovr MCP server so your agent has live docs and know-how as you build."
+---
+
+Give your AI coding agent live access to the Discovr docs — SDK signatures, guides, and know-how — without copy-pasting anything.
+
+## Connect the MCP server
+
+**Recommended.** The MCP server includes the Discovr skill automatically — it tells your agent what Discovr is and which guides to follow, in order, and lets it search API reference, SDK reference, and guides on demand as it builds.
+
+<Tabs>
+	<Tab title="Claude Code">
+
+```bash
+claude mcp add --transport http discovr https://docs.discovr.media/mcp
+```
+
+    </Tab>
+    <Tab title="Cursor">
+    	<a href="cursor://anysphere.cursor-deeplink/mcp/install?name=discovr&config=eyJ1cmwiOiJodHRwczovL2RvY3MuZGlzY292ci5tZWRpYS9tY3AifQ%3D%3D">Click to install in Cursor →</a>
+
+    	Or add it manually via **Open MCP settings** (`Cmd+Shift+P`) in `mcp.json`:
+
+```json
+{
+	"mcpServers": {
+		"discovr": {
+			"url": "https://docs.discovr.media/mcp"
+		}
+	}
+}
+```
+
+    </Tab>
+    <Tab title="Codex">
+
+```bash
+codex mcp add discovr --url https://docs.discovr.media/mcp
+```
+
+    </Tab>
+    <Tab title="Antigravity">
+    	Open **MCP Servers** from the agent panel's `…` menu, click **Manage MCP Servers**, then **View raw config** to edit `mcp_config.json`:
+
+```json
+{
+	"mcpServers": {
+		"discovr": {
+			"serverUrl": "https://docs.discovr.media/mcp"
+		}
+	}
+}
+```
+
+    	Antigravity uses `serverUrl`, not `url` — the field name differs from Cursor and Codex.
+    </Tab>
+
+</Tabs>
+
+## Skill only
+
+If your agent doesn't support MCP, install just the skill — but without MCP it can't search the live docs for exact signatures as it builds. Same command for every agent that supports the [skills spec](https://agentskills.io):
+
+```bash
+npx skills add https://docs.discovr.media
+```
+
+---
+
+**Next:** [Authentication — implement your sign-in flow](/guides/authentication)

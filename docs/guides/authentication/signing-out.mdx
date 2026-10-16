@@ -1,0 +1,146 @@
+---
+title: "Signing out"
+description: "End a session on this device, and what to do instead when the user just wants a different profile."
+---
+
+Your users can sign in three different ways, but there's only one way out — and it's narrower than most people expect. Getting this right is the difference between a profile switcher that feels instant and one that dumps people back at a sign-in screen.
+
+## One exit, scoped to this device
+
+[`signOut()`](/sdk-reference/authentication/sign-out) signs the user out **here** and clears the credentials stored on this device. Other devices they're signed in on keep working.
+
+{/* sample: authentication-signing-out-one-exit-scoped-to-this-device */}
+
+<CodeGroup>
+
+```typescript TypeScript
+await client.signOut();
+```
+
+```kotlin Kotlin
+client.signOut()
+```
+
+```swift Swift
+await client.signOut()
+```
+
+</CodeGroup>
+
+Your app doesn't need to track the result. Sign-out fires [`onAuthStateChanged()`](/sdk-reference/authentication/on-auth-state-changed) — `authState` on Kotlin, `authStateStream` on Swift — with `signedIn: false`, so if you already subscribe there for sign-in, the same handler sends the user back to your sign-in screen.
+
+<Note>
+	Any requests already in flight finish normally before the sign-out lands. You don't need to cancel
+	work first.
+</Note>
+
+## There is no profile-level sign-out
+
+This is the part worth internalising. A profile isn't something the user signs out **of** — it's a choice of who's watching, and the only way to change it is to choose someone else:
+
+| What the user wants                 | What you call                                                                    |
+| ----------------------------------- | -------------------------------------------------------------------------------- |
+| "That's not me — switch to Bob"     | [`switchProfile(bobId)`](/sdk-reference/authentication/switch-profile)           |
+| "Back to the who's-watching screen" | [`switchProfile()`](/sdk-reference/authentication/switch-profile) once they pick |
+| "Sign me out of this device"        | [`signOut()`](/sdk-reference/authentication/sign-out)                            |
+
+`signOut()` also forgets the profile if your client was set to remember it between launches (`rememberProfile`).
+
+Reaching for `signOut()` when someone only wanted a different profile costs them their whole 90-day session and sends them back through sign-in on a device they never left. Build the profile picker on `switchProfile()` and keep `signOut()` for an explicit, deliberate "sign out" control.
+
+<Tip>
+	Switching profiles gives the new viewer their own fresh recommendations, and drops the cached
+	responses from the previous one. You don't need to clear anything yourself.
+</Tip>
+
+## What your app should clear
+
+The SDK handles its own state — stored credentials and its response cache both go. What it can't know about is yours:
+
+- Any profile name or avatar you're holding in app state for the header or nav
+- Screens built from the signed-in user's data — watchlist, Continue Watching, a personalised home page
+- Navigation history that would let a back gesture return to a signed-in screen
+
+Rebuild those from a clean state on `signedIn: false` rather than leaving them for the next user of the device.
+
+## Why someone was signed out
+
+Sometimes the SDK signs the user out for you: a sign-in that lapsed, or one that was revoked. When that happens `signedIn` turns `false`, and `signOutReason` tells you why, so you can say something useful instead of dropping people on a blank sign-in screen.
+
+| Reason                                                   | Meaning                                                              |
+| -------------------------------------------------------- | -------------------------------------------------------------------- |
+| `user` (`USER`, `.user`)                                 | Your app called `signOut()`.                                         |
+| `session-expired` (`SESSION_EXPIRED`, `.sessionExpired`) | The sign-in lapsed or was revoked. Ask the user to sign in again.    |
+| `demo-ended` (`DEMO_ENDED`, `.demoEnded`)                | A `demoMode` sandbox ran out. You'll only see this while developing. |
+| none                                                     | A fresh start with no credential yet.                                |
+
+A lapsed credential is noticed on the next call that needs it, so a sign-out can arrive in the middle of a session.
+
+{/* sample: signing-out-reason */}
+
+<CodeGroup>
+
+```typescript TypeScript
+const unsubscribe = client.onAuthStateChanged(({ signedIn, signOutReason }) => {
+	if (signedIn) return;
+	// signOutReason is null on a fresh start with no credential.
+	if (signOutReason === "session-expired") return showSessionExpired();
+	// demo-ended only happens while you develop with demoMode.
+	if (signOutReason === "demo-ended") return showDemoEnded();
+	showSignIn();
+});
+```
+
+```kotlin Kotlin
+import api.discovr.auth.SignOutReason
+
+// scope is your lifecycle scope, for example lifecycleScope on Android.
+scope.launch {
+    client.authState.collect { state ->
+        if (state.signedIn) return@collect
+        // signOutReason is null on a fresh start with no credential.
+        when (state.signOutReason) {
+            SignOutReason.SESSION_EXPIRED -> showSessionExpired()
+            // DEMO_ENDED only happens while you develop with demoMode.
+            SignOutReason.DEMO_ENDED -> showDemoEnded()
+            else -> showSignIn()
+        }
+    }
+}
+```
+
+```swift Swift
+Task {
+    for await state in await client.authStateStream where !state.signedIn {
+        // signOutReason is nil on a fresh start with no credential.
+        switch state.signOutReason {
+        case .sessionExpired: await showSessionExpired()
+        // .demoEnded only happens while you develop with demoMode.
+        case .demoEnded: await showDemoEnded()
+        default: await showSignIn()
+        }
+    }
+}
+```
+
+</CodeGroup>
+
+<Note>
+	On Swift the failing call throws the generated client's `ErrorResponse`, not a typed auth error.
+	The signed-out state is still delivered on `authStateStream` with its reason, so drive your UI
+	from the stream, not from the error.
+</Note>
+
+### Testing it while you build
+
+`signOut()` is the quickest way to see your signed-out screen. To see what happens when a `demoMode` sandbox ends without waiting half an hour, shorten it with `demoRefreshTtlMs` (the server only ever allows shorter). `demoSessionTtlMs` shortens the session credential instead, which the SDK renews silently, so it tests renewal and not an ending.
+
+A `demoMode` client starts its first sandbox on first use, not after a sign-out. Once signed out it stays signed out until you call `signInWithDemo()` or send the user through a real sign-in.
+
+## Related SDK reference
+
+[signOut](/sdk-reference/authentication/sign-out) · [switchProfile](/sdk-reference/authentication/switch-profile) · [onAuthStateChanged](/sdk-reference/authentication/on-auth-state-changed)
+
+---
+
+**Next:** [Profiles — list, select, and manage viewers](/guides/profiles)

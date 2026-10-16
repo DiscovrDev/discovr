@@ -1,0 +1,10 @@
+# Script artifacts
+scripts/facade-doc-samples.json
+
+# Mintlify local cache
+docs/.mintlify/
+.tmp/
+
+# SwiftPM output from building the root Package.swift
+.build/
+.swiftpm/

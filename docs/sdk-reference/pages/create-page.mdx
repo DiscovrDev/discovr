@@ -1,0 +1,105 @@
+---
+title: "createPage()"
+description: "Create a recommendation page"
+---
+
+Resolves a set of filters to the page that represents them.
+
+A page's ID is determined by its filters alone, so the same filters always return the same ID — for every profile, on every device, indefinitely. Call this once and keep the ID.
+
+Creating pages up front for your top-level tabs is cheap.
+
+**Auth tier:** session — send your session token in `Authorization: Bearer`.
+
+## Parameters
+
+| Name        | Type                                                  | Required | Description                                                                                                                                                                                                                                                                                                                                            |
+| ----------- | ----------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| pageFilters | [`FilterSpec`](/sdk-reference/types/pages#filterspec) | No       | Filters that shape which titles appear in the page's rows.                                                                                                                                                                                                                                                                                             |
+| name        | `string`                                              | No       | Optional label for your own use. It doesn't affect the page you get back and isn't stored — keep your own mapping from page ID to display name if you need one. A page's identity comes from its filters alone. Two calls with the same filters return the **same page** whatever you call it, so give pages that should be distinct distinct filters. |
+
+<AccordionGroup>
+<Accordion title="View FilterSpec structure">
+```json
+{
+  "genres": ["integer"],
+  "keywords": ["integer"],
+  "media_type": "movie" /* enum: "movie", "tv", "all" */,
+  "region": ["string"],
+  "with_runtime_gte": 0,
+  "with_runtime_lte": 0,
+  "with_release_date_gte": "string" /* date */,
+  "with_release_date_lte": "string" /* date */,
+  "with_watch_providers": ["string"]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Returns
+
+[`CreatePageResponse`](/sdk-reference/types/pages#createpageresponse) — Page created successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "id": "string",
+  "pageFilters": {
+  "genres": ["integer"],
+  "keywords": ["integer"],
+  "media_type": "movie" /* enum: "movie", "tv", "all" */,
+  "region": ["string"],
+  "with_runtime_gte": 0,
+  "with_runtime_lte": 0,
+  "with_release_date_gte": "string" /* date */,
+  "with_release_date_lte": "string" /* date */,
+  "with_watch_providers": ["string"]
+}
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { CreatePagePayload, CreatePageResponse, FilterSpec } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: CreatePageResponse = await discovr.createPage({
+	pageFilters: { media_type: "movie" },
+	name: "a",
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.CreatePagePayload
+import api.discovr.models.CreatePageResponse
+import api.discovr.models.FilterSpec
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: CreatePageResponse = client.createPage(pageFilters = FilterSpec(media_type = "movie"), name = "a")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// CreatePagePayload, CreatePageResponse, FilterSpec
+let response: CreatePageResponse = try await client.createPage(pageFilters: FilterSpec(media_type: "movie"), name: "a")
+print(response)
+```
+
+</CodeGroup>

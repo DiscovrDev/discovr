@@ -1,0 +1,93 @@
+---
+title: "scrobble()"
+description: "Record playback progress"
+---
+
+Scrobbling is Discovr's single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don't need to coordinate multiple endpoints.
+
+Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:
+
+- The item stays in the user's **in-progress** list until they finish watching.
+- Once they've watched 80% or more, it's marked as complete and moves to their **history**.
+- For movies, the item is removed from the user's watchlist once they've watched more than 20% — so it clears as soon as they're clearly watching it. For TV episodes, it's removed from the watchlist once the episode is complete (≥80%).
+
+For TV shows, include `season` and `episode` in the request body so history is tracked per episode.
+
+**Auth tier:** session — send your session token in `Authorization: Bearer`.
+
+## Parameters
+
+| Name     | Type                                                     | Required | Description                                                                                                                                                                                                                                                 |
+| -------- | -------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId  | `string`                                                 | Yes      | The media ID in `MV_&lt;number&gt;` or `TV_&lt;number&gt;` format (e.g., `MV_550`, `TV_1396`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+| progress | `number`                                                 | Yes      | Current playback position as a percentage (0–100).                                                                                                                                                                                                          |
+| tv       | [`ScrobbleTv`](/sdk-reference/types/scrobble#scrobbletv) | No       | Which episode is playing. Required for TV shows, omitted for movies.                                                                                                                                                                                        |
+
+<AccordionGroup>
+<Accordion title="View ScrobbleTv structure">
+```json
+{
+  "season": 2,
+  "episode": 5
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Returns
+
+[`ScrobbleResponse`](/sdk-reference/types/scrobble#scrobbleresponse) — Progress recorded. Check `completed` to know if the item was marked as watched.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "status": "string",
+  "progress": 85,
+  "completed": false
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { ScrobbleProgressBody, ScrobbleResponse, ScrobbleTv } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: ScrobbleResponse = await discovr.scrobble("TV_1396", 42.5, {
+	tv: { season: 2, episode: 5 },
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.ScrobbleProgressBody
+import api.discovr.models.ScrobbleResponse
+import api.discovr.models.ScrobbleTv
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: ScrobbleResponse = client.scrobble(mediaId = "TV_1396", progress = 42.5, tv = ScrobbleTv(season = 2, episode = 5))
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// ScrobbleProgressBody, ScrobbleResponse, ScrobbleTv
+let response: ScrobbleResponse = try await client.scrobble(mediaId: "TV_1396", progress: 42.5, tv: ScrobbleTv(season: 2, episode: 5))
+print(response)
+```
+
+</CodeGroup>

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://docs.discovr.media
+    about: Guides, API reference and SDK reference.
+  - name: Security problems
+    url: https://github.com/DiscovrDev/discovr/blob/main/SECURITY.md
+    about: Please report vulnerabilities privately, not in a public issue.

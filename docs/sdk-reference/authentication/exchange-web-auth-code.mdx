@@ -1,0 +1,77 @@
+---
+title: "exchangeWebAuthCode()"
+description: "Redeem a web sign-in code"
+---
+
+The last step of a web sign-in. Trade the authorization code Discovr delivered to your app, together with the
+`codeVerifier` you generated when you started, for the refresh token. The SDKs call this for you.
+
+The code is single-use and lives 60 seconds. A request with a wrong `codeVerifier` fails **and spends the code**, so
+whoever intercepted it gets one try, not unlimited guesses. The refresh token comes back in this response only —
+it is never in a URL or a `postMessage`.
+
+## Parameters
+
+| Name         | Type     | Required | Description                                                                                                                                                                                                                              |
+| ------------ | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| clientID     | `string` | Yes      | Your client ID — the one the sign-in was started with.                                                                                                                                                                                   |
+| code         | `string` | Yes      | The single-use authorization code Discovr delivered to your app (a `postMessage` to the sign-in window's opener, or the `code` query parameter on your redirect URL). It expires after 60 seconds and is useless without `codeVerifier`. |
+| codeVerifier | `string` | Yes      | The random secret you generated when you started the sign-in, whose SHA-256 you sent as `codeChallenge`. It never leaves your app until this call. A wrong verifier burns the code.                                                      |
+
+## Returns
+
+[`RefreshTokenResponse`](/sdk-reference/types/authentication#refreshtokenresponse) — Code redeemed — your credential.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "refreshToken": "string",
+  "publicId": "string",
+  "expiresAt": 1733088000
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { RefreshTokenResponse, WebTokenPayload } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+const response: RefreshTokenResponse = await discovr.exchangeWebAuthCode(
+	"abc123xyz",
+	"Gh2kd9QpXw3LmN7vRtYa.k3J9xQmPz1VbT6uYhN4oWcE8sA2dF5gLrXiUqZjKvBeM",
+	"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+);
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.RefreshTokenResponse
+import api.discovr.models.WebTokenPayload
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: RefreshTokenResponse = client.exchangeWebAuthCode(clientID = "abc123xyz", code = "Gh2kd9QpXw3LmN7vRtYa.k3J9xQmPz1VbT6uYhN4oWcE8sA2dF5gLrXiUqZjKvBeM", codeVerifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// RefreshTokenResponse, WebTokenPayload
+let response: RefreshTokenResponse = try await client.exchangeWebAuthCode(clientID: "abc123xyz", code: "Gh2kd9QpXw3LmN7vRtYa.k3J9xQmPz1VbT6uYhN4oWcE8sA2dF5gLrXiUqZjKvBeM", codeVerifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
+print(response)
+```
+
+</CodeGroup>

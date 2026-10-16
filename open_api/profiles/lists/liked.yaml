@@ -1,0 +1,163 @@
+# Path operations for liked list endpoints
+
+get:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: Likes
+  summary: Get liked items
+  description: |
+    Returns the liked list for a specific profile.
+
+    **Auth tier:** session — send the session token from `POST /auth/session-token`.
+
+    Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.
+
+    **Pagination:**
+    - Pass `nextPageToken` from a previous response to fetch the next page.
+    - If `hasMore` is `true`, there are more items available.
+
+    **Exclusive lists:**
+    Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time.
+  operationId: getLikedItems
+  # Never cache: reflects live, cross-device mutable profile state.
+  x-cache-policy: none
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: nextPageToken
+      in: query
+      required: false
+      description: "Opaque token from previous page for pagination"
+      schema:
+        type: string
+    - name: limit
+      in: query
+      required: false
+      description: "Maximum number of items to return (1-50, default: 10)"
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 10
+  responses:
+    "200":
+      description: List of liked items retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SimpleListResponse"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"
+
+post:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: Likes
+  summary: Add an item to liked list
+  description: |
+    Adds a title to the liked list.
+
+    **Auth tier:** session — send the session token from `POST /auth/session-token`.
+
+    Liked, disliked, and super-liked are exclusive — liking something automatically removes any existing dislike or super-like for the same title.
+
+    Returns `201` if the item was newly added, `200` if it was already liked.
+  operationId: addLikedItem
+  security:
+    - BearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "./schemas.yaml#/AddSimpleListItemPayload"
+        example:
+          mediaId: "MV_550"
+  responses:
+    "200":
+      description: Item was already liked — no change made.
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SuccessMessage"
+          example:
+            message: "Item added to liked list successfully"
+            added: "liked"
+    "201":
+      description: Item added to liked list.
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SuccessMessage"
+          example:
+            message: "Item added to liked list successfully"
+            added: "liked"
+            removed: "disliked"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"
+
+delete:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: Likes
+  summary: Delete an item from liked list
+  description: |
+    Removes a title from the liked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show).
+  operationId: deleteLikedItem
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: mediaId
+      in: path
+      required: true
+      description: |
+        Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      schema:
+        type: string
+      example: "MV_550"
+  responses:
+    "200":
+      description: Item deleted successfully
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SuccessMessage"
+          example:
+            message: "Like deleted successfully"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"

@@ -1,0 +1,83 @@
+---
+title: "getMediaAssets()"
+description: "Get media assets"
+---
+
+Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.
+
+This is a public endpoint — no authentication required. Returns only generic catalog metadata.
+
+## Parameters
+
+| Name    | Type     | Required | Description                                                                                                                                                                                                                                                                                       |
+| ------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId | `string` | Yes      | The unique identifier of the media item. Use `MV_&lt;id&gt;` for movies or `TV_&lt;id&gt;` for TV shows (e.g., `MV_550`, `TV_1396`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+
+## Returns
+
+[`MediaAssetsResponse`](/sdk-reference/types/media#mediaassetsresponse) — Media assets returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "poster": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "backdrop": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "logo": {
+  "w185": "https://cdn.example.com/w185/wwemzKWzjKYJFfCeiB57q3r4Bcm.png",
+  "w500": "https://cdn.example.com/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png",
+  "original": "https://cdn.example.com/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
+},
+  "trailer": {
+  "key": "string",
+  "url": "string"
+}
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { MediaAssetsResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+const response: MediaAssetsResponse = await discovr.getMediaAssets("example");
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.MediaAssetsResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: MediaAssetsResponse = client.getMediaAssets(mediaId = "example")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// MediaAssetsResponse
+let response: MediaAssetsResponse = try await client.getMediaAssets(mediaId: "example")
+print(response)
+```
+
+</CodeGroup>

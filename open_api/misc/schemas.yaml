@@ -1,0 +1,110 @@
+ProfileImagesResponse:
+  type: object
+  description: Available avatar images for profile setup. All are still images.
+  required:
+    - images
+  properties:
+    nextToken:
+      type: string
+      description: Pass this back as the page token to get the next page. Absent on the last page.
+    images:
+      type: array
+      description: Direct URLs to avatar images. Use any of these as a profile picture.
+      items:
+        type: string
+        format: uri
+      example:
+        - https://api.discovr.media/profile-images/profile-amber.png
+        - https://api.discovr.media/profile-images/profile-sage.png
+        - https://api.discovr.media/profile-images/profile-indigo.png
+
+GifItem:
+  type: object
+  description: A single animated GIF result.
+  required:
+    - id
+    - url
+    - preview
+    - description
+    - tags
+    - width
+    - height
+    - createdAt
+  properties:
+    id:
+      type: string
+      description: Unique identifier for the GIF.
+      example: "12345678"
+    url:
+      type: string
+      format: uri
+      description: Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF. Choose how to render it from the file extension.
+      example: "https://static.klipy.com/example.gif"
+    preview:
+      description: A smaller, lighter version, for grids and pickers. Usually a GIF; falls back to the full-size file when no smaller one exists.
+      $ref: "#/GifPreview"
+    description:
+      type: string
+      description: Title or short description of the GIF.
+      example: "Happy Dance"
+    tags:
+      type: array
+      description: Keywords associated with the GIF.
+      items:
+        type: string
+      example:
+        - "happy"
+        - "dance"
+        - "celebration"
+    width:
+      type: integer
+      description: Width of `url` in pixels.
+      example: 498
+    height:
+      type: integer
+      description: Height of `url` in pixels.
+      example: 498
+    createdAt:
+      type: string
+      format: date-time
+      description: When this result was fetched (ISO 8601).
+      example: "2024-01-15T10:30:00.000Z"
+
+GifPreview:
+  type: object
+  description: A lower-resolution preview of the GIF, suitable for thumbnails.
+  required:
+    - url
+    - width
+    - height
+  properties:
+    url:
+      type: string
+      format: uri
+      description: URL to the preview image.
+      example: "https://static.klipy.com/preview.gif"
+    width:
+      type: integer
+      description: Preview width in pixels.
+      example: 200
+    height:
+      type: integer
+      description: Preview height in pixels.
+      example: 200
+
+GifSearchResponse:
+  type: object
+  description: Paginated GIF search results.
+  required:
+    - items
+  properties:
+    items:
+      type: array
+      description: GIF results for the current page.
+      items:
+        $ref: "#/GifItem"
+    next:
+      type: string
+      nullable: true
+      description: Pagination cursor — pass as `pos` in your next request to load more results. `null` when there are no more results.
+      example: "1:20"

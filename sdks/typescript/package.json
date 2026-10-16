@@ -1,0 +1,32 @@
+{
+  "name": "discovr",
+  "version": "1.0.0-alpha.1",
+  "description": "TypeScript SDK for the Discovr API",
+  "author": "Discovr",
+  "homepage": "https://docs.discovr.media",
+  "bugs": {
+    "url": "https://github.com/DiscovrDev/discovr/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DiscovrDev/discovr.git",
+    "directory": "sdks/typescript"
+  },
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/esm/index.js",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc && tsc -p tsconfig.esm.json",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^4.0 || ^5.0"
+  }
+}

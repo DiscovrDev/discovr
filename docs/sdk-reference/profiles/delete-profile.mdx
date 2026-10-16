@@ -1,0 +1,66 @@
+---
+title: "deleteProfile()"
+description: "Delete a profile"
+---
+
+Permanently deletes the profile. This action can't be undone.
+
+Deleting an account's only profile is allowed. The account then has no profiles and can't mint a session token until a new one is created — see [Handle zero profiles](/guides/profiles/listing-and-selecting-profiles). Returns 404 if the profile doesn't exist or doesn't belong to the signed-in user.
+
+## Parameters
+
+| Name      | Type     | Required | Description                      |
+| --------- | -------- | -------- | -------------------------------- |
+| profileId | `string` | Yes      | The ID of the profile to delete. |
+
+## Returns
+
+[`DeleteProfileResponse`](/sdk-reference/types/profiles#deleteprofileresponse) — Profile deleted.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "message": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { DeleteProfileResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in …
+const response: DeleteProfileResponse = await discovr.deleteProfile("profile_abc123xyz");
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.DeleteProfileResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: DeleteProfileResponse = client.deleteProfile(profileId = "profile_abc123xyz")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// DeleteProfileResponse
+let response: DeleteProfileResponse = try await client.deleteProfile(profileId: "profile_abc123xyz")
+print(response)
+```
+
+</CodeGroup>

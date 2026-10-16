@@ -1,0 +1,60 @@
+---
+title: "selectProfile()"
+description: "Choose which profile is browsing"
+---
+
+Activates a profile, so everything you fetch afterwards is that viewer's — their recommendations, their watchlist, their playback progress. Call it once after sign-in, before createPage() or any other profile-scoped method. The SDK handles the credential this needs and renews it for you.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+selectProfile(profileId: string): Promise<void>
+```
+
+```kotlin Kotlin
+suspend fun selectProfile(profileId: String)
+```
+
+```swift Swift
+func selectProfile(profileId: String) async throws
+```
+
+</CodeGroup>
+
+## Parameters
+
+| Name      | Type     | Required | Description                                                 |
+| --------- | -------- | -------- | ----------------------------------------------------------- |
+| profileId | `string` | Yes      | The ID of the profile to select. Obtain from getProfiles(). |
+
+## Returns
+
+`void` — Nothing. Once it resolves, the profile is active and you can start fetching.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+const { profiles } = await client.getProfiles();
+await client.selectProfile(profiles[0].id);
+// Ready to call session-tier API methods
+const page = await client.createPage();
+```
+
+```kotlin Kotlin
+val profiles = client.getProfiles().profiles
+client.selectProfile(profiles.first().id)
+// Ready
+val page = client.createPage()
+```
+
+```swift Swift
+let res = try await client.getProfiles()
+try await client.selectProfile(profileId: res.profiles[0].id)
+let page = try await client.createPage()
+```
+
+</CodeGroup>

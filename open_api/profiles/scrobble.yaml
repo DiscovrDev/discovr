@@ -1,0 +1,126 @@
+post:
+  tags:
+    - Discovr
+    - Scrobble
+  summary: Record playback progress
+  description: |
+    Scrobbling is Discovr's single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don't need to coordinate multiple endpoints.
+
+    Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:
+
+    - The item stays in the user's **in-progress** list until they finish watching.
+    - Once they've watched 80% or more, it's marked as complete and moves to their **history**.
+    - For movies, the item is removed from the user's watchlist once they've watched more than 20% — so it clears as soon as they're clearly watching it. For TV episodes, it's removed from the watchlist once the episode is complete (≥80%).
+
+    For TV shows, include `season` and `episode` in the request body so history is tracked per episode.
+
+    **Auth tier:** session — send your session token in `Authorization: Bearer`.
+  operationId: scrobble
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: mediaId
+      in: path
+      required: true
+      description: |
+        The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      schema:
+        type: string
+        pattern: '^(MV|TV)_\d+(@[0-9A-Za-z_-]+)?$'
+      example: "TV_1396"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "./schemas.yaml#/ScrobbleProgressBody"
+        example:
+          progress: 15.5
+          tv:
+            season: 1
+            episode: 2
+  responses:
+    "200":
+      description: Progress recorded. Check `completed` to know if the item was marked as watched.
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/ScrobbleResponse"
+          example:
+            status: "ok"
+            progress: 15.5
+            completed: false
+    "400":
+      $ref: "../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../shared/responses.yaml#/ServiceUnavailable"
+
+skip:
+  post:
+    tags:
+      - Discovr
+      - Scrobble
+    summary: Record a skip event
+    description: |
+      Signals that the user jumped to another point in the content, forward (a skip) or backward (a rewind). Used for watch analytics. Returns immediately — no side effects on lists or history.
+
+      `from` and `to` are playback positions as a percentage (0–100) and must differ; `from` higher than `to` is a jump backward. `duration` is how many seconds were jumped. After a jump, also send the position the viewer landed on as a progress update with `POST /profile/scrobble/{mediaId}`.
+    operationId: scrobbleSkip
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: mediaId
+        in: path
+        required: true
+        description: |
+          The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).
+
+          Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+        schema:
+          type: string
+          pattern: '^(MV|TV)_\d+(@[0-9A-Za-z_-]+)?$'
+        example: "TV_1396"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/ScrobbleSkipBody"
+          example:
+            from: 10
+            to: 20
+            duration: 45
+            tv:
+              season: 1
+              episode: 4
+    responses:
+      "200":
+        description: Skip event recorded.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/ScrobbleSkipResponse"
+            example:
+              status: "ok"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../shared/responses.yaml#/NotFound"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"

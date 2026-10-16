@@ -1,0 +1,55 @@
+---
+title: "Misc Types"
+description: "Types used by Misc SDK operations."
+---
+
+## GifItem
+
+<a id="gifitem" />
+
+A single animated GIF result.
+
+| Property    | Type       | Required | Description                                                                                                                           |
+| ----------- | ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| id          | `string`   | Yes      | Unique identifier for the GIF.                                                                                                        |
+| url         | `string`   | Yes      | Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF. Choose how to render it from the file extension. |
+| preview     | `object`   | Yes      | A smaller, lighter version, for grids and pickers. Usually a GIF; falls back to the full-size file when no smaller one exists.        |
+| description | `string`   | Yes      | Title or short description of the GIF.                                                                                                |
+| tags        | `string[]` | Yes      | Keywords associated with the GIF.                                                                                                     |
+| width       | `integer`  | Yes      | Width of `url` in pixels.                                                                                                             |
+| height      | `integer`  | Yes      | Height of `url` in pixels.                                                                                                            |
+| createdAt   | `string`   | Yes      | When this result was fetched (ISO 8601).                                                                                              |
+
+## GifPreview
+
+<a id="gifpreview" />
+
+A lower-resolution preview of the GIF, suitable for thumbnails.
+
+| Property | Type      | Required | Description               |
+| -------- | --------- | -------- | ------------------------- |
+| url      | `string`  | Yes      | URL to the preview image. |
+| width    | `integer` | Yes      | Preview width in pixels.  |
+| height   | `integer` | Yes      | Preview height in pixels. |
+
+## GifSearchResponse
+
+<a id="gifsearchresponse" />
+
+Paginated GIF search results.
+
+| Property | Type        | Required | Description                                                                                                         |
+| -------- | ----------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
+| items    | `GifItem[]` | Yes      | GIF results for the current page.                                                                                   |
+| next     | `string`    | No       | Pagination cursor — pass as `pos` in your next request to load more results. `null` when there are no more results. |
+
+## ProfileImagesResponse
+
+<a id="profileimagesresponse" />
+
+Available avatar images for profile setup. All are still images.
+
+| Property  | Type       | Required | Description                                                                     |
+| --------- | ---------- | -------- | ------------------------------------------------------------------------------- |
+| nextToken | `string`   | No       | Pass this back as the page token to get the next page. Absent on the last page. |
+| images    | `string[]` | Yes      | Direct URLs to avatar images. Use any of these as a profile picture.            |

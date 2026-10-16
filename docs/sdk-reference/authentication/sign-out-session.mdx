@@ -1,0 +1,59 @@
+---
+title: "signOutSession()"
+description: "Sign out the current device"
+---
+
+Signs out the current device by revoking the refresh token you send in the `Authorization` header.
+Other devices the user is signed into aren't affected — you can only sign out the current device from a third-party app.
+
+Identity-tier calls using this token fail immediately after revocation.
+Any existing session tokens (valid for 30 minutes) remain usable until they naturally expire.
+
+Works the same way for a demo session's refresh token — a demo sandbox is an ordinary account, so this is a quick way to end one early and test how your app handles it.
+
+Using an SDK? Call `signOut()` instead — it wraps this endpoint and also clears
+the credentials stored on the device.
+
+**Auth tier:** identity — send your refresh token in the `Authorization: Bearer` header.
+
+## Returns
+
+`SignOutSession200Response` — Refresh token revoked. Device is signed out.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { SignOutSession200Response } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in …
+const response: SignOutSession200Response = await discovr.signOutSession();
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.SignOutSession200Response
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SignOutSession200Response = client.signOutSession()
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// SignOutSession200Response
+let response: SignOutSession200Response = try await client.signOutSession()
+print(response)
+```
+
+</CodeGroup>

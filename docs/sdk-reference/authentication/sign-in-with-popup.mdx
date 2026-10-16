@@ -1,0 +1,34 @@
+---
+title: "signInWithPopup()"
+description: "Sign in with a popup window (web only)"
+---
+
+Opens a sign-in popup in the browser. The user signs in there and your app is signed in when the popup closes, without your page navigating away. It is the authorization code flow with PKCE, so no credential passes through the popup: the SDK redeems a one-time code itself. Rejects with AuthCancelledError if the user closes the window or presses Cancel. Browser-only — on Android use signInWithWebAuth(), and on iOS use signInWithWebAuth(), which presents the same flow natively.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+signInWithPopup(): Promise<SignInResult>
+```
+
+</CodeGroup>
+
+<Info>Not available in Kotlin or Swift. See the guide for the equivalent on those platforms.</Info>
+
+## Returns
+
+`SignInResult` — An object containing refreshToken, publicId, and expiresAt (90-day expiry timestamp).
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+const client = new DiscovrClient("your-client-id");
+const result = await client.signInWithPopup();
+console.log("Signed in, refresh token:", result.refreshToken);
+```
+
+</CodeGroup>

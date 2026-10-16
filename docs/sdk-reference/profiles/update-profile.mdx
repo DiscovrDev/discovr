@@ -1,0 +1,86 @@
+---
+title: "updateProfile()"
+description: "Update a profile"
+---
+
+Updates a profile's name, avatar URL, or both. Provide only the fields you want to change — omitted fields stay as-is.
+
+Returns the updated profile object. Returns 404 if the profile doesn't exist or doesn't belong to the signed-in user.
+
+## Parameters
+
+| Name            | Type                                                               | Required | Description                       |
+| --------------- | ------------------------------------------------------------------ | -------- | --------------------------------- |
+| profileId       | `string`                                                           | Yes      | The ID of the profile to update.  |
+| name            | `string`                                                           | No       | New display name for the profile. |
+| avatarUrl       | `string (uri)`                                                     | No       | New avatar URL for the profile.   |
+| avatarMediaType | [`AvatarMediaType`](/sdk-reference/types/profiles#avatarmediatype) | No       |                                   |
+
+<AccordionGroup>
+	<Accordion title="View AvatarMediaType structure">
+		```json "image/png" /* enum: "image/png", "image/jpeg", "image/webp", "image/gif", "video/mp4",
+		"video/webm" */ ```
+	</Accordion>
+</AccordionGroup>
+
+## Returns
+
+[`Profile`](/sdk-reference/types/profiles#profile) — Profile updated successfully. Returns the full updated profile object.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "id": "string",
+  "name": "string",
+  "avatarUrl": "string" /* uri */,
+  "avatarMediaType": "image/png" /* AvatarMediaType: "image/png", "image/jpeg", "image/webp", "image/gif", "video/mp4", "video/webm" */,
+  "createdAt": "string" /* date-time */
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { AvatarMediaType, Profile, UpdateProfilePayload } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in …
+const response: Profile = await discovr.updateProfile("profile_abc123xyz", {
+	name: "Action Movie Fan",
+	avatarUrl: "https://example.com/new-avatar.jpg",
+	avatarMediaType: "image/png",
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.AvatarMediaType
+import api.discovr.models.Profile
+import api.discovr.models.UpdateProfilePayload
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: Profile = client.updateProfile(profileId = "profile_abc123xyz", name = "Action Movie Fan", avatarUrl = "https://example.com/new-avatar.jpg", avatarMediaType = "image/png")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// AvatarMediaType, Profile, UpdateProfilePayload
+let response: Profile = try await client.updateProfile(profileId: "profile_abc123xyz", name: "Action Movie Fan", avatarUrl: "https://example.com/new-avatar.jpg", avatarMediaType: "image/png")
+print(response)
+```
+
+</CodeGroup>

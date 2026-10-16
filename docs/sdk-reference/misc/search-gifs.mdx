@@ -1,0 +1,96 @@
+---
+title: "searchGifs()"
+description: "Search GIFs"
+---
+
+Searches for animated GIFs by keyword. Use the `contentfilter` parameter to control content safety (`off`, `low`, `medium`, `high`); if you omit it, the filtering configured for Discovr's Klipy account applies, which is not a fixed level, so pass it explicitly when you need a guaranteed one. Results are paginated — pass `next` from the previous response as `pos` to load more.
+
+Each result's `url` is the full-size file and is an **MP4 whenever one is available**, otherwise a GIF, so render it with a video player or an image view according to its file extension (see `avatarMediaType` on profiles). `preview.url` is a lighter version for grids; use it for thumbnails and save `url` only for the one the user picks.
+
+Klipy attribution is required wherever you show these results.
+
+No authentication required.
+
+## Parameters
+
+| Name          | Type                                   | Required | Description                                                                                                                                           |
+| ------------- | -------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| q             | `string`                               | Yes      | Search term.                                                                                                                                          |
+| limit         | `integer`                              | No       | Maximum number of results to return (1–50).                                                                                                           |
+| pos           | `string`                               | No       | Pagination cursor from the `next` field of the previous response. Omit to start from the beginning.                                                   |
+| contentfilter | `"high" \| "medium" \| "low" \| "off"` | No       | Content safety level. `high` is the most restrictive; `off` applies no filtering. Omit it and Discovr's default filtering applies, not a fixed level. |
+| country       | `string`                               | No       | ISO 3166-1 alpha-2 country code for regional content preferences (e.g., `US`). Takes precedence over `locale`.                                        |
+| locale        | `string`                               | No       | Only its region part is used (`en_US` is treated as `US`), and only when `country` is not sent.                                                       |
+
+## Returns
+
+[`GifSearchResponse`](/sdk-reference/types/misc#gifsearchresponse) — GIF results returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "items": [
+{
+  "id": "string",
+  "url": "string" /* uri */,
+  "preview": {
+  "url": "string" /* uri */,
+  "width": 200,
+  "height": 200
+},
+  "description": "string",
+  "tags": ["string"],
+  "width": 498,
+  "height": 498,
+  "createdAt": "string" /* date-time */
+}
+],
+  "next": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { GifSearchResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+const response: GifSearchResponse = await discovr.searchGifs("happy dance", {
+	limit: 20,
+	pos: "1:20",
+	contentfilter: "medium",
+	country: "US",
+	locale: "en_US",
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.GifSearchResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: GifSearchResponse = client.searchGifs(q = "happy dance", limit = 20, pos = "1:20", contentfilter = DiscovrApi.ContentfilterSearchGifs.high, country = "US", locale = "en_US")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// GifSearchResponse
+let response: GifSearchResponse = try await client.searchGifs(q: "happy dance", limit: 20, pos: "1:20", contentfilter: DiscovrAPI.Contentfilter_searchGifs.high, country: "US", locale: "en_US")
+print(response)
+```
+
+</CodeGroup>

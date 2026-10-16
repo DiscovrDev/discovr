@@ -1,0 +1,62 @@
+# Versions are not set here: generate-sdks.ts reads `info.version` from the bundled
+# spec and passes it to every generator, so the API and all three SDKs share one
+# version number.
+
+kotlin:
+  generatorName: kotlin
+  outputDir: public/sdks/kotlin
+  templateDir: public/sdks/templates/kotlin
+  globalProperty:
+    apiTests: "false"
+    modelTests: "false"
+  additionalProperties:
+    packageName: api.discovr
+    groupId: media.discovr
+    artifactId: discovr-sdk
+    gitUserId: DiscovrDev
+    gitRepoId: discovr
+    library: multiplatform
+    dateLibrary: kotlinx-datetime
+  # Free-form/untyped object schemas (type: object, additionalProperties: true, no
+  # declared properties — e.g. FreeformObject) otherwise get misresolved as
+  # kotlin.String by the kotlin generator's array-item type resolution, causing a
+  # SerializationException at runtime the first time a real API response returns
+  # non-empty data for one of these fields. Map them to a real serializable
+  # free-form JSON type instead, mirroring Swift's built-in JSONValue for the
+  # same schema shape. The matching `import kotlinx.serialization.json.JsonElement`
+  # is added unconditionally by the model.mustache override in template_overrides/
+  # (rather than via --import-mappings) because the generator's own import-mapping
+  # resolution proved to depend on JVM/platform-specific HashMap iteration order —
+  # it resolved correctly on macOS but silently fell back to `kotlin.Any` (with no
+  # import, and no compile error until kotlinx.serialization tried to find a
+  # serializer for it) on Linux CI runners.
+  typeMappings: "object=JsonElement"
+  importMappings: "JsonElement=kotlinx.serialization.json.JsonElement"
+
+typescript:
+  generatorName: typescript-fetch
+  outputDir: public/sdks/typescript
+  templateDir: public/sdks/templates/typescript-fetch
+  globalProperty:
+    apiTests: "false"
+    modelTests: "false"
+  additionalProperties:
+    npmName: discovr
+    gitUserId: DiscovrDev
+    gitRepoId: discovr
+    licenseName: MIT
+    typescriptThreePlus: "true"
+    supportsES6: "true"
+    useSingleRequestParameter: "false"
+
+swift:
+  generatorName: swift6
+  outputDir: public/sdks/swift
+  templateDir: public/sdks/templates/swift6
+  globalProperty:
+    apiTests: "false"
+    modelTests: "false"
+  additionalProperties:
+    projectName: Discovr
+    gitUserId: DiscovrDev
+    gitRepoId: discovr

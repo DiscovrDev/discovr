@@ -1,0 +1,256 @@
+# Profile schemas for public API endpoints
+
+AvatarMediaType:
+  type: string
+  description: |
+    What kind of file `avatarUrl` points at, as a MIME type. Use it to choose between an image view and a video player, and to decide what can be animated, instead of guessing from the URL, since uploads have no file extension. `image/gif`, `video/mp4` and `video/webm` are animated; the others are still.
+
+    On a profile it is absent when the type couldn't be determined; treat that as a still image. When you create or update a profile it is optional: Discovr works it out from the URL's file extension, so send it only when your URL has none. It can only be sent together with `avatarUrl`, and changing `avatarUrl` replaces it (or clears it when the new URL can't be typed), so it never describes the previous picture.
+  enum:
+    - image/png
+    - image/jpeg
+    - image/webp
+    - image/gif
+    - video/mp4
+    - video/webm
+  example: "image/png"
+
+CreateProfilePayload:
+  type: object
+  description: Name and avatar for the new profile.
+  required:
+    - name
+    - avatarUrl
+  properties:
+    name:
+      type: string
+      description: The display name for the profile.
+      example: "Sci-Fi Lover"
+    avatarUrl:
+      type: string
+      description: URL of the profile avatar image.
+      format: uri
+      example: "https://example.com/avatar.jpg"
+    avatarMediaType:
+      $ref: "#/AvatarMediaType"
+  additionalProperties: false
+
+CreateProfileResponse:
+  type: object
+  description: Contains the ID of the newly created profile. Use it with `POST /auth/session-token` to start browsing.
+  required:
+    - profileId
+  properties:
+    profileId:
+      type: string
+      description: The ID of the newly created profile.
+      example: "profile_abc123xyz"
+  additionalProperties: false
+
+Profile:
+  type: object
+  description: A Discovr profile with its display info and creation timestamp.
+  required:
+    - id
+    - name
+    - avatarUrl
+    - createdAt
+  properties:
+    id:
+      type: string
+      description: The unique ID of the profile.
+      example: "profile_abc123xyz"
+    name:
+      type: string
+      description: The profile's display name.
+      example: "Sci-Fi Lover"
+    avatarUrl:
+      type: string
+      description: URL of the profile's avatar image.
+      format: uri
+      example: "https://example.com/avatar.jpg"
+    avatarMediaType:
+      $ref: "#/AvatarMediaType"
+    createdAt:
+      type: string
+      format: date-time
+      description: When the profile was created, as an ISO 8601 timestamp.
+      example: "2023-01-01T00:00:00.000Z"
+
+  additionalProperties: false
+
+UpdateProfilePayload:
+  type: object
+  description: Fields to update on the profile. All fields are optional — provide only what's changing. At least one must be present.
+  properties:
+    name:
+      type: string
+      description: New display name for the profile.
+      example: "Action Movie Fan"
+    avatarUrl:
+      type: string
+      description: New avatar URL for the profile.
+      format: uri
+      example: "https://example.com/new-avatar.jpg"
+    avatarMediaType:
+      $ref: "#/AvatarMediaType"
+  additionalProperties: false
+
+DeleteProfileResponse:
+  type: object
+  description: Confirmation that the profile was deleted.
+  required:
+    - message
+  properties:
+    message:
+      type: string
+      description: A confirmation message.
+      example: "Profile deleted successfully"
+  additionalProperties: false
+
+GetProfilesResponse:
+  type: object
+  description: List of profiles for the signed-in user.
+  required:
+    - profiles
+  properties:
+    profiles:
+      type: array
+      description: Profiles for the signed-in user, ordered by creation date (newest first).
+      items:
+        $ref: "#/Profile"
+      example:
+        - id: "profile_abc123xyz"
+          name: "Sci-Fi Lover"
+          avatarUrl: "https://example.com/avatar.jpg"
+          createdAt: "2023-01-01T00:00:00.000Z"
+        - id: "profile_def456uvw"
+          name: "Action Movie Fan"
+          avatarUrl: "https://example.com/avatar2.jpg"
+          createdAt: "2023-01-02T00:00:00.000Z"
+  additionalProperties: false
+
+# Scrobble Schemas
+ScrobbleTv:
+  type: object
+  description: Episode context for TV show scrobbles.
+  required:
+    - season
+    - episode
+  properties:
+    season:
+      type: integer
+      minimum: 1
+      description: Season number.
+      example: 2
+    episode:
+      type: integer
+      minimum: 1
+      description: Episode number.
+      example: 5
+  additionalProperties: false
+
+ScrobbleProgressPayload:
+  type: object
+  description: Reports how far through a title the viewer is. Send this as the user watches.
+  required:
+    - mediaId
+    - progress
+  properties:
+    mediaId:
+      type: string
+      description: The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).
+      example: "TV_1396"
+    progress:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: Current playback position as a percentage (0–100).
+      example: 42.5
+    tv:
+      description: Which episode is playing. Required for TV shows, omitted for movies.
+      $ref: "#/ScrobbleTv"
+  additionalProperties: false
+
+ScrobbleProgressBody:
+  type: object
+  description: Body form of a progress report, for the route that already carries the title in its path.
+  required:
+    - progress
+  properties:
+    progress:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: Current playback position as a percentage (0–100).
+      example: 42.5
+    tv:
+      description: Which episode is playing. Required for TV shows, omitted for movies.
+      $ref: "#/ScrobbleTv"
+  additionalProperties: false
+
+ScrobbleSkipBody:
+  type: object
+  description: Body form of a skip report, for the route that already carries the title in its path.
+  required:
+    - from
+    - to
+    - duration
+  properties:
+    from:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: Playback position where the skip started (0–100).
+      example: 10
+    to:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: Playback position where the skip landed (0–100).
+      example: 20
+    duration:
+      type: number
+      minimum: 0
+      description: Number of seconds skipped.
+      example: 20
+    tv:
+      description: Which episode is playing. Required for TV shows, omitted for movies.
+      $ref: "#/ScrobbleTv"
+  additionalProperties: false
+
+ScrobbleResponse:
+  type: object
+  description: Confirms a progress report, echoing what was recorded and whether it counted as watched.
+  required:
+    - status
+    - progress
+    - completed
+  properties:
+    status:
+      type: string
+      description: Always `"ok"` on success.
+      example: "ok"
+    progress:
+      type: number
+      description: The progress value recorded (0–100).
+      minimum: 0
+      maximum: 100
+      example: 85.0
+    completed:
+      type: boolean
+      description: "`true` if the item was marked as watched (progress reached 80% or more)."
+      example: true
+  additionalProperties: false
+
+ScrobbleSkipResponse:
+  type: object
+  description: Confirms a skip report was recorded.
+  required:
+    - status
+  properties:
+    status:
+      type: string
+      description: Always `"ok"` on success.
+      example: "ok"
+  additionalProperties: false

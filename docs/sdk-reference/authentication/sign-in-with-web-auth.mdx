@@ -1,0 +1,64 @@
+---
+title: "signInWithWebAuth()"
+description: "Sign in with a redirect flow (web and mobile)"
+---
+
+Redirects the current page to the authentication server. The user signs in and is redirected back to your callback URL with a one-time code (authorization code flow with PKCE). Call handleRedirectResult() on the return page to redeem it and complete sign-in.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+signInWithWebAuth(redirectURL: string): Promise<void>
+```
+
+```kotlin Kotlin
+fun signInWithWebAuth(redirectUri: String, launchUrl: (String) -> Unit)
+```
+
+```swift Swift
+func signInWithWebAuth(redirectUri: String, presentationAnchor: ASPresentationAnchor) async throws
+```
+
+</CodeGroup>
+
+## Parameters
+
+| Name        | Type     | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ----------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| redirectURL | `string` | Yes      | A callback URL registered for this client ID in the Discovr dashboard. Must be an exact match (query strings are ignored, trailing slashes are not significant). Use an `https://` URL for web apps, a reverse-DNS scheme you own for native apps (`com.example.app://auth/callback` — a dot is required, and no website is needed), or `http://127.0.0.1/callback` for desktop apps, where the port is matched as a wildcard. |
+
+## Returns
+
+`void` — This method navigates away (redirects the page). Call handleRedirectResult() on the return page.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+const client = new DiscovrClient("your-client-id");
+await client.signInWithWebAuth(window.location.origin + "/auth-callback");
+// Page redirects. On return page:
+const result = await client.handleRedirectResult();
+if (result) console.log("Signed in");
+```
+
+```kotlin Kotlin
+val client = DiscovrClient("your-client-id", storage = prefs)
+client.signInWithWebAuth("com.example.app://auth/callback") { url ->
+    // Launch the URL via CustomTabsIntent or Intent.ACTION_VIEW
+    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+}
+```
+
+```swift Swift
+let client = await DiscovrClient(clientId: "your-client-id")
+try await client.signInWithWebAuth(
+    redirectUri: "com.example.app://auth/callback",
+    presentationAnchor: window
+)
+```
+
+</CodeGroup>

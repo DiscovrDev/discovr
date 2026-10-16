@@ -1,0 +1,131 @@
+---
+title: "getRowItems()"
+description: "List row items"
+---
+
+Returns paginated items within a row. Items include the full display metadata needed to render a media card — title, poster, backdrop, type, and more.
+
+Row IDs stay valid across a recommendations refresh, so a user can finish scrolling a rail they've already opened.
+
+**Auth tier:** session.
+
+## Parameters
+
+| Name          | Type      | Required | Description                                             |
+| ------------- | --------- | -------- | ------------------------------------------------------- |
+| pageId        | `string`  | Yes      | The unique identifier of the page                       |
+| rowId         | `string`  | Yes      | The unique identifier of the row                        |
+| nextPageToken | `string`  | No       | Opaque pagination token returned from the previous page |
+| limit         | `integer` | No       | Maximum number of items to return                       |
+
+## Returns
+
+[`GetRowItemsResponse`](/sdk-reference/types/rows#getrowitemsresponse) — List of row items retrieved successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "items": [
+// MediaItem (when type: "media")
+{
+  "id": "string",
+  "title": "string",
+  "overview": "string",
+  "poster_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "backdrop_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "media_type": "movie" /* enum: "movie", "tv" */,
+  "year": 1999,
+  "rating": 8.4,
+  "genres": ["string"],
+  "type": "media",
+  "ref": "string"
+}
+// — OR —
+// NavigationItem (when type: "navigation")
+{
+  "id": "string",
+  "title": "string",
+  "vertical_path": {
+  "original": "https://cdn.example.com/rows/keyword-nav-vertical.jpg",
+  "thumbnail": "https://cdn.example.com/rows/keyword-nav-vertical-thumbnail.jpg"
+},
+  "horizontal_path": {
+  "original": "https://cdn.example.com/rows/keyword-nav-horizontal.jpg",
+  "thumbnail": "https://cdn.example.com/rows/keyword-nav-horizontal-thumbnail.jpg"
+},
+  "page_id": "string",
+  "ref": "string",
+  "type": "navigation"
+}
+// — OR —
+// ProviderItem (when type: "provider")
+{
+  "id": "string",
+  "title": "string",
+  "page_id": "string",
+  "ref": "string",
+  "type": "provider",
+  "paths": {
+  "60": "https://is1-ssl.mzstatic.com/image/thumb/.../60x60bb.jpg",
+  "100": "https://is1-ssl.mzstatic.com/image/thumb/.../100x100bb.jpg",
+  "512": "https://is1-ssl.mzstatic.com/image/thumb/.../512x512bb.jpg",
+  "1024": "https://is1-ssl.mzstatic.com/image/thumb/.../1024x1024bb.png"
+}
+}
+],
+  "hasMore": false,
+  "nextPageToken": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { GetRowItemsResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: GetRowItemsResponse = await discovr.getRowItems("example", "example", {
+	nextPageToken: "example",
+	limit: 10,
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.GetRowItemsResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: GetRowItemsResponse = client.getRowItems(pageId = "example", rowId = "example", nextPageToken = "example", limit = 10)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// GetRowItemsResponse
+let response: GetRowItemsResponse = try await client.getRowItems(pageId: "example", rowId: "example", nextPageToken: "example", limit: 10)
+print(response)
+```
+
+</CodeGroup>

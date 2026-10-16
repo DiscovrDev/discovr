@@ -1,0 +1,129 @@
+---
+title: "searchMedia()"
+description: "Search media"
+---
+
+Searches across movies, TV shows, and people. Returns a ranked list of matches. Use the `query` (or `q`) parameter for the search term.
+
+Results are ordered by relevance — preserve that order rather than re-sorting client-side.
+
+This endpoint does not accept filters. To browse by genre, runtime, release window, or watch provider, create a page with `pageFilters` instead.
+
+## Parameters
+
+| Name  | Type      | Required | Description                                                                                                            |
+| ----- | --------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| query | `string`  | No       | Search term. Use `query` or `q` — if both are provided, `query` takes precedence.                                      |
+| q     | `string`  | No       | Search term (shorthand for `query`). At least one of `query` or `q` is required.                                       |
+| page  | `integer` | No       | Page of results to return, starting at 1. Check `has_more` on the response to decide whether to request the next page. |
+
+## Returns
+
+[`SearchResponse`](/sdk-reference/types/search#searchresponse) — Search results returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "page": 1,
+  "results": [
+{
+  "id": "string",
+  "tmdb_id": 1396,
+  "media_type": "movie" /* enum: "movie", "tv", "person" */,
+  "ref": "string",
+  "title": "string",
+  "name": "string",
+  "original_title": "string",
+  "original_name": "string",
+  "overview": "string",
+  "poster_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "backdrop_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "release_date": "string" /* date */,
+  "first_air_date": "string" /* date */,
+  "popularity": 0.0,
+  "vote_average": 0.0,
+  "vote_count": 0,
+  "profile_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "known_for_department": "string",
+  "known_for": [
+{
+  "id": "string",
+  "ref": "string",
+  "tmdb_id": 872585,
+  "media_type": "movie" /* enum: "movie", "tv" */,
+  "title": "string",
+  "name": "string",
+  "overview": "string",
+  "poster_path": {
+  "<key>": "string" /* uri */ /* dynamic keys, shape not fixed in OpenAPI */
+},
+  "backdrop_path": {
+  "<key>": "string" /* uri */ /* dynamic keys, shape not fixed in OpenAPI */
+},
+  "release_date": "string" /* date */,
+  "first_air_date": "string" /* date */,
+  "vote_average": 0.0
+}
+]
+}
+],
+  "has_more": false
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { SearchResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: SearchResponse = await discovr.searchMedia({
+	query: "avatar",
+	q: "avatar",
+	page: 1,
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.SearchResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SearchResponse = client.searchMedia(query = "avatar", q = "avatar", page = 1)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// SearchResponse
+let response: SearchResponse = try await client.searchMedia(query: "avatar", q: "avatar", page: 1)
+print(response)
+```
+
+</CodeGroup>

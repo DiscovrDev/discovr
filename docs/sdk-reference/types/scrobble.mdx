@@ -1,0 +1,61 @@
+---
+title: "Scrobble Types"
+description: "Types used by Scrobble SDK operations."
+---
+
+## ScrobbleProgressBody
+
+<a id="scrobbleprogressbody" />
+
+Body form of a progress report, for the route that already carries the title in its path.
+
+| Property | Type     | Required | Description                                                          |
+| -------- | -------- | -------- | -------------------------------------------------------------------- |
+| progress | `number` | Yes      | Current playback position as a percentage (0–100).                   |
+| tv       | `object` | No       | Which episode is playing. Required for TV shows, omitted for movies. |
+
+## ScrobbleResponse
+
+<a id="scrobbleresponse" />
+
+Confirms a progress report, echoing what was recorded and whether it counted as watched.
+
+| Property  | Type      | Required | Description                                                              |
+| --------- | --------- | -------- | ------------------------------------------------------------------------ |
+| status    | `string`  | Yes      | Always `"ok"` on success.                                                |
+| progress  | `number`  | Yes      | The progress value recorded (0–100).                                     |
+| completed | `boolean` | Yes      | `true` if the item was marked as watched (progress reached 80% or more). |
+
+## ScrobbleSkipBody
+
+<a id="scrobbleskipbody" />
+
+Body form of a skip report, for the route that already carries the title in its path.
+
+| Property | Type     | Required | Description                                                          |
+| -------- | -------- | -------- | -------------------------------------------------------------------- |
+| from     | `number` | Yes      | Playback position where the skip started (0–100).                    |
+| to       | `number` | Yes      | Playback position where the skip landed (0–100).                     |
+| duration | `number` | Yes      | Number of seconds skipped.                                           |
+| tv       | `object` | No       | Which episode is playing. Required for TV shows, omitted for movies. |
+
+## ScrobbleSkipResponse
+
+<a id="scrobbleskipresponse" />
+
+Confirms a skip report was recorded.
+
+| Property | Type     | Required | Description               |
+| -------- | -------- | -------- | ------------------------- |
+| status   | `string` | Yes      | Always `"ok"` on success. |
+
+## ScrobbleTv
+
+<a id="scrobbletv" />
+
+Episode context for TV show scrobbles.
+
+| Property | Type      | Required | Description     |
+| -------- | --------- | -------- | --------------- |
+| season   | `integer` | Yes      | Season number.  |
+| episode  | `integer` | Yes      | Episode number. |

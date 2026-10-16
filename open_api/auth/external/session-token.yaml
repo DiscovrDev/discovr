@@ -1,0 +1,57 @@
+post:
+  tags:
+    - Discovr
+    - Authentication
+  summary: Mint a session token
+  operationId: mintSessionToken
+  x-tier: identity
+  description: |
+    Scopes your browsing session to a specific profile. You'll call this:
+    - after sign-in, to pick which profile is active
+    - when the user switches to a different profile
+    - when the previous session token has expired
+
+    Returns a short-lived session token (valid for 30 minutes) and its expiry time.
+    Use this token in the `Authorization` header for all session-tier endpoints — pages, rows, and profile-scoped lists.
+
+    The response also carries a `snapshotId`, which identifies the recommendations
+    the user is currently browsing. Send it back on your next call so renewing a
+    credential doesn't reshuffle the screen underneath them. Omit it on a first
+    sign-in or a profile switch, where there's nothing to carry. Page IDs are
+    unaffected either way.
+
+    **Auth tier:** identity — send your refresh token in the `Authorization: Bearer` header.
+  security:
+    - BearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "./schemas.yaml#/MintSessionTokenPayload"
+  responses:
+    "200":
+      description: A new session token.
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SessionTokenResponse"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "403":
+      description: |
+        Returned when you send a session token where a refresh token is required (`WRONG_TOKEN_KIND`), or when the `profileId` doesn't belong to the signed-in user (`PROFILE_NOT_FOUND`).
+      content:
+        application/json:
+          schema:
+            $ref: "../../shared/schemas.yaml#/ApiError"
+    "405":
+      description: Method not allowed.
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"

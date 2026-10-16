@@ -1,0 +1,94 @@
+# Path operations for /auth/device-codes
+# Contains all HTTP methods for this path
+
+post:
+  tags:
+    - Discovr
+    - Authentication
+  summary: Request device code
+  security: [] # Public endpoint - no authentication required
+  description: |
+    Starts the TV / device sign-in flow. Call this to get a user code and QR code to display on screen.
+    The user opens Discovr on their phone, scans the QR code or types the user code, and confirms sign-in.
+    Once they do, your next poll to `/auth/device-codes/{deviceCode}/poll` returns a refresh token.
+
+    **Response format:**
+    - `format=json` (default) — returns `{ deviceCode, userCode, authQRCode, verificationUrl, expiresIn, interval }`. The `authQRCode` is a base64 data URL — drop it straight into an `<img>` tag. Show `verificationUrl` next to the code so people who can't scan can type `userCode` there.
+
+    Keep `deviceCode` on the device. It is what you poll with, so it is never put in the QR code or shown to the person; the QR code and the screen carry only `userCode`.
+    - `format=image` — returns a raw PNG binary. Handy if you're embedding the image directly without a data URL wrapper.
+
+    **QR code size:**
+    Use the `size` parameter to match your display. TV screens benefit from larger codes (600–800 px). Default is 300 px.
+  operationId: requestDeviceCode
+  parameters:
+    - name: size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 100
+        maximum: 1000
+        default: 300
+      description: QR code size in pixels. Larger sizes are recommended for TV displays.
+      example: 600
+    - name: format
+      in: query
+      required: false
+      x-ts-coerce: any
+      schema:
+        type: string
+        enum: [json, image]
+        default: json
+      description: Response format. Use "image" for native clients to receive binary PNG directly.
+      example: json
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "./schemas.yaml#/DeviceCodePayload"
+        example:
+          clientID: "abc123xyz"
+  responses:
+    "200":
+      description: Device code created successfully. Response format depends on `format` query parameter.
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/DeviceCodeResponse"
+          example:
+            deviceCode: "dvc_abc123xyz789"
+            userCode: "1234"
+            authQRCode: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+            verificationUrl: "https://discovr.media/tv-auth"
+            expiresIn: 600000
+            interval: 5
+        image/png:
+          schema:
+            type: string
+            format: binary
+            description: Binary PNG image of the QR code. Returned when `format=image` query parameter is set.
+          example: "(binary PNG data)"
+    "400":
+      description: Bad request — missing or invalid clientID
+      content:
+        application/json:
+          schema:
+            $ref: "../../shared/schemas.yaml#/ApiError"
+          examples:
+            missingClientID:
+              value:
+                error: "ClientID is required and cannot be empty"
+            clientNotFound:
+              summary: clientID is not registered
+              value:
+                error: "client-not-found"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"

@@ -1,0 +1,125 @@
+---
+title: "Finished episodes with getSeasonProfileMeta"
+description: "Find out which episodes of a TV season the viewer has finished, to put a checkmark on each one and to power season pickers."
+---
+
+You've got the title-level picture from [`getMediaProfileMeta()`](/guides/profile-context/media-profile-meta) — whether the show as a whole is complete, and which seasons are done. When the viewer drills into a specific season, you need finer detail: which episodes they've finished and which they haven't.
+
+That's what **`getSeasonProfileMeta()`** does. Call it for one season of a `TV_…` title, and get back whether each episode is finished, plus the season's own aggregate `completed` flag.
+
+<Note>
+	This needs an active profile — start with
+	[**`selectProfile()`**](/sdk-reference/authentication/select-profile), covered in
+	[Profiles](/guides/profiles). Code samples use **TypeScript / Kotlin / Swift**.
+</Note>
+
+## Pair it with getSeasonDetails
+
+`getSeasonProfileMeta()` only says what's finished — no episode titles, stills, or air dates. Pair it with [`getSeasonDetails()`](/sdk-reference/media/get-season-details) to build a season view:
+
+| Data you need                           | API to call                                                              |
+| --------------------------------------- | ------------------------------------------------------------------------ |
+| Episode titles, stills, air dates       | [`getSeasonDetails()`](/sdk-reference/media/get-season-details)          |
+| Which episodes are finished             | [`getSeasonProfileMeta()`](/sdk-reference/media/get-season-profile-meta) |
+| Whole-title state (liked, watchlisted…) | [`getMediaProfileMeta()`](/guides/profile-context/media-profile-meta)    |
+
+A typical season screen fetches `getSeasonDetails()` first — it needs no profile — to render the episode list right away, then layers `getSeasonProfileMeta()` on top for the checkmarks once a profile is active.
+
+## What you get back
+
+The same shape on every platform — shown here with TypeScript types:
+
+```typescript
+interface SeasonProfileMeta {
+	season: number;
+	completed: boolean; // Whether this season as a whole is complete
+	episodes: {
+		episode: number;
+		completed: boolean;
+	}[];
+}
+```
+
+`completed` at the season level uses the same rule described in [Completion rules](/guides/profile-context/media-profile-meta#completion-rules): every episode in the season has to be complete (≥ 80% progress) for the season itself to count as complete.
+
+Each entry in `episodes` tells you whether that episode is finished, which is enough for a checkmark per episode.
+
+It doesn't report how far through a half-watched episode the viewer got, so there's no per-episode progress bar to draw here. The place in the episode they're watching right now is `playback` on [`getMediaProfileMeta()`](/guides/profile-context/media-profile-meta), and Continue Watching has it too.
+
+## Example: a checkmark per finished episode
+
+Fetch episodes and finished state in parallel, then merge them by episode number:
+
+{/* sample: profile-context-season-profile-meta-example-finished-episodes */}
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { SeasonDetailsResponse, SeasonProfileMeta } from "discovr";
+
+const client = new DiscovrClient("your-client-id");
+
+async function loadSeasonWithFinished(tvId: string, seasonNumber: number) {
+	const [details, meta]: [SeasonDetailsResponse, SeasonProfileMeta] = await Promise.all([
+		client.getSeasonDetails(tvId, seasonNumber, { language: "en" }),
+		client.getSeasonProfileMeta(tvId, seasonNumber),
+	]);
+
+	const finishedByEpisode = new Map(meta.episodes.map((e) => [e.episode, e.completed]));
+
+	return (details.episodes ?? []).map((episode) => ({
+		...episode,
+		finished: finishedByEpisode.get(episode.episodeNumber) ?? false,
+	}));
+}
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.SeasonDetailsResponse
+import api.discovr.models.SeasonProfileMeta
+
+suspend fun loadSeasonWithFinished(
+	client: DiscovrClient,
+	tvId: String,
+	seasonNumber: Int
+): Pair<SeasonDetailsResponse, SeasonProfileMeta> {
+	val details = client.getSeasonDetails(mediaId = tvId, seasonNumber = seasonNumber, language = "en")
+	val meta = client.getSeasonProfileMeta(mediaId = tvId, seasonNumber = seasonNumber)
+	return details to meta
+}
+```
+
+```swift Swift
+import Discovr
+
+func loadSeasonWithFinished(
+	client: DiscovrClient,
+	tvId: String,
+	seasonNumber: Int
+) async throws -> (SeasonDetailsResponse, SeasonProfileMeta) {
+	async let details = client.getSeasonDetails(mediaId: tvId, seasonNumber: seasonNumber, language: "en")
+	async let meta = client.getSeasonProfileMeta(mediaId: tvId, seasonNumber: seasonNumber)
+	return try await (details, meta)
+}
+```
+
+</CodeGroup>
+
+<Tip>
+	Only fetch `getSeasonProfileMeta()` for the season the viewer has open. Don't call it once per
+	season to build a season picker — `getMediaProfileMeta().completedSeasons` already gives you
+	completed seasons at the title level with a single request.
+</Tip>
+
+## Related reading
+
+- [Understanding Your Media State](/guides/profile-context/media-profile-meta) — Title-level state, including completion rules
+- [Media details](/guides/media) — `getSeasonDetails` and the rest of the TV detail flow
+- [Tracking Playback with Scrobbling](/guides/profile-context/scrobbling) — How a finished episode gets recorded in the first place
+- API Reference: [`getSeasonProfileMeta()`](/sdk-reference/media/get-season-profile-meta) · [`getSeasonDetails()`](/sdk-reference/media/get-season-details)
+
+---
+
+**Next:** [Tracking Playback with Scrobbling](/guides/profile-context/scrobbling)

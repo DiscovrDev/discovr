@@ -1,0 +1,163 @@
+---
+title: "getMedia()"
+description: "Get media details"
+---
+
+Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass `MV_&lt;id&gt;` for movies or `TV_&lt;id&gt;` for TV shows (e.g., `MV_550`, `TV_1396`).
+
+This is a public endpoint — no authentication required. Returns only generic catalog metadata; personalized fields live under `profile_meta`.
+
+## Parameters
+
+| Name    | Type     | Required | Description                                                                                                                                                                                                                                                                                       |
+| ------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId | `string` | Yes      | The unique identifier of the media item. Use `MV_&lt;id&gt;` for movies or `TV_&lt;id&gt;` for TV shows (e.g., `MV_550`, `TV_1396`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+
+## Returns
+
+[`MediaResponse`](/sdk-reference/types/media#mediaresponse) — Full media details returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "id": "string",
+  "media_type": "movie" /* enum: "movie", "tv" */,
+  "movie": {
+  "id": "string",
+  "tmdb_id": 0,
+  "title": "string",
+  "original_title": "string",
+  "overview": "string",
+  "poster_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "backdrop_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "release_date": "string" /* date */,
+  "runtime": 0,
+  "vote_average": 0.0,
+  "vote_count": 0,
+  "popularity": 0.0,
+  "genres": [
+{
+  "tmdb_id": 0,
+  "name": "string"
+}
+],
+  "tagline": "string",
+  "status": "string",
+  "budget": 0,
+  "revenue": 0,
+  "homepage": "string",
+  "imdb_id": "string"
+},
+  "tv": {
+  "id": "string",
+  "tmdb_id": 0,
+  "name": "string",
+  "original_name": "string",
+  "overview": "string",
+  "poster_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "backdrop_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "first_air_date": "string" /* date */,
+  "last_air_date": "string" /* date */,
+  "number_of_episodes": 0,
+  "number_of_seasons": 0,
+  "vote_average": 0.0,
+  "vote_count": 0,
+  "popularity": 0.0,
+  "genres": [
+{
+  "tmdb_id": 0,
+  "name": "string"
+}
+],
+  "tagline": "string",
+  "status": "string",
+  "homepage": "string",
+  "in_production": false,
+  "seasons": [
+{
+  "tmdb_id": 0,
+  "name": "string",
+  "episode_count": 0,
+  "season_number": 0,
+  "air_date": "string" /* date */,
+  "poster_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+}
+}
+]
+},
+  "watch_providers": [
+{
+  "id": "string",
+  "title": "string",
+  "logos": {
+  "60": "https://is1-ssl.mzstatic.com/image/thumb/.../60x60bb.jpg",
+  "100": "https://is1-ssl.mzstatic.com/image/thumb/.../100x100bb.jpg",
+  "512": "https://is1-ssl.mzstatic.com/image/thumb/.../512x512bb.jpg",
+  "1024": "https://is1-ssl.mzstatic.com/image/thumb/.../1024x1024bb.png"
+},
+  "regions": {
+  "<key>": "object" /* dynamic keys, shape not fixed in OpenAPI */
+}
+}
+]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { MediaResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+const response: MediaResponse = await discovr.getMedia("example");
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.MediaResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: MediaResponse = client.getMedia(mediaId = "example")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// MediaResponse
+let response: MediaResponse = try await client.getMedia(mediaId: "example")
+print(response)
+```
+
+</CodeGroup>

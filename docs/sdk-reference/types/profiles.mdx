@@ -1,0 +1,82 @@
+---
+title: "Profiles Types"
+description: "Types used by Profiles SDK operations."
+---
+
+## AvatarMediaType
+
+<a id="avatarmediatype" />
+
+What kind of file `avatarUrl` points at, as a MIME type. Use it to choose between an image view and a video player, and to decide what can be animated, instead of guessing from the URL, since uploads have no file extension. `image/gif`, `video/mp4` and `video/webm` are animated; the others are still.
+
+On a profile it is absent when the type couldn't be determined; treat that as a still image. When you create or update a profile it is optional: Discovr works it out from the URL's file extension, so send it only when your URL has none. It can only be sent together with `avatarUrl`, and changing `avatarUrl` replaces it (or clears it when the new URL can't be typed), so it never describes the previous picture.
+
+Allowed values: `"image/png"`, `"image/jpeg"`, `"image/webp"`, `"image/gif"`, `"video/mp4"`, `"video/webm"`
+
+## CreateProfilePayload
+
+<a id="createprofilepayload" />
+
+Name and avatar for the new profile.
+
+| Property        | Type                                                                                                  | Required | Description                       |
+| --------------- | ----------------------------------------------------------------------------------------------------- | -------- | --------------------------------- |
+| name            | `string`                                                                                              | Yes      | The display name for the profile. |
+| avatarUrl       | `string`                                                                                              | Yes      | URL of the profile avatar image.  |
+| avatarMediaType | `"image/png"` \| `"image/jpeg"` \| `"image/webp"` \| `"image/gif"` \| `"video/mp4"` \| `"video/webm"` | No       |                                   |
+
+## CreateProfileResponse
+
+<a id="createprofileresponse" />
+
+Contains the ID of the newly created profile. Use it with `POST /auth/session-token` to start browsing.
+
+| Property  | Type     | Required | Description                          |
+| --------- | -------- | -------- | ------------------------------------ |
+| profileId | `string` | Yes      | The ID of the newly created profile. |
+
+## DeleteProfileResponse
+
+<a id="deleteprofileresponse" />
+
+Confirmation that the profile was deleted.
+
+| Property | Type     | Required | Description             |
+| -------- | -------- | -------- | ----------------------- |
+| message  | `string` | Yes      | A confirmation message. |
+
+## GetProfilesResponse
+
+<a id="getprofilesresponse" />
+
+List of profiles for the signed-in user.
+
+| Property | Type        | Required | Description                                                               |
+| -------- | ----------- | -------- | ------------------------------------------------------------------------- |
+| profiles | `Profile[]` | Yes      | Profiles for the signed-in user, ordered by creation date (newest first). |
+
+## Profile
+
+<a id="profile" />
+
+A Discovr profile with its display info and creation timestamp.
+
+| Property        | Type                                                                                                  | Required | Description                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------- |
+| id              | `string`                                                                                              | Yes      | The unique ID of the profile.                           |
+| name            | `string`                                                                                              | Yes      | The profile's display name.                             |
+| avatarUrl       | `string`                                                                                              | Yes      | URL of the profile's avatar image.                      |
+| avatarMediaType | `"image/png"` \| `"image/jpeg"` \| `"image/webp"` \| `"image/gif"` \| `"video/mp4"` \| `"video/webm"` | No       |                                                         |
+| createdAt       | `string`                                                                                              | Yes      | When the profile was created, as an ISO 8601 timestamp. |
+
+## UpdateProfilePayload
+
+<a id="updateprofilepayload" />
+
+Fields to update on the profile. All fields are optional — provide only what's changing. At least one must be present.
+
+| Property        | Type                                                                                                  | Required | Description                       |
+| --------------- | ----------------------------------------------------------------------------------------------------- | -------- | --------------------------------- |
+| name            | `string`                                                                                              | No       | New display name for the profile. |
+| avatarUrl       | `string`                                                                                              | No       | New avatar URL for the profile.   |
+| avatarMediaType | `"image/png"` \| `"image/jpeg"` \| `"image/webp"` \| `"image/gif"` \| `"video/mp4"` \| `"video/webm"` | No       |                                   |

@@ -1,0 +1,41 @@
+get:
+  tags:
+    - Discovr
+    - Media
+  summary: Get media assets
+  description: |
+    Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.
+
+    This is a public endpoint — no authentication required. Returns only generic catalog metadata.
+  operationId: getMediaAssets
+  x-tier: public
+  x-cache-policy: session
+  security: [] # Public endpoint - no authentication required
+  parameters:
+    - name: mediaId
+      in: path
+      required: true
+      description: |
+        The unique identifier of the media item. Use `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      schema:
+        type: string
+        pattern: '^(MV|TV)_\d+(@[0-9A-Za-z_-]+)?$'
+  responses:
+    "200":
+      description: Media assets returned successfully.
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/MediaAssetsResponse"
+    "400":
+      $ref: "../shared/responses.yaml#/BadRequest"
+    "404":
+      $ref: "../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../shared/responses.yaml#/ServiceUnavailable"

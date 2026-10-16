@@ -1,0 +1,100 @@
+---
+title: "getHistoryItems()"
+description: "Get history items"
+---
+
+Returns the profile's full watch history, newest entries first.
+
+History allows multiple entries for the same title — every completed viewing is tracked separately, so you may see the same `mediaId` more than once.
+
+**Pagination:**
+Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available.
+
+## Parameters
+
+| Name          | Type      | Required | Description                                           |
+| ------------- | --------- | -------- | ----------------------------------------------------- |
+| nextPageToken | `string`  | No       | Opaque token from previous page for pagination        |
+| limit         | `integer` | No       | Maximum number of items to return (1-50, default: 10) |
+
+## Returns
+
+[`HistoryListResponse`](/sdk-reference/types/profile-lists#historylistresponse) — List of history items retrieved successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "items": [
+{
+  "id": "string",
+  "ref": "string",
+  "mediaType": "movie" /* enum: "movie", "tv" */,
+  "title": "string",
+  "poster_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "backdrop_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "updatedAt": "string" /* date-time */,
+  "progress": 45.5,
+  "completed": false,
+  "watched_count": 3,
+  "season": 1,
+  "episode": 5,
+  "imported": "string",
+  "createdAt": "string" /* date-time */
+}
+],
+  "hasMore": false,
+  "nextPageToken": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { HistoryListResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: HistoryListResponse = await discovr.getHistoryItems({
+	nextPageToken: "example",
+	limit: 10,
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.HistoryListResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: HistoryListResponse = client.getHistoryItems(nextPageToken = "example", limit = 10)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// HistoryListResponse
+let response: HistoryListResponse = try await client.getHistoryItems(nextPageToken: "example", limit: 10)
+print(response)
+```
+
+</CodeGroup>

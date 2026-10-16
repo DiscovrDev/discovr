@@ -1,0 +1,309 @@
+---
+title: "Quick Start"
+description: "Install the SDK and get your first page of recommendations — a complete working example."
+---
+
+By the end of this guide you'll have a running script that signs a user in, selects a profile, and prints a list of personalized recommendation rows to the console.
+
+## Prerequisites
+
+- A **Client ID**. In your [dashboard](https://discovr.media/dashboard), switch on the **Developer** toggle, open **Developer Options → Demo sessions**, and copy the Client ID shown above the token button. No dashboard access? Email [dev@discovr.media](mailto:dev@discovr.media).
+- **Node.js 18+** (TypeScript example). Kotlin and Swift tabs are included throughout.
+
+<Note>
+	**Working with a coding agent?** Ask the person for their Client ID. Don't try to sign in to the
+	dashboard on their behalf.
+</Note>
+
+## 1. Install the SDK
+
+{/* sample: static/install */}
+
+<CodeGroup>
+
+```bash TypeScript
+npm install discovr@alpha
+```
+
+```kotlin Kotlin
+// build.gradle.kts
+dependencies {
+    implementation("media.discovr:discovr-sdk:1.0.0-alpha.1")
+}
+```
+
+```swift Swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/DiscovrDev/discovr", exact: "1.0.0-alpha.1")
+]
+```
+
+</CodeGroup>
+
+<Tip>
+**Using a coding agent?** Connect the Discovr MCP server and skill to your tool — your agent can look up SDK methods and examples as you build, without you switching tabs.
+
+**Claude Code:** `claude mcp add --transport http discovr https://docs.discovr.media/mcp`
+
+**Cursor:** [click to install →](cursor://anysphere.cursor-deeplink/mcp/install?name=discovr&config=eyJ1cmwiOiJodHRwczovL2RvY3MuZGlzY292ci5tZWRpYS9tY3AifQ%3D%3D)
+
+**No MCP support?** Install just the skill: `npx skills add https://docs.discovr.media`
+
+[Full setup instructions →](/guides/getting-started/agent-setup)
+
+</Tip>
+
+## 2. Initialize the client
+
+{/* sample: client-init */}
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+
+const client = new DiscovrClient("YOUR_CLIENT_ID");
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.auth.AuthStorage
+
+// Where the SDK keeps the sign-in between launches.
+// On Android, back this with EncryptedSharedPreferences.
+class TokenStorage : AuthStorage {
+    private val values = mutableMapOf<String, String>()
+    override fun get(key: String): String? = values[key]
+    override fun put(key: String, value: String?) {
+        if (value == null) values.remove(key) else values[key] = value
+    }
+}
+
+val client = DiscovrClient(clientId = "YOUR_CLIENT_ID", storage = TokenStorage())
+```
+
+```swift Swift
+import Discovr
+
+// The initializer is async, so create the client inside a Task or .task.
+let client = await DiscovrClient(clientId: "YOUR_CLIENT_ID")
+```
+
+</CodeGroup>
+
+The Kotlin client needs somewhere to keep the sign-in between launches, so you pass it an `AuthStorage`. The Swift initializer is `async`, so create the client inside a `Task` or a SwiftUI `.task`.
+
+## 3. Sign in
+
+<Tip>
+	**Want to click through your app before your sign-in screen exists?** While you develop, pass
+	`demoMode` and the SDK gives you a sandbox account that's already populated with profiles,
+	watchlists, and viewing history, so recommendation rows come back full on your very first call.
+
+    {/* sample: client-demo-mode */}
+
+    <CodeGroup>
+
+```typescript TypeScript
+const client = new DiscovrClient("YOUR_CLIENT_ID", { demoMode: true });
+```
+
+```kotlin Kotlin
+val client = DiscovrClient(clientId = "YOUR_CLIENT_ID", storage = TokenStorage(), demoMode = true)
+```
+
+```swift Swift
+let client = await DiscovrClient(clientId: "YOUR_CLIENT_ID", demoMode: true)
+```
+
+    </CodeGroup>
+
+    You can skip straight to step 4. It's for development only, so remove `demoMode` before you ship
+    and let users sign in for real. Sandboxes last 30 minutes and you can start five an hour from one
+    network address, so reuse the one you have.
+
+</Tip>
+
+Choose the flow that fits your platform:
+
+<Tabs>
+	<Tab title="Web / mobile browser">
+		Opens a sign-in popup. When the user completes it, the SDK stores the credential automatically.
+
+    	{/* sample: sign-in-web */}
+
+    	<CodeGroup>
+
+```typescript TypeScript
+await client.signInWithPopup();
+// User is now signed in. The SDK stores the credentials.
+```
+
+```kotlin Kotlin
+client.signInWithWebAuth(redirectUri = "com.example.app://auth/callback") { url ->
+    // Open the sign-in page, for example in a Custom Tab. When the user finishes,
+    // pass the redirect back to the SDK with client.handleRedirectUri(uri).
+    openInCustomTab(url)
+}
+```
+
+```swift Swift
+try await client.signInWithWebAuth(
+    redirectUri: "com.example.app://auth/callback",
+    presentationAnchor: window
+)
+// User is now signed in. The SDK stores the credentials.
+```
+
+    	</CodeGroup>
+
+    	For a redirect-based flow instead of a popup, see [Web Sign-in](/guides/authentication/web-sign-in).
+    </Tab>
+    <Tab title="TV / device code">
+    	Show a code on-screen. The user enters it at the `verificationUrl` the result returns (or scans the QR code) on their phone or computer, and signs in there. Your app polls until it's done.
+
+    	{/* sample: sign-in-device-code */}
+
+    	<CodeGroup>
+
+```typescript TypeScript
+// Request a device code. unsubscribe() stops the background polling.
+// On a TV, ask for a bigger QR code: 600-800 pixels reads well across a room.
+const { userCode, qrCode, verificationUrl, unsubscribe } = await client.signInWithDeviceCode({
+	qrSize: 700,
+});
+console.log(`Scan the QR code, or go to ${verificationUrl} and enter ${userCode}`);
+// Render qrCode in your UI
+
+// The SDK polls in the background and reports when sign-in finishes.
+client.onAuthStateChanged(({ signedIn }) => {
+	if (signedIn) {
+		console.log("User authenticated on other device!");
+		selectProfile();
+	}
+});
+
+// Call unsubscribe() when the user leaves the screen.
+```
+
+```kotlin Kotlin
+// On a TV, ask for a bigger QR code: 600-800 pixels reads well across a room.
+val result = client.signInWithDeviceCode(qrSize = 700)
+println("Scan the QR code, or go to ${result.verificationUrl} and enter ${result.userCode}")
+// Render result.qrCode in your UI
+
+// The SDK polls in the background and reports when sign-in finishes.
+scope.launch {
+    client.authState.collect { state ->
+        if (state.signedIn) {
+            println("Authenticated!")
+            selectProfile()
+        }
+    }
+}
+
+// Cancel polling when the user navigates away: result.cancel()
+```
+
+```swift Swift
+// On a TV, ask for a bigger QR code: 600-800 pixels reads well across a room.
+let result = try await client.signInWithDeviceCode(qrSize: 700)
+print("Scan the QR code, or go to \(result.verificationUrl) and enter \(result.userCode)")
+// Render result.qrCode in your UI
+
+// The SDK polls in the background and reports when sign-in finishes.
+for await state in await client.authStateStream {
+    if state.signedIn {
+        print("Authenticated!")
+        await selectProfile()
+        break
+    }
+}
+
+// Cancel polling when the user leaves the screen: result.cancel()
+```
+
+    	</CodeGroup>
+
+    	Full details in [Device Code Flow](/guides/authentication/device-code).
+    </Tab>
+
+</Tabs>
+
+## 4. Select a profile
+
+Each account can have multiple profiles — one per household member. List them and let the user pick one before calling the browse API.
+
+{/* sample: profiles-select */}
+
+<CodeGroup>
+
+```typescript TypeScript
+const { profiles } = await client.getProfiles();
+// e.g. [{ id: "prof_abc", name: "Alice" }, { id: "prof_def", name: "Bob" }]
+
+await client.selectProfile(profiles[0].id);
+// Profile active — you can start fetching
+```
+
+```kotlin Kotlin
+val result = client.getProfiles()
+// e.g. profiles named "Alice" and "Bob"
+
+client.selectProfile(result.profiles.first().id)
+// Profile active — you can start fetching
+```
+
+```swift Swift
+let result = try await client.getProfiles()
+// e.g. profiles named "Alice" and "Bob"
+
+try await client.selectProfile(profileId: result.profiles[0].id)
+// Profile active — you can start fetching
+```
+
+</CodeGroup>
+
+## 5. Load your first page
+
+Create a page and fetch its recommendation rows. This is your app's home screen.
+
+{/* sample: first-page */}
+
+<CodeGroup>
+
+```typescript TypeScript
+const page = await client.createPage({ name: "Home" });
+const { rows } = await client.getRows(page.id, { limit: 10 });
+
+console.log(`Got ${rows.length} recommendation rows:`);
+rows.forEach((row) => console.log(`  - ${row.title} (${row.type})`));
+```
+
+```kotlin Kotlin
+val page = client.createPage(name = "Home")
+val bundle = client.getRows(pageId = page.id, limit = 10)
+
+println("Got ${bundle.rows.size} recommendation rows:")
+bundle.rows.forEach { row -> println("  - ${row.title} (${row.type})") }
+```
+
+```swift Swift
+let page = try await client.createPage(name: "Home")
+let bundle = try await client.getRows(pageId: page.id, limit: 10)
+
+print("Got \(bundle.rows.count) recommendation rows:")
+bundle.rows.forEach { row in print("  - \(row.title) (\(row.type))") }
+```
+
+</CodeGroup>
+
+<Check>
+	You should see a list of recommendation rows in your console — your first Discovr integration is
+	working.
+</Check>
+
+---
+
+**Next:** [Authentication — implement your sign-in flow](/guides/authentication)

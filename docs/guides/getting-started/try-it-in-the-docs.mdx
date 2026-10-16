@@ -1,0 +1,87 @@
+---
+title: "How to get playground credentials"
+description: "Get a demo token from your dashboard and use the Try it panel on any endpoint — no app, no sign-up flow, no code."
+---
+
+Every page in the API Reference has a **Try it** panel that sends a real request to the real API. Most endpoints want a bearer token before they'll answer, and this guide gets you one in about thirty seconds.
+
+You don't need an app, a sign-in screen, or a line of code. A demo token gives you a throwaway account that's already loaded with profiles, watchlists and viewing history, so the responses you get back look like a real user's.
+
+## Get a token
+
+<Steps>
+	<Step title="Open your dashboard">
+		Sign in at [discovr.media/dashboard](https://discovr.media/dashboard).
+	</Step>
+	<Step title="Turn on Developer Options">
+		Scroll to the **Developer** toggle and switch it on. It stays on next time you visit.
+	</Step>
+	<Step title="Open Demo sessions">
+		In the **Developer Options** card, choose **Demo sessions**.
+	</Step>
+	<Step title="Create a token">
+		Press **New demo token**. You'll get a **refresh token** and a **session token** — copy both
+		now, because this is the only time they're shown.
+	</Step>
+</Steps>
+
+## Which token goes where
+
+You got two tokens, and they aren't interchangeable. Paste the wrong one and the endpoint will reject it.
+
+| Token             | Use it on                                                            | Think of it as             |
+| ----------------- | -------------------------------------------------------------------- | -------------------------- |
+| **Refresh token** | `/profiles`, `/auth/session-token`, `/auth/session`                  | Who the user is            |
+| **Session token** | `/pages/*`, `/profile/*` — recommendations, rows, watchlist, history | What they're browsing, now |
+
+Both go in the same place: the **Authorization** field at the top of the Try it panel.
+
+<Tip>
+	Rule of thumb: if the endpoint is about the **account**, use the refresh token. If it's about
+	**browsing** — rows, pages, watchlist, playback — use the session token.
+</Tip>
+
+## Endpoints that want a Client ID instead
+
+A few endpoints identify your **app** rather than a user, so they take a `clientId` in the request body or query string and no bearer token at all:
+
+- `POST /auth/demo-session`
+- `POST /auth/device-codes`
+- `GET /auth/web/authorize`
+
+Your Client ID is in the same **Demo sessions** dialog, shown as a copyable field above the token button. It's there as soon as you open the dialog — you don't have to mint a token to see it.
+
+## When your token stops working
+
+Demo tokens are deliberately short-lived, and the sandbox behind them is cleaned up afterwards. If a request that worked a minute ago starts coming back `401`, the token has simply aged out — go back to **Demo sessions** and press **New demo token** again.
+
+The session token expires sooner than the refresh token. If only your `/pages/*` calls are failing, you can mint a fresh session token without starting over: call `GET /profiles` with your refresh token, take an `id` from the response, then call `POST /auth/session-token` with that refresh token and `{ "profileId": "<that id>" }`. The `profileId` is required — a session is always scoped to one profile.
+
+<Note>
+	**Working with a coding agent?**
+
+    If you're an AI assistant reading this and you want to `curl` these endpoints yourself, ask the
+    person you're working with to follow the steps above and paste you a demo token. Don't try to sign
+    in on their behalf — the dashboard is behind their account, and a demo token is the credential
+    that's designed to be handed over.
+
+    The token is disposable and scoped to a throwaway sandbox, so it's safe to share in a working
+    session. Treat a **real** user's refresh token differently: never ask for one, and never put one
+    in a file or a commit.
+
+</Note>
+
+## Next
+
+<CardGroup cols={2}>
+	<Card title="Quick Start →" icon="rocket" href="/guides/getting-started/quickstart">
+		Build the same thing in code, with the SDK.
+	</Card>
+	<Card title="Authentication →" icon="key" href="/guides/authentication">
+		How real sign-in works when you're ready to ship.
+	</Card>
+</CardGroup>
+
+---
+
+**Next:** [Quick Start — build the same thing in code](/guides/getting-started/quickstart)

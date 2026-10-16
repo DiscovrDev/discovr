@@ -1,0 +1,74 @@
+---
+title: "getProfiles()"
+description: "List profiles"
+---
+
+Returns the signed-in user's profiles, newest first. Each one carries its
+ID, display name, avatar URL, and creation timestamp.
+
+A profile that can't be read is left out of the response rather than
+failing it, so a single bad profile never costs the user their whole
+picker. Treat the list as complete for display purposes, and don't assume
+a missing profile means it was deleted.
+
+**Auth tier:** identity — send your refresh token in the `Authorization: Bearer` header.
+
+## Returns
+
+[`GetProfilesResponse`](/sdk-reference/types/profiles#getprofilesresponse) — Profiles returned successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "profiles": [
+{
+  "id": "string",
+  "name": "string",
+  "avatarUrl": "string" /* uri */,
+  "avatarMediaType": "image/png" /* AvatarMediaType: "image/png", "image/jpeg", "image/webp", "image/gif", "video/mp4", "video/webm" */,
+  "createdAt": "string" /* date-time */
+}
+]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { GetProfilesResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in …
+const response: GetProfilesResponse = await discovr.getProfiles();
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.GetProfilesResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: GetProfilesResponse = client.getProfiles()
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// GetProfilesResponse
+let response: GetProfilesResponse = try await client.getProfiles()
+print(response)
+```
+
+</CodeGroup>

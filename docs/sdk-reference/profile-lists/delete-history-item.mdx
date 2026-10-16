@@ -1,0 +1,75 @@
+---
+title: "deleteHistoryItem()"
+description: "Delete an item from history list"
+---
+
+Deletes history entries for a title. Because history allows duplicates, this removes all matching entries for the specified media (and episode, if provided).
+
+For TV shows, pass `season` as a query parameter (required) and optionally `episode`. Include `episode` to delete that episode's entries. Omit it to delete the entries that were recorded for the season as a whole, without an episode (for example, marking a season watched in one go); entries for individual episodes are kept.
+
+To take a title back to unwatched, use [`DELETE /profile/watched/&#123;mediaId&#125;`](/api-reference/discovr/mark-unwatched) instead. This call removes history entries and nothing else: it doesn't touch the in-progress list, and a TV show's `completed` state is brought up to date from whatever history is left.
+
+## Parameters
+
+| Name    | Type      | Required | Description                                                                                                                                                                                                                                                                 |
+| ------- | --------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId | `string`  | Yes      | The media ID of the title to delete. Format: `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows. Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+| season  | `integer` | No       | Season number. Required for TV shows (`TV_` mediaId); ignored for movies.                                                                                                                                                                                                   |
+| episode | `integer` | No       | Episode number. Optional — omit to delete the season-level entries (those recorded without an episode); include to delete a specific episode's entries only.                                                                                                                |
+
+## Returns
+
+[`SuccessMessage`](/sdk-reference/types/common#successmessage) — Item deleted successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "message": "string",
+  "added": "string",
+  "removed": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { SuccessMessage } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: SuccessMessage = await discovr.deleteHistoryItem("TV_1396", {
+	season: 1,
+	episode: 5,
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.SuccessMessage
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SuccessMessage = client.deleteHistoryItem(mediaId = "TV_1396", season = 1, episode = 5)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// SuccessMessage
+let response: SuccessMessage = try await client.deleteHistoryItem(mediaId: "TV_1396", season: 1, episode: 5)
+print(response)
+```
+
+</CodeGroup>

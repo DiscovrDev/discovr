@@ -1,0 +1,87 @@
+---
+title: "mintSessionToken()"
+description: "Mint a session token"
+---
+
+Scopes your browsing session to a specific profile. You'll call this:
+
+- after sign-in, to pick which profile is active
+- when the user switches to a different profile
+- when the previous session token has expired
+
+Returns a short-lived session token (valid for 30 minutes) and its expiry time.
+Use this token in the `Authorization` header for all session-tier endpoints — pages, rows, and profile-scoped lists.
+
+The response also carries a `snapshotId`, which identifies the recommendations
+the user is currently browsing. Send it back on your next call so renewing a
+credential doesn't reshuffle the screen underneath them. Omit it on a first
+sign-in or a profile switch, where there's nothing to carry. Page IDs are
+unaffected either way.
+
+**Auth tier:** identity — send your refresh token in the `Authorization: Bearer` header.
+
+## Parameters
+
+| Name       | Type      | Required | Description                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| profileId  | `string`  | Yes      | The ID of the profile to activate. Must belong to the signed-in user.                                                                                                                                                                                                                                                                                                          |
+| ttlMs      | `integer` | No       | Override the session token's lifetime, in milliseconds. Can only shorten it below the default (30 minutes) — never lengthen it. Whether or not you send this, a session token never outlives the refresh token that minted it, so a demo sandbox's session token ends with the sandbox.                                                                                        |
+| snapshotId | `string`  | No       | The `snapshotId` from your previous session token. Pass it to keep the user's recommendations where they were — renewing a session token is routine, and shouldn't reshuffle the screen underneath them. Omit it on a first sign-in, or when switching profiles — there's nothing to carry over in either case. Recommendations refresh on their own roughly every 30 minutes. |
+
+## Returns
+
+[`SessionTokenResponse`](/sdk-reference/types/authentication#sessiontokenresponse) — A new session token.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "sessionToken": "string",
+  "snapshotId": "string",
+  "expiresAt": 1733091000
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { MintSessionTokenPayload, SessionTokenResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in …
+const response: SessionTokenResponse = await discovr.mintSessionToken("profile_abc123", {
+	ttlMs: 120000,
+	snapshotId: "Wm4rT9xKq2Lv7BnD",
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.MintSessionTokenPayload
+import api.discovr.models.SessionTokenResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SessionTokenResponse = client.mintSessionToken(profileId = "profile_abc123", ttlMs = 120000, snapshotId = "Wm4rT9xKq2Lv7BnD")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// MintSessionTokenPayload, SessionTokenResponse
+let response: SessionTokenResponse = try await client.mintSessionToken(profileId: "profile_abc123", ttlMs: 120000, snapshotId: "Wm4rT9xKq2Lv7BnD")
+print(response)
+```
+
+</CodeGroup>

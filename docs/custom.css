@@ -1,0 +1,75 @@
+/* Custom styles for Mintlify documentation */
+
+/*
+ * A bare `nav-logo` type selector used to live here. There is no <nav-logo>
+ * element, so it matched nothing and had never applied — Mintlify renders the
+ * logo as `#navbar img`. Removed rather than "fixed": nothing was relying on
+ * its effect, because it never had one.
+ */
+
+/* Authorization section reorder (handled by /reorder-auth.js) */
+.api-section[data-is-authorization="true"] {
+	order: 9999 !important;
+}
+
+/* ============================================================
+   Brand alignment — mirrors the Discovr design tokens
+
+   Mintlify owns this page's markup, so the tokens cannot be imported; the
+   values are transcribed. They are the same OKLCH the apps ship, so a change
+   to tokens.css means a change here.
+
+   Light:  bg oklch(0.955 0.01 82) · card oklch(0.985 0.006 82) · code-bg oklch(0.91 0.006 82)
+   Dark:   bg oklch(0.115 0.004 82) · card oklch(0.17 0.006 82)  · code-bg oklch(0.16 0.006 82)
+
+   Both modes lift: cards sit above the canvas. This file briefly carried the
+   reverse dark model (canvas oklch(0.145), cards oklch(0.088)) after the apps
+   had already moved off it.
+   ============================================================ */
+
+/* --- Page chrome ------------------------------------------- */
+#background-color {
+	background-color: oklch(0.955 0.01 82);
+}
+#navbar {
+	background-color: oklch(0.955 0.01 82);
+}
+#sidebar {
+	background-color: oklch(0.955 0.01 82);
+}
+
+.dark #background-color {
+	background-color: oklch(0.115 0.004 82);
+}
+.dark #navbar {
+	background-color: oklch(0.115 0.004 82);
+}
+.dark #sidebar {
+	background-color: oklch(0.115 0.004 82);
+}
+
+/* --- Cards ------------------------------------------------- */
+/* Mintlify renders cards as <div class="card bg-white …">.
+   Class selector + !important overrides the bg-white Tailwind class. */
+.card {
+	background-color: oklch(0.985 0.006 82) !important;
+	border-color: oklch(0.78 0.012 82) !important;
+}
+
+.dark .card {
+	background-color: oklch(0.17 0.006 82) !important;
+	border-color: oklch(0.27 0.009 82) !important;
+}
+
+/* --- Code blocks ------------------------------------------- */
+/* The scrollable code area has data-component-part="code-block-root" and
+   carries an inline style="background-color:#ffffff" set by Shiki.
+   !important in an author stylesheet overrides non-!important inline styles
+   per the CSS cascade. */
+[data-component-part="code-block-root"] {
+	background-color: oklch(0.985 0.006 82) !important;
+}
+
+.dark [data-component-part="code-block-root"] {
+	background-color: oklch(0.16 0.006 82) !important;
+}

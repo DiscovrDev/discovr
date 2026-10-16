@@ -1,0 +1,533 @@
+{
+	"$schema": "https://mintlify.com/docs.json",
+	"theme": "mint",
+	"name": "DiscovrAPI",
+	"logo": {
+		"light": "/assets/DiscovrAPI.svg",
+		"dark": "/assets/DiscovrAPI_dark.svg"
+	},
+	"openapi": "openapi.yaml",
+	"fonts": {
+		"heading": {
+			"family": "DM Sans"
+		},
+		"body": {
+			"family": "DM Sans"
+		}
+	},
+	"colors": {
+		"primary": "#191610",
+		"light": "#BBB7AF",
+		"dark": "#060504"
+	},
+	"background": {
+		"color": {
+			"light": "#F3F0E9",
+			"dark": "#252422"
+		}
+	},
+	"styling": {
+		"codeblocks": "system"
+	},
+	"favicon": "/assets/D.svg",
+	"navigation": {
+		"tabs": [
+			{
+				"tab": "Guides",
+				"groups": [
+					{
+						"group": "Getting started",
+						"icon": "rocket",
+						"pages": [
+							"guides/getting-started/index",
+							"guides/getting-started/quickstart",
+							"guides/getting-started/agent-setup"
+						]
+					},
+					{
+						"group": "Authentication",
+						"icon": "shield",
+						"pages": [
+							"guides/authentication/index",
+							"guides/authentication/web-sign-in",
+							"guides/authentication/device-code",
+							"guides/authentication/signing-out"
+						]
+					},
+					{
+						"group": "Profiles",
+						"icon": "users",
+						"pages": [
+							"guides/profiles/index",
+							"guides/profiles/listing-and-selecting-profiles",
+							"guides/profiles/managing-profiles"
+						]
+					},
+					{
+						"group": "Pages & rows",
+						"icon": "layout-list",
+						"pages": ["guides/pages/index", "guides/rows/index"]
+					},
+					{
+						"group": "Recommendations",
+						"icon": "sparkles",
+						"pages": ["guides/recommendations/index"]
+					},
+					{
+						"group": "Media",
+						"icon": "film",
+						"pages": ["guides/media/index", "guides/media/search"]
+					},
+					{
+						"group": "Profile context",
+						"icon": "bookmark",
+						"pages": [
+							"guides/profile-context/index",
+							"guides/profile-context/media-profile-meta",
+							"guides/profile-context/season-profile-meta",
+							"guides/profile-context/scrobbling"
+						]
+					},
+					{
+						"group": "Navigation & performance",
+						"icon": "compass",
+						"pages": ["guides/navigation/index", "guides/navigation/lazy-loading"]
+					},
+					{
+						"group": "Reference",
+						"icon": "book-open",
+						"pages": [
+							"guides/reference/error-handling",
+							"guides/reference/security",
+							"guides/reference/branding"
+						]
+					}
+				]
+			},
+			{
+				"tab": "API Reference",
+				"menu": [
+					{
+						"item": "How to get playground credentials",
+						"icon": "circle-play",
+						"pages": ["guides/getting-started/try-it-in-the-docs"]
+					},
+					{
+						"item": "Endpoints",
+						"icon": "code",
+						"groups": [
+							{
+								"group": "Authentication",
+								"icon": "key",
+								"pages": [
+									"api-reference/discovr/request-device-code",
+									"api-reference/discovr/poll-device-code",
+									"api-reference/discovr/authorize-client-web",
+									"api-reference/discovr/exchange-web-auth-code",
+									"api-reference/discovr/mint-session-token",
+									"api-reference/discovr/start-demo-session",
+									"api-reference/discovr/sign-out-session"
+								]
+							},
+							{
+								"group": "Profiles",
+								"icon": "user",
+								"pages": [
+									"api-reference/discovr/get-profiles",
+									"api-reference/discovr/create-profile",
+									"api-reference/discovr/get-profile",
+									"api-reference/discovr/update-profile",
+									"api-reference/discovr/delete-profile"
+								]
+							},
+							{
+								"group": "Profile Lists",
+								"icon": "list",
+								"pages": [
+									{
+										"group": "Likes",
+										"icon": "list",
+										"pages": [
+											"api-reference/discovr/get-liked-items",
+											"api-reference/discovr/add-liked-item",
+											"api-reference/discovr/delete-liked-item"
+										]
+									},
+									{
+										"group": "Dislikes",
+										"icon": "list",
+										"pages": [
+											"api-reference/discovr/get-disliked-items",
+											"api-reference/discovr/add-disliked-item",
+											"api-reference/discovr/delete-disliked-item"
+										]
+									},
+									{
+										"group": "Super Likes",
+										"icon": "list",
+										"pages": [
+											"api-reference/discovr/get-super-liked-items",
+											"api-reference/discovr/add-super-liked-item",
+											"api-reference/discovr/delete-super-liked-item"
+										]
+									},
+									{
+										"group": "Watchlist",
+										"icon": "list",
+										"pages": [
+											"api-reference/discovr/get-watchlist-items",
+											"api-reference/discovr/add-watchlist-item",
+											"api-reference/discovr/delete-watchlist-item"
+										]
+									},
+									{
+										"group": "Playback",
+										"icon": "list",
+										"pages": [
+											"api-reference/discovr/get-playback-items",
+											"api-reference/discovr/add-playback-item",
+											"api-reference/discovr/update-playback-item",
+											"api-reference/discovr/delete-playback-item"
+										]
+									},
+									{
+										"group": "History",
+										"icon": "list",
+										"pages": [
+											"api-reference/discovr/get-history-items",
+											"api-reference/discovr/add-history-item",
+											"api-reference/discovr/get-history-items-by-media-id",
+											"api-reference/discovr/patch-history-item",
+											"api-reference/discovr/delete-history-item"
+										]
+									}
+								]
+							},
+							{
+								"group": "Scrobble",
+								"icon": "radio",
+								"pages": [
+									"api-reference/discovr/mark-unwatched",
+									"api-reference/discovr/scrobble",
+									"api-reference/discovr/scrobble-skip"
+								]
+							},
+							{
+								"group": "Pages",
+								"icon": "file-text",
+								"pages": ["api-reference/discovr/create-page", "api-reference/discovr/get-page"]
+							},
+							{
+								"group": "Rows",
+								"icon": "table-rows",
+								"pages": [
+									"api-reference/discovr/get-rows",
+									"api-reference/discovr/get-row",
+									"api-reference/discovr/get-row-items"
+								]
+							},
+							{
+								"group": "Search",
+								"icon": "search",
+								"pages": ["api-reference/discovr/search-media"]
+							},
+							{
+								"group": "Media",
+								"icon": "film",
+								"pages": [
+									"api-reference/discovr/get-media",
+									"api-reference/discovr/get-media-assets",
+									"api-reference/discovr/get-season-details",
+									"api-reference/discovr/get-similar-recommendations",
+									{
+										"group": "Profile Meta",
+										"icon": "list",
+										"pages": [
+											"api-reference/discovr/get-media-profile-meta",
+											"api-reference/discovr/get-season-profile-meta"
+										]
+									}
+								]
+							},
+							{
+								"group": "Misc",
+								"icon": "puzzle-piece",
+								"pages": [
+									"api-reference/discovr/get-profile-images",
+									"api-reference/discovr/search-gifs"
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"tab": "SDK Reference",
+				"groups": [
+					{
+						"group": "Getting Started",
+						"icon": "rocket",
+						"pages": ["sdk-reference/index"]
+					},
+					{
+						"group": "Authentication",
+						"icon": "key",
+						"pages": [
+							{
+								"group": "Sign-in Flows",
+								"icon": "log-in",
+								"pages": [
+									"sdk-reference/authentication/sign-in-with-demo",
+									"sdk-reference/authentication/sign-in-with-popup",
+									"sdk-reference/authentication/sign-in-with-web-auth",
+									"sdk-reference/authentication/sign-in-with-device-code",
+									"sdk-reference/authentication/handle-redirect-result",
+									"sdk-reference/authentication/request-device-code",
+									"sdk-reference/authentication/poll-device-code",
+									"sdk-reference/authentication/authorize-client-web",
+									"sdk-reference/authentication/exchange-web-auth-code",
+									"sdk-reference/authentication/mint-session-token",
+									"sdk-reference/authentication/start-demo-session"
+								]
+							},
+							{
+								"group": "Profile Management",
+								"icon": "users",
+								"pages": [
+									"sdk-reference/authentication/select-profile",
+									"sdk-reference/authentication/switch-profile"
+								]
+							},
+							{
+								"group": "State & Session",
+								"icon": "activity",
+								"pages": [
+									"sdk-reference/authentication/sign-out",
+									"sdk-reference/authentication/on-auth-state-changed",
+									"sdk-reference/authentication/on-session-refreshed",
+									"sdk-reference/authentication/on-recommendations-changed",
+									"sdk-reference/authentication/is-signed-in",
+									"sdk-reference/authentication/has-active-profile",
+									"sdk-reference/authentication/get-active-profile-id",
+									"sdk-reference/authentication/clear-cache",
+									"sdk-reference/authentication/close",
+									"sdk-reference/authentication/sign-out-session"
+								]
+							}
+						]
+					},
+					{
+						"group": "Profiles",
+						"icon": "user",
+						"pages": [
+							"sdk-reference/profiles/get-profiles",
+							"sdk-reference/profiles/create-profile",
+							"sdk-reference/profiles/get-profile",
+							"sdk-reference/profiles/update-profile",
+							"sdk-reference/profiles/delete-profile"
+						]
+					},
+					{
+						"group": "Profile Lists",
+						"icon": "list",
+						"pages": [
+							{
+								"group": "Likes",
+								"icon": "list",
+								"pages": [
+									"sdk-reference/profile-lists/get-liked-items",
+									"sdk-reference/profile-lists/add-liked-item",
+									"sdk-reference/profile-lists/delete-liked-item"
+								]
+							},
+							{
+								"group": "Dislikes",
+								"icon": "list",
+								"pages": [
+									"sdk-reference/profile-lists/get-disliked-items",
+									"sdk-reference/profile-lists/add-disliked-item",
+									"sdk-reference/profile-lists/delete-disliked-item"
+								]
+							},
+							{
+								"group": "Super Likes",
+								"icon": "list",
+								"pages": [
+									"sdk-reference/profile-lists/get-super-liked-items",
+									"sdk-reference/profile-lists/add-super-liked-item",
+									"sdk-reference/profile-lists/delete-super-liked-item"
+								]
+							},
+							{
+								"group": "Watchlist",
+								"icon": "list",
+								"pages": [
+									"sdk-reference/profile-lists/get-watchlist-items",
+									"sdk-reference/profile-lists/add-watchlist-item",
+									"sdk-reference/profile-lists/delete-watchlist-item"
+								]
+							},
+							{
+								"group": "Playback",
+								"icon": "list",
+								"pages": [
+									"sdk-reference/profile-lists/get-playback-items",
+									"sdk-reference/profile-lists/add-playback-item",
+									"sdk-reference/profile-lists/update-playback-item",
+									"sdk-reference/profile-lists/delete-playback-item"
+								]
+							},
+							{
+								"group": "History",
+								"icon": "list",
+								"pages": [
+									"sdk-reference/profile-lists/get-history-items",
+									"sdk-reference/profile-lists/add-history-item",
+									"sdk-reference/profile-lists/get-history-items-by-media-id",
+									"sdk-reference/profile-lists/patch-history-item",
+									"sdk-reference/profile-lists/delete-history-item"
+								]
+							}
+						]
+					},
+					{
+						"group": "Scrobble",
+						"icon": "radio",
+						"pages": [
+							"sdk-reference/scrobble/mark-unwatched",
+							"sdk-reference/scrobble/scrobble",
+							"sdk-reference/scrobble/scrobble-skip"
+						]
+					},
+					{
+						"group": "Pages",
+						"icon": "file-text",
+						"pages": ["sdk-reference/pages/create-page", "sdk-reference/pages/get-page"]
+					},
+					{
+						"group": "Rows",
+						"icon": "table-rows",
+						"pages": [
+							"sdk-reference/rows/get-rows",
+							"sdk-reference/rows/get-row",
+							"sdk-reference/rows/get-row-items"
+						]
+					},
+					{
+						"group": "Search",
+						"icon": "search",
+						"pages": ["sdk-reference/search/search-media"]
+					},
+					{
+						"group": "Media",
+						"icon": "film",
+						"pages": [
+							"sdk-reference/media/get-media",
+							"sdk-reference/media/get-media-assets",
+							"sdk-reference/media/get-season-details",
+							"sdk-reference/media/get-similar-recommendations",
+							{
+								"group": "Profile Meta",
+								"icon": "list",
+								"pages": [
+									"sdk-reference/media/get-media-profile-meta",
+									"sdk-reference/media/get-season-profile-meta"
+								]
+							}
+						]
+					},
+					{
+						"group": "Misc",
+						"icon": "puzzle-piece",
+						"pages": ["sdk-reference/misc/get-profile-images", "sdk-reference/misc/search-gifs"]
+					},
+					{
+						"group": "Types",
+						"icon": "brackets-curly",
+						"pages": [
+							"sdk-reference/types/authentication",
+							"sdk-reference/types/profiles",
+							"sdk-reference/types/profile-lists",
+							"sdk-reference/types/scrobble",
+							"sdk-reference/types/pages",
+							"sdk-reference/types/rows",
+							"sdk-reference/types/search",
+							"sdk-reference/types/media",
+							"sdk-reference/types/misc",
+							"sdk-reference/types/common"
+						]
+					}
+				]
+			}
+		],
+		"global": {
+			"anchors": [
+				{
+					"anchor": "Dashboard",
+					"href": "https://discovr.media/dashboard",
+					"icon": "table-columns"
+				}
+			]
+		}
+	},
+	"navbar": {
+		"links": [
+			{
+				"label": "Feedback",
+				"href": "https://discoverapi.userjot.com/"
+			},
+			{
+				"label": "Support",
+				"href": "mailto:dev@discovr.media"
+			}
+		]
+	},
+	"contextual": {
+		"options": ["copy", "view", "chatgpt", "claude", "mcp", "add-mcp", "cursor", "vscode"]
+	},
+	"api": {
+		"playground": {
+			"mode": "show",
+			"proxy": false
+		},
+		"examples": {
+			"languages": ["javascript", "curl", "kotlin", "swift"]
+		}
+	},
+	"stylesheets": ["/custom.css"],
+	"scripts": ["/userjot-widget.js", "/reorder-auth.js"],
+	"redirects": [
+		{
+			"source": "/guides/authentication/sessions-profiles",
+			"destination": "/guides/profiles/listing-and-selecting-profiles"
+		},
+		{
+			"source": "/guides/patterns/session-management",
+			"destination": "/guides/recommendations"
+		},
+		{
+			"source": "/guides/authentication/error-handling",
+			"destination": "/guides/reference/error-handling"
+		},
+		{
+			"source": "/guides/authentication/security",
+			"destination": "/guides/reference/security"
+		},
+		{
+			"source": "/guides/branding",
+			"destination": "/guides/reference/branding"
+		},
+		{
+			"source": "/guides/content-discovery/search",
+			"destination": "/guides/media/search"
+		},
+		{
+			"source": "/guides/user-ux/navigation",
+			"destination": "/guides/navigation"
+		},
+		{
+			"source": "/guides/user-ux/lazy-loading",
+			"destination": "/guides/navigation/lazy-loading"
+		}
+	]
+}

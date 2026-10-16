@@ -1,0 +1,226 @@
+---
+title: "Authentication Overview"
+description: "Authenticate your app with DiscovrSDK. Two tokens, two sign-in flows."
+---
+
+Discovr uses a **two-credential authentication system** to keep your app secure. The SDK handles credential management automatically—you just call API methods.
+
+## Initialize the client
+
+Before any sign-in call, create a `DiscovrClient` with your Client ID. (Kotlin also takes an `AuthStorage` to keep the sign-in in, and the Swift initializer is `async`.)
+
+{/* sample: client-init */}
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+
+const client = new DiscovrClient("YOUR_CLIENT_ID");
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.auth.AuthStorage
+
+// Where the SDK keeps the sign-in between launches.
+// On Android, back this with EncryptedSharedPreferences.
+class TokenStorage : AuthStorage {
+    private val values = mutableMapOf<String, String>()
+    override fun get(key: String): String? = values[key]
+    override fun put(key: String, value: String?) {
+        if (value == null) values.remove(key) else values[key] = value
+    }
+}
+
+val client = DiscovrClient(clientId = "YOUR_CLIENT_ID", storage = TokenStorage())
+```
+
+```swift Swift
+import Discovr
+
+// The initializer is async, so create the client inside a Task or .task.
+let client = await DiscovrClient(clientId: "YOUR_CLIENT_ID")
+```
+
+</CodeGroup>
+
+<Note>
+	**Using Swift or SwiftUI?** `DiscovrClient` is a `Sendable` class, not an actor, so you can hold
+	it in your app model and pass it around. Its initializer is `async` (it loads the stored sign-in
+	before it returns), and the state it exposes, like `isSignedIn`, `hasActiveProfile` and
+	`authStateStream`, is read with `await`. That means you can't create it in an `App` initializer or
+	as a stored-property default. Create it once inside a `.task` or a `Task`, keep it in an
+	`@Observable` model, and iterate the streams from a `Task` too.
+</Note>
+
+## Two credentials, one system
+
+Discovr works with two credentials that handle different parts of your app:
+
+**Identity credential** — Your user signs in once and gets a long-lived account credential (valid for 90 days). The SDK stores it — you never see it. Use it to list profiles and sign out.
+
+**Session credential** — Created automatically when you select a profile. It lasts 30 minutes and the SDK refreshes it silently in the background before every API call. You don't manage it at all — just call API methods.
+
+The SDK handles all credential management automatically—refresh, rotation, storage—you just focus on your app's UI and features.
+
+<Note>
+	Code samples use **TypeScript**, **Kotlin**, and **Swift** tabs. Switching languages in one code
+	group switches all matching groups across the guide pages.
+</Note>
+
+## Choose your flow
+
+<Tip>
+	Building a sign-in button? [Branding](/guides/reference/branding) has the official logos, colors,
+	and copy-pasteable code.
+</Tip>
+
+<CardGroup cols={2}>
+	<Card title="Web Sign-in Flow" icon="globe" href="/guides/authentication/web-sign-in">
+		For web apps and mobile browsers. User redirects to login, then returns to your app signed in
+		(authorization code with PKCE; the credential never rides a URL).
+	</Card>
+	<Card title="Device Code Flow" icon="tv" href="/guides/authentication/device-code">
+		For TVs, IoT, or second-screen login. User sees a code and QR on device, signs in elsewhere.
+	</Card>
+</CardGroup>
+
+<Tip>
+	**Want to click through your app before sign-in is built?** While you develop, create the client
+	with `demoMode` and the SDK signs in to a throwaway sandbox that's already populated with profiles
+	and viewing history, so you can build real screens against real recommendations.
+
+    {/* sample: client-demo-mode */}
+
+    <CodeGroup>
+
+```typescript TypeScript
+const client = new DiscovrClient("YOUR_CLIENT_ID", { demoMode: true });
+```
+
+```kotlin Kotlin
+val client = DiscovrClient(clientId = "YOUR_CLIENT_ID", storage = TokenStorage(), demoMode = true)
+```
+
+```swift Swift
+let client = await DiscovrClient(clientId: "YOUR_CLIENT_ID", demoMode: true)
+```
+
+    </CodeGroup>
+
+    It's a development shortcut, not a feature to ship: take `demoMode` out of your release builds so
+    your users get your real sign-in. Everything after sign-in works the same either way.
+
+    A sandbox lasts 30 minutes, and you can start five an hour from one network address, so keep the
+    one you have instead of starting a new one per run. When it ends, the next call that needs the
+    account signs the client out with the reason `demo-ended` (see [Signing
+    out](/guides/authentication/signing-out#why-someone-was-signed-out)).
+
+    With `demoMode` on, the web sign-in screens also show a "Continue as Demo" button next to the
+    normal form, which lets you exercise those screens end to end without a test account. Leave it off
+    and users see exactly the real sign-in, with no demo option.
+
+</Tip>
+
+### Visual overview
+
+<Frame>
+	<img
+		src="/assets/pages/auth/auth_example_light.png"
+		className="dark:hidden"
+		alt="Authentication flows — web sign-in and device code flows illustrated"
+	/>
+	<img
+		src="/assets/pages/auth/auth_example_dark.png"
+		className="hidden dark:block"
+		alt="Authentication flows — web sign-in and device code flows illustrated"
+	/>
+</Frame>
+
+## After sign-in
+
+Signing in tells Discovr _who the account is_. Before you can fetch anything, you also have to say _who's watching_ — pick a profile with [`selectProfile()`](/sdk-reference/authentication/select-profile) and you're ready to call the API. Everything credential-related from that point on is handled for you.
+
+## Knowing when the user is signed in
+
+Rather than threading the result of each sign-in method through your app, subscribe once and let every flow — popup, redirect, device code, demo — land in the same place. It fires immediately with the current state, so it doubles as your "are we signed in on launch?" check. When `signedIn` is false it also says why (`signOutReason`): the user signed out, their sign-in expired, or a demo sandbox ran out.
+
+{/* sample: auth-state-listener */}
+
+<CodeGroup>
+
+```typescript TypeScript
+const unsubscribe = client.onAuthStateChanged(({ signedIn, profileId }) => {
+	if (!signedIn) return showSignIn();
+	if (!profileId) return showProfilePicker();
+	showBrowse();
+});
+```
+
+```kotlin Kotlin
+// scope is your lifecycle scope, for example lifecycleScope on Android.
+scope.launch {
+    client.authState.collect { state ->
+        when {
+            !state.signedIn -> showSignIn()
+            state.profileId == null -> showProfilePicker()
+            else -> showBrowse()
+        }
+    }
+}
+```
+
+```swift Swift
+Task {
+    for await state in await client.authStateStream {
+        if !state.signedIn {
+            await showSignIn()
+        } else if state.profileId == nil {
+            await showProfilePicker()
+        } else {
+            await showBrowse()
+        }
+    }
+}
+```
+
+</CodeGroup>
+
+Signing out fires it too, with `signedIn: false` — so one subscription covers the whole lifecycle, in and out.
+
+## Related SDK reference
+
+Authentication and session APIs (signatures and examples in **SDK Reference**):
+
+- [signInWithPopup](/sdk-reference/authentication/sign-in-with-popup) · [signInWithWebAuth](/sdk-reference/authentication/sign-in-with-web-auth) · [signInWithDeviceCode](/sdk-reference/authentication/sign-in-with-device-code) · [handleRedirectResult](/sdk-reference/authentication/handle-redirect-result)
+- [selectProfile](/sdk-reference/authentication/select-profile) · [switchProfile](/sdk-reference/authentication/switch-profile) · [signOut](/sdk-reference/authentication/sign-out)
+- [onAuthStateChanged](/sdk-reference/authentication/on-auth-state-changed) · [onSessionRefreshed](/sdk-reference/authentication/on-session-refreshed) · [isSignedIn](/sdk-reference/authentication/is-signed-in)
+- [getProfiles](/sdk-reference/profiles/get-profiles) · [createPage](/sdk-reference/pages/create-page)
+
+<CardGroup cols={2}>
+	<Card title="Signing out" icon="log-out" href="/guides/authentication/signing-out">
+		End a session on this device — and what to do instead when the user only wants a different
+		profile.
+	</Card>
+	<Card title="Profiles" icon="users" href="/guides/profiles">
+		Overview, picker UI patterns, and create / edit / delete with the SDK.
+	</Card>
+</CardGroup>
+
+## Reference
+
+When you hit issues during integration, these pages have the answers — you don't need to read them now to continue:
+
+<CardGroup cols={2}>
+	<Card title="Error Handling" icon="alert-circle" href="/guides/reference/error-handling">
+		Map error codes to developer actions. Handle sign-in failures, token expiry, network errors.
+	</Card>
+	<Card title="Security Best Practices" icon="shield-check" href="/guides/reference/security">
+		Don't log tokens. Use HTTPS. Let SDK handle secure storage. Your responsibilities and SDK's.
+	</Card>
+</CardGroup>
+
+---
+
+**Next:** Start with [Web Sign-in Flow](/guides/authentication/web-sign-in) or [Device Code Flow](/guides/authentication/device-code) depending on your platform.

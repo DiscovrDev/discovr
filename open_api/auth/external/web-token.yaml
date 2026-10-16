@@ -1,0 +1,78 @@
+# Path operations for /auth/web/token
+# Contains all HTTP methods for this path
+
+post:
+  tags:
+    - Discovr
+    - Authentication
+  summary: Redeem a web sign-in code
+  security: [] # Public endpoint - possession of the code and its verifier is the credential
+  description: |
+    The last step of a web sign-in. Trade the authorization code Discovr delivered to your app, together with the
+    `codeVerifier` you generated when you started, for the refresh token. The SDKs call this for you.
+
+    The code is single-use and lives 60 seconds. A request with a wrong `codeVerifier` fails **and spends the code**, so
+    whoever intercepted it gets one try, not unlimited guesses. The refresh token comes back in this response only —
+    it is never in a URL or a `postMessage`.
+  operationId: exchangeWebAuthCode
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "./schemas.yaml#/WebTokenPayload"
+  responses:
+    "200":
+      description: Code redeemed — your credential.
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/RefreshTokenResponse"
+          example:
+            refreshToken: "rt_a1b2c3d4e5f6..."
+            publicId: "MqXYz12abc"
+            expiresAt: 1733088000
+    "400":
+      description: A required field is missing, or the code or verifier is malformed.
+      content:
+        application/json:
+          schema:
+            $ref: "../../shared/schemas.yaml#/ApiError"
+          examples:
+            missingField:
+              value:
+                error: "Missing or invalid required field: codeVerifier"
+            malformed:
+              value:
+                error: "invalid-input"
+    "401":
+      description: |
+        The code cannot be redeemed. The `error` field is a machine-readable code, and every failed attempt
+        spends the code, so start a new sign-in rather than retrying.
+      content:
+        application/json:
+          schema:
+            $ref: "../../shared/schemas.yaml#/ApiError"
+          examples:
+            wrongVerifier:
+              summary: The verifier does not match the challenge the sign-in started with
+              value:
+                error: "code-verifier-invalid"
+            expired:
+              summary: The 60 seconds are up
+              value:
+                error: "session-expired"
+            used:
+              summary: The code was already redeemed
+              value:
+                error: "session-already-consumed"
+            wrongClient:
+              summary: The code belongs to a different client
+              value:
+                error: "client-mismatch"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"

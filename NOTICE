@@ -1,0 +1,13 @@
+Discovr SDKs and documentation
+Copyright (c) 2026 Discovr
+
+The source code, SDKs, code samples and documentation text in this repository
+are licensed under the MIT License (see LICENSE).
+
+Not covered by that license:
+
+- The Discovr name, logos and other brand assets, including the files under
+  docs/assets/. You may not use them to suggest that your project is made or
+  endorsed by Discovr.
+- The Discovr API itself. Using the API, including through these SDKs, is
+  governed by the Discovr Developer Terms: https://discovr.media/terms

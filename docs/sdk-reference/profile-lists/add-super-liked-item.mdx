@@ -1,0 +1,73 @@
+---
+title: "addSuperLikedItem()"
+description: "Add an item to the super-liked list"
+---
+
+Adds a title to the super-liked list.
+
+**Auth tier:** session — send the session token from `POST /auth/session-token`.
+
+Super-liking a title says the viewer loves it. Like the liked list, adding a super-like automatically removes any existing dislike or like for the same title.
+
+Returns `201` if the item was newly added, `200` if it was already super-liked.
+
+## Parameters
+
+| Name    | Type     | Required | Description                                                                                                                                                                                                                                                     |
+| ------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId | `string` | Yes      | Full media ID — `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `MV_550`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+
+## Returns
+
+[`SuccessMessage`](/sdk-reference/types/common#successmessage) — Item was already super-liked — no change made.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "message": "string",
+  "added": "string",
+  "removed": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { AddSimpleListItemPayload, SuccessMessage } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: SuccessMessage = await discovr.addSuperLikedItem("MV_550");
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.AddSimpleListItemPayload
+import api.discovr.models.SuccessMessage
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SuccessMessage = client.addSuperLikedItem(mediaId = "MV_550")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// AddSimpleListItemPayload, SuccessMessage
+let response: SuccessMessage = try await client.addSuperLikedItem(mediaId: "MV_550")
+print(response)
+```
+
+</CodeGroup>

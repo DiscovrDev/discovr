@@ -1,0 +1,137 @@
+name: Release
+
+# A tag like `v1.0.0-alpha.1` publishes the TypeScript SDK to npm and the Kotlin
+# SDK to Maven Central, and creates a GitHub release. Swift Package Manager needs
+# nothing more than the tag itself. Tags are created by the release pipeline.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Check the tag matches the SDKs
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      npm_tag: ${{ steps.check.outputs.npm_tag }}
+      prerelease: ${{ steps.check.outputs.prerelease }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compare versions
+        id: check
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          spec=$(awk '/^info:/{f=1;next} f&&/^  version:/{print $2; exit}' docs/openapi.yaml)
+          npm=$(node -p "require('./sdks/typescript/package.json').version")
+          kotlin=$(sed -n 's/^version = "\(.*\)"$/\1/p' sdks/kotlin/build.gradle.kts | head -1)
+          echo "tag=$version spec=$spec npm=$npm kotlin=$kotlin"
+          for found in "$spec" "$npm" "$kotlin"; do
+            if [ "$found" != "$version" ]; then
+              echo "::error::Tag $GITHUB_REF_NAME does not match the SDK versions (spec=$spec npm=$npm kotlin=$kotlin)."
+              exit 1
+            fi
+          done
+          # npm only moves `latest` on a stable release; alphas are published under their own tag.
+          if [[ "$version" == *-* ]]; then
+            prerelease=true
+            npm_tag="${version#*-}"
+            npm_tag="${npm_tag%%.*}"
+          else
+            prerelease=false
+            npm_tag=latest
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "npm_tag=$npm_tag" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+
+  npm:
+    name: Publish to npm
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      # Trusted publishing (OIDC) needs npm 11.5.1 or newer.
+      - name: Update npm
+        run: npm install -g npm@^11.5.1
+
+      - name: Build the SDK
+        working-directory: sdks/typescript
+        run: npm install --no-audit --no-fund
+
+      # NPM_TOKEN is only used for the very first publish, before a trusted publisher
+      # can be configured for the package. Delete the secret afterwards.
+      - name: Publish
+        working-directory: sdks/typescript
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public --tag "${{ needs.verify.outputs.npm_tag }}"
+
+  maven:
+    name: Publish to Maven Central
+    needs: verify
+    # Kotlin Multiplatform can only publish the Apple targets from a Mac.
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # Uploads and validates the deployment. Releasing it from the Central Portal is
+      # a manual step until the first versions have been checked.
+      - name: Publish
+        working-directory: sdks/kotlin
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew publishToMavenCentral --no-daemon
+
+  github-release:
+    name: Create the GitHub release
+    needs: [verify, npm, maven]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.verify.outputs.version }}
+          PRERELEASE: ${{ needs.verify.outputs.prerelease }}
+        run: |
+          flags=()
+          if [ "$PRERELEASE" = "true" ]; then flags+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$GITHUB_REF_NAME" \
+            --notes "Version $VERSION of the Discovr SDKs for TypeScript, Kotlin and Swift. See https://docs.discovr.media." \
+            "${flags[@]}"

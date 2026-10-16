@@ -1,0 +1,139 @@
+---
+title: "Listing and selecting profiles"
+description: "Use getProfiles() to list profiles for your picker UI, select one with selectProfile, then start fetching."
+---
+
+You **list** profiles with [`getProfiles()`](/sdk-reference/profiles/get-profiles) for your “who’s watching?” UI, then **select** one with [`selectProfile()`](/sdk-reference/authentication/select-profile) so the SDK creates a **session credential** for that viewer. Session-tier endpoints (pages, rows, tailored lists) then follow that profile’s recommendation snapshot and library state.
+
+<Frame>
+	<img
+		src="/assets/pages/profiles/profiles_example_light.png"
+		className="dark:hidden"
+		alt="Illustrative light-theme profile picker: profile tiles with avatars/names plus add-profile entry; APIs are getProfiles and selectProfile—your grid and copy may differ."
+	/>
+	<img
+		src="/assets/pages/profiles/profiles_example_dark.png"
+		className="hidden dark:block"
+		alt="Illustrative dark-theme picker: same who’s-watching pattern on dark UI chrome; conceptual only."
+	/>
+</Frame>
+
+Example layout only—your tiles and “add profile” placement are yours; the **`getProfiles`** → **`selectProfile`** sequence stays the same.
+
+## Build the flow
+
+<Steps>
+	<Step title="Ensure the user is signed in">
+		Finish a sign-in flow from [Authentication](/guides/authentication) so the SDK holds a refresh
+		token ([`isSignedIn()`](/sdk-reference/authentication/is-signed-in) is true).
+	</Step>
+	<Step title="List profiles for the picker">
+		Call [`getProfiles()`](/sdk-reference/profiles/get-profiles) (identity tier). Render each
+		profile’s **`name`** and **`avatarUrl`**—for example as a horizontal row or grid with an
+		optional “Add profile” tile that navigates to your create UI. Avatars may be **images, GIFs or
+		MP4s**: pick the view from each profile’s **`avatarMediaType`**, show it still, and animate only
+		the focused profile (see [Managing
+		profiles](/guides/profiles/managing-profiles#choose-the-view-from-avatarmediatype)).
+	</Step>
+	<Step title="Handle zero profiles">
+		If the list is empty, send users to your create-flow (see [Managing
+		profiles](/guides/profiles/managing-profiles)) and call
+		[`createProfile()`](/sdk-reference/profiles/create-profile) before returning here.
+	</Step>
+	<Step title="On selection, activate the profile">
+		When the user taps a profile, call
+		[`selectProfile(profileId)`](/sdk-reference/authentication/select-profile). You can use
+		[`switchProfile()`](/sdk-reference/authentication/switch-profile) when swapping from another
+		profile — the new viewer starts with their own fresh recommendations.
+	</Step>
+	<Step title="Wait for the profile before fetching">
+		Before `createPage`, listing rows, or anything else profile-scoped, use
+		[`hasActiveProfile()`](/sdk-reference/authentication/has-active-profile) or
+		[`getActiveProfileId()`](/sdk-reference/authentication/get-active-profile-id) if you want a
+		defensive check.
+	</Step>
+</Steps>
+
+<Tip>
+	Subscribe to [`onAuthStateChanged()`](/sdk-reference/authentication/on-auth-state-changed) (or
+	Kotlin `authState` / Swift `authStateStream`) to refresh chrome when profile changes or sign-out
+	occurs. Subscribe to [`onSessionRefreshed()`](/sdk-reference/authentication/on-session-refreshed)
+	when you need to rebuild homepage data after snapshot turnover.
+</Tip>
+
+## Example: list → select → first session API
+
+{/* sample: profiles-listing-and-selecting-profiles-example-list-select-first-session-api */}
+
+<CodeGroup>
+
+```typescript TypeScript
+const client = new DiscovrClient("your-client-id");
+
+const { profiles } = await client.getProfiles();
+const chosen = profiles[0]; // replace with tile the user tapped
+
+await client.selectProfile(chosen.id);
+
+if (!client.hasActiveProfile()) throw new Error("No profile selected yet");
+const page = await client.createPage();
+```
+
+```kotlin Kotlin
+val profiles = client.getProfiles().profiles
+val chosen = profiles.first() // replace with user's selection
+
+client.selectProfile(chosen.id)
+
+if (!client.hasActiveProfile) error("No profile selected yet")
+val page = client.createPage()
+```
+
+```swift Swift
+let list = try await client.getProfiles()
+guard let chosen = list.profiles.first else { fatalError("No profiles—create one first") }
+
+try await client.selectProfile(profileId: chosen.id)
+
+guard await client.hasActiveProfile else { throw NSError(domain: "", code: 1) }
+let page = try await client.createPage()
+```
+
+</CodeGroup>
+
+## On the next launch
+
+By default the SDK keeps the user **signed in** between launches but does not remember **which profile** they chose, the way a streaming app asks "Who's watching?" every time it opens. After a relaunch, [`onAuthStateChanged()`](/sdk-reference/authentication/on-auth-state-changed) reports `signedIn: true` with a `profileId` of `null`, so the handler from the tip above sends the user to your picker with no extra code.
+
+If you would rather resume where they left off, such as a family TV that is nearly always the same person, turn it on when you create the client:
+
+{/* sample: client-remember-profile */}
+
+<CodeGroup>
+
+```typescript TypeScript
+const client = new DiscovrClient("YOUR_CLIENT_ID", { rememberProfile: true });
+```
+
+```kotlin Kotlin
+val client = DiscovrClient(clientId = "YOUR_CLIENT_ID", storage = TokenStorage(), rememberProfile = true)
+```
+
+```swift Swift
+let client = await DiscovrClient(clientId: "YOUR_CLIENT_ID", rememberProfile: true)
+```
+
+</CodeGroup>
+
+With it on, the launch reports the last profile's `profileId`, and your handler goes straight to browsing. Route on that value, or on [`getActiveProfileId()`](/sdk-reference/authentication/get-active-profile-id), rather than on `hasActiveProfile()`. The session credential only lasts 30 minutes, so after a longer gap `hasActiveProfile()` is `false` until the first request renews it, which the SDK does for you.
+
+Signing out forgets the profile either way. See [Signing out](/guides/authentication/signing-out).
+
+## Related
+
+- [Profiles overview](/guides/profiles) · [Managing profiles](/guides/profiles/managing-profiles)
+- [Signing out](/guides/authentication/signing-out) — and why switching profiles isn't the same thing
+
+---
+
+**Next:** [Managing profiles — create, update, and delete viewer profiles](/guides/profiles/managing-profiles)

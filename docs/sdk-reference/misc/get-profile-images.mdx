@@ -1,0 +1,70 @@
+---
+title: "getProfileImages()"
+description: "List avatar images"
+---
+
+Returns publicly available avatar images for use in profile setup. Paginated — pass `nextToken` from the previous response as `pageToken` to load more. These are curated still images.
+
+No authentication required.
+
+## Parameters
+
+| Name      | Type      | Required | Description                                                                                              |
+| --------- | --------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| limit     | `integer` | No       | Maximum number of images to return (1–50).                                                               |
+| pageToken | `string`  | No       | Pagination cursor from the `nextToken` field of the previous response. Omit to start from the beginning. |
+
+## Returns
+
+[`ProfileImagesResponse`](/sdk-reference/types/misc#profileimagesresponse) — Avatar images returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "nextToken": "string",
+  "images": ["string"]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { ProfileImagesResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+const response: ProfileImagesResponse = await discovr.getProfileImages({
+	limit: 16,
+	pageToken: "example",
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.ProfileImagesResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: ProfileImagesResponse = client.getProfileImages(limit = 16, pageToken = "example")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// ProfileImagesResponse
+let response: ProfileImagesResponse = try await client.getProfileImages(limit: 16, pageToken: "example")
+print(response)
+```
+
+</CodeGroup>

@@ -1,0 +1,55 @@
+get:
+  tags:
+    - Discovr
+    - Media
+  summary: Get TV season details
+  description: |
+    Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.
+
+    This is a public endpoint — no authentication required. Returns only generic catalog metadata.
+  operationId: getSeasonDetails
+  x-tier: public
+  x-cache-policy: session
+  security: [] # Public endpoint - no authentication required
+  parameters:
+    - name: mediaId
+      in: path
+      required: true
+      description: |
+        The unique identifier of the TV show (e.g., `TV_1396`).
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      schema:
+        type: string
+        pattern: '^(TV)_\d+(@[0-9A-Za-z_-]+)?$'
+    - name: seasonNumber
+      in: path
+      required: true
+      description: The season number.
+      schema:
+        type: integer
+        example: 1
+    - name: language
+      in: query
+      required: false
+      description: ISO 639-1 language code for localised results (e.g., `en`).
+      schema:
+        type: string
+        example: "en"
+  responses:
+    "200":
+      description: Season details returned successfully.
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SeasonDetailsResponse"
+    "400":
+      $ref: "../shared/responses.yaml#/BadRequest"
+    "404":
+      $ref: "../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../shared/responses.yaml#/ServiceUnavailable"

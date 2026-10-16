@@ -1,0 +1,510 @@
+# Shared schemas for Profile Lists
+
+# Simple List Item (for liked, disliked, super_liked, watchlist)
+SimpleListItem:
+  description: A media item in a profile list, with its display metadata (title, poster, backdrop) and when it was added.
+  type: object
+  required:
+    - id
+    - mediaType
+    - title
+    - poster_path
+    - backdrop_path
+    - createdAt
+  properties:
+    id:
+      type: string
+      description: The DiscovrID (TV_<number> or MV_<number>)
+      example: "MV_550"
+    ref:
+      type: string
+      description: |
+        This item's `id` with the list it came from attached.
+
+        Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, removing it from a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.
+
+        A bare `id` always works; `ref` is never required.
+      example: "MV_550@Pc1tD7vKj3NxU6eO"
+    mediaType:
+      type: string
+      enum: [movie, tv]
+      description: The type of media
+      example: "movie"
+    title:
+      type: string
+      description: The title of the media
+      example: "Fight Club"
+    poster_path:
+      type: object
+      description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    backdrop_path:
+      type: object
+      description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp indicating when the item was added to the list
+      example: "2023-01-01T00:00:00.000Z"
+  additionalProperties: false
+
+# Playback List Item
+PlaybackItem:
+  description: "A media item with playback progress. `progress` is 0–100."
+  type: object
+  required:
+    - id
+    - mediaType
+    - title
+    - poster_path
+    - backdrop_path
+    - createdAt
+  properties:
+    id:
+      type: string
+      description: The DiscovrID (TV_<number> or MV_<number>)
+      example: "MV_550"
+    ref:
+      type: string
+      description: |
+        This item's `id` with the list it came from attached.
+
+        Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, scrobbling it, removing it from a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.
+
+        A bare `id` always works; `ref` is never required.
+      example: "MV_550@Zi9bF4wSm0QaT2hC"
+    mediaType:
+      type: string
+      enum: [movie, tv]
+      description: The type of media
+      example: "movie"
+    title:
+      type: string
+      description: The title of the media
+      example: "Fight Club"
+    poster_path:
+      type: object
+      description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    backdrop_path:
+      type: object
+      description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    episode_image:
+      type: object
+      description: |
+        Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Only present for episode-level playback items.
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    episode_title:
+      type: string
+      description: The title of the episode (only present for episode-level playback items)
+      nullable: true
+      example: "Winter Is Coming"
+    progress:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: Playback progress percentage (0-100)
+      example: 45.5
+    updatedAt:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp indicating when playback was last updated
+      example: "2023-01-15T00:00:00.000Z"
+    season:
+      type: integer
+      minimum: 1
+      description: Season number (only for TV shows)
+      example: 2
+    episode:
+      type: integer
+      minimum: 1
+      description: Episode number (only for TV shows)
+      example: 5
+    createdAt:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp indicating when the item was first added to the list
+      example: "2023-01-01T00:00:00.000Z"
+  additionalProperties: false
+
+# History List Item
+# Note: For TV shows, when `episode` is missing, the entry represents a "Default for Episode" entry
+# that applies to all episodes in the season where `episode.air_date < historyItem.updatedAt`.
+# This is a client-side interpretation pattern.
+#
+# Entry Precedence: Explicit episode entries (with `episode` specified) always take precedence
+# over season default entries. When an episode has both types of entries, use the explicit entry's
+# completion status and progress. Season defaults only apply to episodes without explicit entries.
+HistoryItem:
+  description: A watch history entry. TV shows include season and episode.
+  type: object
+  required:
+    - id
+    - mediaType
+    - title
+    - poster_path
+    - backdrop_path
+    - updatedAt
+    - completed
+    - watched_count
+    - createdAt
+  properties:
+    id:
+      type: string
+      description: The DiscovrID (TV_<number> or MV_<number>)
+      example: "TV_1396"
+    ref:
+      type: string
+      description: |
+        This entry's `id` with the list it came from attached.
+
+        Prefer it wherever you'd pass this entry's `id` onward — opening its detail screen, removing it from your history. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.
+
+        A bare `id` always works; `ref` is never required.
+      example: "TV_1396@Ae8sG5qRb2WmH9yL"
+    mediaType:
+      type: string
+      enum: [movie, tv]
+      description: The type of media
+      example: "tv"
+    title:
+      type: string
+      description: The title of the media
+      example: "Breaking Bad"
+    poster_path:
+      type: object
+      description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    backdrop_path:
+      type: object
+      description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    updatedAt:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp indicating when the history entry was last updated
+      example: "2023-01-15T00:00:00.000Z"
+    progress:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: Playback progress percentage (0-100)
+      nullable: true
+      example: 45.5
+    completed:
+      type: boolean
+      description: Whether the media is considered completed (progress >= 80%)
+      example: false
+    watched_count:
+      type: integer
+      minimum: 0
+      description: How many times the profile has finished this title (or episode). `0` means it has been started but not finished.
+      example: 3
+    season:
+      type: integer
+      minimum: 1
+      description: Season number (required for TV shows)
+      example: 1
+    episode:
+      type: integer
+      minimum: 1
+      description: Episode number (required for TV shows)
+      example: 5
+    imported:
+      type: string
+      description: Source of import (e.g., "trakt") if this item was imported
+      nullable: true
+      example: "trakt"
+    createdAt:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp indicating when the item was added to the list
+      example: "2023-01-01T00:00:00.000Z"
+  additionalProperties: false
+
+# Request Schemas
+
+# Add Simple List Item Request (for liked, disliked, super_liked, watchlist)
+AddSimpleListItemPayload:
+  description: "The media item to add. Use the full Discovr media ID — `MV_<id>` for movies, `TV_<id>` for TV shows."
+  type: object
+  required:
+    - mediaId
+  properties:
+    mediaId:
+      type: string
+      description: |
+        Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      example: "MV_550"
+  additionalProperties: false
+
+# Add Playback Request
+AddPlaybackPayload:
+  description: "Playback progress to record. `progress` is 0–100. `updatedAt` is an ISO timestamp from the client — use the actual time of the progress update."
+  type: object
+  required:
+    - mediaId
+  properties:
+    mediaId:
+      type: string
+      description: |
+        Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      example: "MV_550"
+    progress:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: Initial playback progress percentage (0-100)
+      example: 25.5
+    updatedAt:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp for when playback was last updated
+      example: "2023-01-15T00:00:00.000Z"
+  additionalProperties: false
+
+# Edit Playback Request
+EditPlaybackPayload:
+  description: "Updated playback progress. Provide at least one of `progress` or `updatedAt`. `mediaId` identifies the entry to update."
+  type: object
+  required:
+    - mediaId
+  properties:
+    mediaId:
+      type: string
+      description: |
+        Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      example: "MV_550"
+    progress:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: New playback progress percentage (0-100)
+      example: 75.0
+    updatedAt:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp for when playback was last updated
+      example: "2023-01-15T00:00:00.000Z"
+  additionalProperties: false
+
+# Add History Request
+# Note: For TV shows, season is required and episode is optional.
+# When episode is omitted, the entry represents a "Default for Episode" item that applies
+# to all episodes in the season where episode.air_date < historyItem.updatedAt.
+AddHistoryPayload:
+  description: "A watch history entry to record. For TV shows, `season` is required; `episode` is optional."
+  type: object
+  required:
+    - mediaId
+  properties:
+    mediaId:
+      type: string
+      description: |
+        Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `TV_1396`).
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      example: "TV_1396"
+    updatedAt:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp indicating when the history entry was last updated
+      example: "2023-01-15T00:00:00.000Z"
+    progress:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: Playback progress percentage (0-100)
+      example: 45.5
+    season:
+      type: integer
+      minimum: 1
+      description: Season number (required for TV shows)
+      example: 1
+    episode:
+      type: integer
+      minimum: 1
+      description: |
+        Episode number (optional for TV shows). When omitted, creates a "Default for Episode" entry
+        that applies to all episodes in the season where episode.air_date < historyItem.updatedAt.
+        This allows updating multiple episodes with a single history entry.
+
+        **Overriding Season Defaults:** When provided, creates an explicit episode entry that takes
+        precedence over any season default entries. To unmark an episode completed via season default,
+        create an explicit entry with progress < 80% (which will not be marked as completed).
+      example: 5
+    imported:
+      type: string
+      description: Source of import (e.g., "trakt") if this item was imported
+      example: "trakt"
+  additionalProperties: false
+
+# Patch History Request
+# Note: This is an upsert operation - creates if doesn't exist, updates if exists
+# Note: For TV shows, season is required and episode is optional.
+# When episode is omitted, patches/creates the season default entry (entry without episode).
+# When episode is provided, patches/creates an explicit episode entry that overrides season defaults.
+PatchHistoryPayload:
+  type: object
+  description: Updates the recorded progress for a title already in the profile's history.
+  required:
+    - progress
+  properties:
+    progress:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: |
+        Playback progress percentage (0-100). 
+
+        Values >= 80% are considered completed, values < 80% are not completed.
+        Use progress: 0 to unmark an episode that was completed via season default.
+      example: 0
+  additionalProperties: false
+
+# Response Schemas
+
+# Simple List Response (for liked, disliked, super_liked, watchlist)
+SimpleListResponse:
+  description: "Paginated list of items. Use `nextPageToken` with the `nextPageToken` query parameter to get the next page."
+  type: object
+  required:
+    - items
+    - hasMore
+  properties:
+    items:
+      type: array
+      description: Array of list items
+      items:
+        $ref: "#/SimpleListItem"
+    hasMore:
+      type: boolean
+      description: Whether there are more items available
+      example: true
+    nextPageToken:
+      type: string
+      description: Opaque token to fetch the next page of results
+  additionalProperties: false
+
+# Playback List Response
+PlaybackListResponse:
+  description: Paginated list of items with playback progress.
+  type: object
+  required:
+    - items
+    - hasMore
+  properties:
+    items:
+      type: array
+      description: Array of playback items
+      items:
+        $ref: "#/PlaybackItem"
+    hasMore:
+      type: boolean
+      description: Whether there are more items available
+      example: true
+    nextPageToken:
+      type: string
+      description: Opaque token to fetch the next page of results
+  additionalProperties: false
+
+# History List Response
+HistoryListResponse:
+  description: Paginated list of watch history entries.
+  type: object
+  required:
+    - items
+    - hasMore
+  properties:
+    items:
+      type: array
+      description: Array of history items
+      items:
+        $ref: "#/HistoryItem"
+    hasMore:
+      type: boolean
+      description: Whether there are more items available
+      example: true
+    nextPageToken:
+      type: string
+      description: Opaque token to fetch the next page of results
+  additionalProperties: false
+
+# Success Message Response
+SuccessMessage:
+  description: "Confirmation response with the action taken. For exclusive lists (liked/disliked/super_liked), also includes `added` (which list the item was added to) and optionally `removed` (which list it was removed from)."
+  type: object
+  required:
+    - message
+  properties:
+    message:
+      type: string
+      description: Success message
+      example: "Item added successfully"
+    added:
+      type: string
+      description: The list type the item was added to (for exclusive lists)
+      example: "liked"
+    removed:
+      type: string
+      nullable: true
+      description: The list type the item was removed from, if any (for exclusive lists)
+      example: "disliked"
+  additionalProperties: false

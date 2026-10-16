@@ -1,0 +1,851 @@
+---
+title: "Branding"
+description: "Official logos, colors, and sign-in button examples for integrating Discovr into your app."
+---
+
+export const LOGO_LIGHT = "/assets/Discovr.svg";
+export const LOGO_DARK = "/assets/Discovr_dark.svg";
+export const ICON = "/assets/D.svg";
+
+export const row = { display: "flex", gap: "10px", flexWrap: "wrap", margin: "16px 0" };
+export const swatch = (bg) => ({
+	background: bg,
+	padding: "10px 14px",
+	borderRadius: "10px",
+	display: "inline-flex",
+	flexDirection: "column",
+	gap: "8px",
+	alignItems: "flex-start",
+});
+export const label = (color) => ({
+	margin: 0,
+	fontSize: "10px",
+	fontWeight: 600,
+	letterSpacing: "0.08em",
+	textTransform: "uppercase",
+	color,
+	fontFamily: "sans-serif",
+});
+export const btn = (extra) => ({
+	display: "inline-flex",
+	alignItems: "center",
+	flexWrap: "nowrap",
+	gap: 10,
+	height: 36,
+	padding: "0 16px",
+	border: "none",
+	margin: 0,
+	cursor: "default",
+	fontFamily: '"DM Sans", "Inter", system-ui, sans-serif',
+	fontSize: 14,
+	fontWeight: 500,
+	whiteSpace: "nowrap",
+	lineHeight: 1,
+	appearance: "none",
+	boxSizing: "border-box",
+	...extra,
+});
+
+You've set up authentication. Now you need a sign-in button that looks right in your app. Discovr gives you the logos, colors, and patterns to build one that feels at home — whether it's a pill button on a landing page or a compact inline option.
+
+Once your button is ready, wire it up to the [Web Sign-in Flow](/guides/authentication/web-sign-in) or [Device Code Flow](/guides/authentication/device-code).
+
+---
+
+## The :Discovr brand mark
+
+You'll notice we style the brand name with a colon prefix — **:Discovr** — in text and marketing. The colon is intentional branding, a nod to media metadata notation. Feel free to use this style in your own copy when referring to the platform (e.g., "Powered by :Discovr" or "Sign in with :Discovr").
+
+In button UI, the wordmark SVG _is_ the `:Discovr` — you don't need to add the colon separately.
+
+---
+
+## Logos
+
+| File               | Use it when…                                                        |
+| ------------------ | ------------------------------------------------------------------- |
+| `D.svg`            | Tight spaces — icon buttons, app icons, favicon-scale               |
+| `Discovr.svg`      | Full wordmark, dark fill — light backgrounds                        |
+| `Discovr_dark.svg` | Full wordmark, light fill — dark backgrounds or dark-filled buttons |
+
+<CardGroup cols={2}>
+	<Card>
+		<div
+			style={{
+				background: "#F4F1EA",
+				borderRadius: "6px",
+				padding: "20px",
+				display: "flex",
+				justifyContent: "center",
+				marginBottom: "12px",
+			}}
+		>
+			<img src="/assets/D.svg" alt="Discovr app icon" style={{ height: "44px" }} />
+		</div>
+		<a href="/assets/D.svg" download="discovr-icon.svg">
+			Download D.svg
+		</a>
+	</Card>
+	<Card>
+		<div
+			style={{
+				background: "#1A1A1A",
+				borderRadius: "6px",
+				padding: "16px 20px",
+				display: "flex",
+				justifyContent: "center",
+				marginBottom: "8px",
+			}}
+		>
+			<img
+				src="/assets/Discovr_dark.svg"
+				alt="Discovr wordmark, light fill"
+				style={{ height: "20px" }}
+			/>
+		</div>
+		<div
+			style={{
+				background: "#F4F1EA",
+				borderRadius: "6px",
+				padding: "16px 20px",
+				display: "flex",
+				justifyContent: "center",
+				marginBottom: "12px",
+			}}
+		>
+			<img src="/assets/Discovr.svg" alt="Discovr wordmark, dark fill" style={{ height: "20px" }} />
+		</div>
+		<div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+			<a href="/assets/Discovr.svg" download="discovr-wordmark.svg">
+				Discovr.svg
+			</a>
+			<a href="/assets/Discovr_dark.svg" download="discovr-wordmark-dark.svg">
+				Discovr_dark.svg
+			</a>
+		</div>
+	</Card>
+</CardGroup>
+
+---
+
+## Colors
+
+| Token                                      | Light     | Dark      |
+| ------------------------------------------ | --------- | --------- |
+| **Ink** — button bg, border, text on light | `#1A1A1A` | `#EAEAEA` |
+| **Canvas** — button text and fg on Ink     | `#F4F1EA` | `#2F2F2F` |
+
+**Hover:** `opacity: 0.9`. Works for solid and outlined styles alike.
+
+**Disabled / loading:** `opacity: 0.5` + `pointer-events: none`. Swap label to `"Signing in…"`.
+
+**Font:** DM Sans (or system sans-serif), 14 px, weight 500.
+
+---
+
+## A few things to keep in mind
+
+Nothing rigid here — just some patterns that tend to keep things looking consistent across integrations:
+
+- Ink and Canvas are the primary button colors, and they're a good starting point even if you tweak things for your app
+- The wordmark SVG already contains the word "Discovr", so there's no need to add it as text alongside the logo
+- When the button has a dark (Ink) fill, use the light-fill wordmark (`Discovr_dark.svg`), and vice versa — they're designed to sit on opposite surfaces
+- The logo looks best at its natural aspect ratio — scaling by height works well, but stretching or cropping tends to look off
+- This button is really only meant to trigger the Discovr sign-in flow, so try to keep it for that use case specifically
+
+## Button examples
+
+The wordmark SVG already contains the word "Discovr", so in buttons the pattern is `Sign in with ` + the wordmark SVG inline — the logo _is_ the label. You don't need to add the word "Discovr" as text alongside it.
+
+| Button style                           | Best for                                 |
+| -------------------------------------- | ---------------------------------------- |
+| Pill (Sign in with :Discovr)           | Hero sections, dedicated sign-in screens |
+| Solid compact (Continue with :Discovr) | Secondary options, login pages           |
+| Outlined (:Discovr Sign In)            | Side-by-side with other sign-in methods  |
+| Logo only (full-width)                 | Dedicated Discovr sign-in pages          |
+
+### Sign in with :Discovr
+
+The classic pattern — "Sign in with" as text, the wordmark SVG as the last word. Familiar to anyone who's seen a Google or Apple sign-in button.
+
+<div style={row}>
+	<div style={swatch("#F4F1EA")}>
+		<p style={label("#999")}>Light</p>
+		<button
+			style={btn({ background: "#1A1A1A", color: "#F4F1EA", borderRadius: 100, padding: "0 20px" })}
+		>
+			<span style={{ display: "inline-flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" }}>
+				Sign in with{" "}
+				<img src={LOGO_DARK} alt="Discovr" style={{ height: 13, verticalAlign: "middle" }} />
+			</span>
+		</button>
+	</div>
+	<div style={swatch("#141414")}>
+		<p style={label("#555")}>Dark</p>
+		<button
+			style={btn({ background: "#EAEAEA", color: "#2F2F2F", borderRadius: 100, padding: "0 20px" })}
+		>
+			<span style={{ display: "inline-flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" }}>
+				Sign in with{" "}
+				<img src={LOGO_LIGHT} alt="Discovr" style={{ height: 13, verticalAlign: "middle" }} />
+			</span>
+		</button>
+	</div>
+</div>
+
+<Expandable title="Code">
+
+<CodeGroup>
+
+```html HTML + CSS
+<style>
+	:root {
+		--ink: #1a1a1a;
+		--canvas: #f4f1ea;
+	}
+	@media (prefers-color-scheme: dark) {
+		:root {
+			--ink: #eaeaea;
+			--canvas: #2f2f2f;
+		}
+	}
+	.discovr-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		height: 36px;
+		padding: 0 20px;
+		border: none;
+		border-radius: 100px;
+		background: var(--ink);
+		color: var(--canvas);
+		font-family: "DM Sans", "Inter", system-ui, sans-serif;
+		font-size: 14px;
+		font-weight: 500;
+		white-space: nowrap;
+		cursor: pointer;
+		transition: opacity 150ms ease;
+	}
+	.discovr-pill:hover {
+		opacity: 0.9;
+	}
+	.discovr-pill:disabled {
+		opacity: 0.5;
+		pointer-events: none;
+	}
+	.discovr-pill img {
+		height: 13px;
+		flex-shrink: 0;
+	}
+	@media (prefers-color-scheme: dark) {
+		.logo-light {
+			display: none;
+		}
+	}
+	@media (prefers-color-scheme: light) {
+		.logo-dark {
+			display: none;
+		}
+	}
+</style>
+
+<button class="discovr-pill" onclick="signIn()">
+	Sign in with
+	<img class="logo-light" src="https://docs.discovr.media/assets/Discovr.svg" alt="Discovr" />
+	<img class="logo-dark" src="https://docs.discovr.media/assets/Discovr_dark.svg" alt="Discovr" />
+</button>
+```
+
+```tsx React
+import { useState } from "react";
+
+const LOGO = {
+	light: "https://docs.discovr.media/assets/Discovr.svg",
+	dark: "https://docs.discovr.media/assets/Discovr_dark.svg",
+};
+
+export function SignInPill({ onSignIn }: { onSignIn: () => Promise<void> }) {
+	const [loading, setLoading] = useState(false);
+	const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+	return (
+		<button
+			onClick={async () => {
+				setLoading(true);
+				try {
+					await onSignIn();
+				} finally {
+					setLoading(false);
+				}
+			}}
+			disabled={loading}
+			style={{
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 8,
+				height: 36,
+				padding: "0 20px",
+				border: "none",
+				borderRadius: 100,
+				background: dark ? "#EAEAEA" : "#1A1A1A",
+				color: dark ? "#2F2F2F" : "#F4F1EA",
+				fontFamily: '"DM Sans", "Inter", system-ui, sans-serif',
+				fontSize: 14,
+				fontWeight: 500,
+				whiteSpace: "nowrap",
+				opacity: loading ? 0.5 : 1,
+				cursor: loading ? "default" : "pointer",
+				transition: "opacity 150ms ease",
+			}}
+		>
+			{loading ? (
+				"Signing in…"
+			) : (
+				<>
+					<span>Sign in with</span>
+					<img src={dark ? LOGO.dark : LOGO.light} alt="Discovr" style={{ height: 13 }} />
+				</>
+			)}
+		</button>
+	);
+}
+```
+
+</CodeGroup>
+
+</Expandable>
+
+---
+
+### Continue with :Discovr
+
+Wordmark as a leading icon — clean and no background, just the glyph. Works great on login pages where you want a solid, confident button.
+
+<div style={row}>
+	<div style={swatch("#F4F1EA")}>
+		<p style={label("#999")}>Light</p>
+		<button style={btn({ background: "#1A1A1A", color: "#F4F1EA", borderRadius: 8 })}>
+			<span style={{ display: "inline-flex", alignItems: "center", gap: 10, whiteSpace: "nowrap" }}>
+				<img
+					src={LOGO_DARK}
+					alt=""
+					style={{ height: 14, verticalAlign: "middle", flexShrink: 0 }}
+				/>
+				Continue with :Discovr
+			</span>
+		</button>
+	</div>
+	<div style={swatch("#141414")}>
+		<p style={label("#555")}>Dark</p>
+		<button style={btn({ background: "#EAEAEA", color: "#2F2F2F", borderRadius: 8 })}>
+			<span style={{ display: "inline-flex", alignItems: "center", gap: 10, whiteSpace: "nowrap" }}>
+				<img
+					src={LOGO_LIGHT}
+					alt=""
+					style={{ height: 14, verticalAlign: "middle", flexShrink: 0 }}
+				/>
+				Continue with :Discovr
+			</span>
+		</button>
+	</div>
+</div>
+
+<Expandable title="Code">
+
+<CodeGroup>
+
+```html HTML + CSS
+<style>
+	:root {
+		--ink: #1a1a1a;
+		--canvas: #f4f1ea;
+	}
+	@media (prefers-color-scheme: dark) {
+		:root {
+			--ink: #eaeaea;
+			--canvas: #2f2f2f;
+		}
+	}
+	.discovr-solid {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		height: 36px;
+		padding: 0 16px;
+		border: none;
+		border-radius: 8px;
+		background: var(--ink);
+		color: var(--canvas);
+		font-family: "DM Sans", "Inter", system-ui, sans-serif;
+		font-size: 14px;
+		font-weight: 500;
+		white-space: nowrap;
+		cursor: pointer;
+		transition: opacity 150ms ease;
+	}
+	.discovr-solid:hover {
+		opacity: 0.9;
+	}
+	.discovr-solid:disabled {
+		opacity: 0.5;
+		pointer-events: none;
+	}
+	.discovr-solid img {
+		height: 14px;
+		flex-shrink: 0;
+	}
+	@media (prefers-color-scheme: dark) {
+		.logo-light {
+			display: none;
+		}
+	}
+	@media (prefers-color-scheme: light) {
+		.logo-dark {
+			display: none;
+		}
+	}
+</style>
+
+<button class="discovr-solid" onclick="signIn()">
+	<img class="logo-dark" src="https://docs.discovr.media/assets/Discovr_dark.svg" alt="" />
+	<img class="logo-light" src="https://docs.discovr.media/assets/Discovr.svg" alt="" />
+	Continue with :Discovr
+</button>
+```
+
+```tsx React
+import { useState } from "react";
+
+const LOGO = {
+	light: "https://docs.discovr.media/assets/Discovr.svg",
+	dark: "https://docs.discovr.media/assets/Discovr_dark.svg",
+};
+
+export function ContinueWithDiscovr({ onSignIn }: { onSignIn: () => Promise<void> }) {
+	const [loading, setLoading] = useState(false);
+	const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+	return (
+		<button
+			onClick={async () => {
+				setLoading(true);
+				try {
+					await onSignIn();
+				} finally {
+					setLoading(false);
+				}
+			}}
+			disabled={loading}
+			style={{
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 10,
+				height: 36,
+				padding: "0 16px",
+				border: "none",
+				borderRadius: 8,
+				background: dark ? "#EAEAEA" : "#1A1A1A",
+				color: dark ? "#2F2F2F" : "#F4F1EA",
+				fontFamily: '"DM Sans", "Inter", system-ui, sans-serif',
+				fontSize: 14,
+				fontWeight: 500,
+				whiteSpace: "nowrap",
+				opacity: loading ? 0.5 : 1,
+				cursor: loading ? "default" : "pointer",
+				transition: "opacity 150ms ease",
+			}}
+		>
+			{loading ? (
+				"Signing in…"
+			) : (
+				<>
+					<img src={dark ? LOGO.dark : LOGO.light} alt="" style={{ height: 14, flexShrink: 0 }} />
+					<span>Continue with :Discovr</span>
+				</>
+			)}
+		</button>
+	);
+}
+```
+
+</CodeGroup>
+
+</Expandable>
+
+---
+
+### :Discovr Sign In — outlined
+
+Outlined ghost style, slightly different energy. The border-only treatment works well when the button is sitting on a card or alongside other options and you don't want to compete visually.
+
+<div style={row}>
+	<div style={swatch("#F4F1EA")}>
+		<p style={label("#999")}>Light</p>
+		<button
+			style={btn({
+				background: "transparent",
+				color: "#1A1A1A",
+				border: "1.5px solid #1A1A1A",
+				borderRadius: 8,
+			})}
+		>
+			<span style={{ display: "inline-flex", alignItems: "center", gap: 10, whiteSpace: "nowrap" }}>
+				<img
+					src={LOGO_LIGHT}
+					alt=""
+					style={{ height: 13, verticalAlign: "middle", flexShrink: 0 }}
+				/>
+				:Discovr Sign In
+			</span>
+		</button>
+	</div>
+	<div style={swatch("#141414")}>
+		<p style={label("#555")}>Dark</p>
+		<button
+			style={btn({
+				background: "transparent",
+				color: "#EAEAEA",
+				border: "1.5px solid #EAEAEA",
+				borderRadius: 8,
+			})}
+		>
+			<span style={{ display: "inline-flex", alignItems: "center", gap: 10, whiteSpace: "nowrap" }}>
+				<img
+					src={LOGO_DARK}
+					alt=""
+					style={{ height: 13, verticalAlign: "middle", flexShrink: 0 }}
+				/>
+				:Discovr Sign In
+			</span>
+		</button>
+	</div>
+</div>
+
+<Expandable title="Code">
+
+<CodeGroup>
+
+```html HTML + CSS
+<style>
+	:root {
+		--ink: #1a1a1a;
+	}
+	@media (prefers-color-scheme: dark) {
+		:root {
+			--ink: #eaeaea;
+		}
+	}
+	.discovr-ghost {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		height: 36px;
+		padding: 0 16px;
+		background: transparent;
+		color: var(--ink);
+		border: 1.5px solid var(--ink);
+		border-radius: 8px;
+		font-family: "DM Sans", "Inter", system-ui, sans-serif;
+		font-size: 14px;
+		font-weight: 500;
+		white-space: nowrap;
+		cursor: pointer;
+		transition: opacity 150ms ease;
+	}
+	.discovr-ghost:hover {
+		opacity: 0.7;
+	}
+	.discovr-ghost:disabled {
+		opacity: 0.4;
+		pointer-events: none;
+	}
+	.discovr-ghost img {
+		height: 13px;
+		flex-shrink: 0;
+	}
+	@media (prefers-color-scheme: dark) {
+		.logo-light {
+			display: none;
+		}
+	}
+	@media (prefers-color-scheme: light) {
+		.logo-dark {
+			display: none;
+		}
+	}
+</style>
+
+<button class="discovr-ghost" onclick="signIn()">
+	<img class="logo-light" src="https://docs.discovr.media/assets/Discovr.svg" alt="" />
+	<img class="logo-dark" src="https://docs.discovr.media/assets/Discovr_dark.svg" alt="" />
+	:Discovr Sign In
+</button>
+```
+
+```tsx React
+import { useState } from "react";
+
+const LOGO = {
+	light: "https://docs.discovr.media/assets/Discovr.svg",
+	dark: "https://docs.discovr.media/assets/Discovr_dark.svg",
+};
+
+export function DiscovrSignIn({ onSignIn }: { onSignIn: () => Promise<void> }) {
+	const [loading, setLoading] = useState(false);
+	const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+	const ink = dark ? "#EAEAEA" : "#1A1A1A";
+
+	return (
+		<button
+			onClick={async () => {
+				setLoading(true);
+				try {
+					await onSignIn();
+				} finally {
+					setLoading(false);
+				}
+			}}
+			disabled={loading}
+			style={{
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 10,
+				height: 36,
+				padding: "0 16px",
+				background: "transparent",
+				color: ink,
+				border: `1.5px solid ${ink}`,
+				borderRadius: 8,
+				fontFamily: '"DM Sans", "Inter", system-ui, sans-serif',
+				fontSize: 14,
+				fontWeight: 500,
+				whiteSpace: "nowrap",
+				opacity: loading ? 0.4 : 1,
+				cursor: loading ? "default" : "pointer",
+				transition: "opacity 150ms ease",
+			}}
+		>
+			{loading ? (
+				"Signing in…"
+			) : (
+				<>
+					<img src={dark ? LOGO.dark : LOGO.light} alt="" style={{ height: 13, flexShrink: 0 }} />
+					<span>:Discovr Sign In</span>
+				</>
+			)}
+		</button>
+	);
+}
+```
+
+</CodeGroup>
+
+</Expandable>
+
+---
+
+### Full-width — get started
+
+For dedicated sign-in screens. No text competing with the wordmark — just the logo, centered. The copy around the button does the explaining.
+
+<div
+	style={{ margin: "16px 0", display: "flex", flexDirection: "column", gap: "10px", maxWidth: 360 }}
+>
+	<div
+		style={{
+			background: "#F4F1EA",
+			padding: "12px 16px",
+			borderRadius: 10,
+			display: "flex",
+			flexDirection: "column",
+			gap: 8,
+		}}
+	>
+		<p style={label("#999")}>Light</p>
+		<button
+			style={{
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				width: "100%",
+				height: 40,
+				background: "#1A1A1A",
+				border: "none",
+				borderRadius: 8,
+				cursor: "default",
+				boxSizing: "border-box",
+			}}
+			aria-label="Get started with Discovr"
+		>
+			<img src={LOGO_DARK} alt="Get started with Discovr" style={{ height: 14 }} />
+		</button>
+	</div>
+	<div
+		style={{
+			background: "#141414",
+			padding: "12px 16px",
+			borderRadius: 10,
+			display: "flex",
+			flexDirection: "column",
+			gap: 8,
+		}}
+	>
+		<p style={label("#555")}>Dark</p>
+		<button
+			style={{
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				width: "100%",
+				height: 40,
+				background: "#EAEAEA",
+				border: "none",
+				borderRadius: 8,
+				cursor: "default",
+				boxSizing: "border-box",
+			}}
+			aria-label="Get started with Discovr"
+		>
+			<img src={LOGO_LIGHT} alt="Get started with Discovr" style={{ height: 14 }} />
+		</button>
+	</div>
+</div>
+
+<Expandable title="Code">
+
+<CodeGroup>
+
+```html HTML + CSS
+<style>
+	:root {
+		--ink: #1a1a1a;
+		--canvas: #f4f1ea;
+	}
+	@media (prefers-color-scheme: dark) {
+		:root {
+			--ink: #eaeaea;
+			--canvas: #2f2f2f;
+		}
+	}
+	.discovr-hero {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 40px;
+		background: var(--ink);
+		border: none;
+		border-radius: 8px;
+		cursor: pointer;
+		transition: opacity 150ms ease;
+	}
+	.discovr-hero:hover {
+		opacity: 0.92;
+	}
+	.discovr-hero:disabled {
+		opacity: 0.5;
+		pointer-events: none;
+	}
+	.discovr-hero img {
+		height: 14px;
+	}
+	.discovr-hero .loading {
+		color: var(--canvas);
+		font-family: "DM Sans", "Inter", system-ui, sans-serif;
+		font-size: 14px;
+		font-weight: 500;
+	}
+	@media (prefers-color-scheme: dark) {
+		.logo-light {
+			display: none;
+		}
+	}
+	@media (prefers-color-scheme: light) {
+		.logo-dark {
+			display: none;
+		}
+	}
+</style>
+
+<button class="discovr-hero" onclick="signIn()" aria-label="Get started with Discovr">
+	<img
+		class="logo-dark"
+		src="https://docs.discovr.media/assets/Discovr_dark.svg"
+		alt="Get started with Discovr"
+	/>
+	<img
+		class="logo-light"
+		src="https://docs.discovr.media/assets/Discovr.svg"
+		alt="Get started with Discovr"
+	/>
+</button>
+```
+
+```tsx React
+import { useState } from "react";
+
+const LOGO = {
+	light: "https://docs.discovr.media/assets/Discovr.svg",
+	dark: "https://docs.discovr.media/assets/Discovr_dark.svg",
+};
+
+export function GetStarted({ onSignIn }: { onSignIn: () => Promise<void> }) {
+	const [loading, setLoading] = useState(false);
+	const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+	return (
+		<button
+			onClick={async () => {
+				setLoading(true);
+				try {
+					await onSignIn();
+				} finally {
+					setLoading(false);
+				}
+			}}
+			disabled={loading}
+			aria-label="Get started with Discovr"
+			style={{
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				width: "100%",
+				height: 40,
+				border: "none",
+				borderRadius: 8,
+				background: dark ? "#EAEAEA" : "#1A1A1A",
+				opacity: loading ? 0.5 : 1,
+				cursor: loading ? "default" : "pointer",
+				transition: "opacity 150ms ease",
+			}}
+		>
+			{loading ? (
+				<span
+					style={{
+						color: dark ? "#2F2F2F" : "#F4F1EA",
+						fontFamily: '"DM Sans", "Inter", system-ui, sans-serif',
+						fontSize: 14,
+						fontWeight: 500,
+					}}
+				>
+					Signing in…
+				</span>
+			) : (
+				<img
+					src={dark ? LOGO.dark : LOGO.light}
+					alt="Get started with Discovr"
+					style={{ height: 14 }}
+				/>
+			)}
+		</button>
+	);
+}
+```
+
+</CodeGroup>
+
+</Expandable>
+
+---
+
+Reference — brand assets for your sign-in surfaces. These are web assets; on Android and iOS use your platform's own button conventions with the marks below.

@@ -1,0 +1,230 @@
+---
+title: "Media details"
+description: "Build a movie or TV sheet from MV_/TV_ ids—getMedia plus images, seasons and episodes for series, optional similar picks."
+---
+
+Opening a movie or TV title gives you a Discovr **`mediaId`** (**`MV_…`** · **`TV_…`**)—usually from a [row](/guides/rows) or [page hero](/guides/pages). A common **details** screen stitches together:
+
+- **[`getMedia()`](/sdk-reference/media/get-media)** · **[`getMediaAssets()`](/sdk-reference/media/get-media-assets)** — copy, **`media_type`**, artwork (backdrop, poster, logo), and a **trailer** when available. The trailer is a YouTube link (`key` and `url`), not a video file, so it only plays where you have a YouTube player. On a platform without one, such as Apple TV, leave the trailer out or hand it off to another device.
+- **TV:** season list comes from **`getMedia`**; when the viewer picks one, **[`getSeasonDetails()`](/sdk-reference/media/get-season-details)** fills the episode list.
+- **Optional rail:** **[`getSimilarRecommendations()`](/sdk-reference/media/get-similar-recommendations)** for related titles—skip the section when it’s empty.
+
+<Note>
+	These calls need an active profile, so
+	**[`selectProfile()`](/sdk-reference/authentication/select-profile)** has to have run first — see
+	[Profiles](/guides/profiles). Examples use **TypeScript / Kotlin / Swift** tabs.
+</Note>
+
+The screenshot is **illustrative**—backdrop, poster, synopsis, logos, episodes, similar row: keep what your product needs.
+
+<Frame>
+	<div className="dark:hidden">
+		<img
+			src="/assets/pages/media/media_overview_light.png"
+			className="w-full rounded-md"
+			alt="Light theme media details layout: wide backdrop behind a compact hero region, poster art on the left, title area with logo or text, synopsis and metadata in a scrollable column—models combining getMedia (movie or tv object) with getMediaAssets for backdrop and brand logo treatment."
+		/>
+	</div>
+	<div className="hidden dark:block">
+		<img
+			src="/assets/pages/media/media_overview_dark.png"
+			className="w-full rounded-md"
+			alt="Dark theme same media detail view: immersive backdrop, poster column, readable body text and controls on dark background; a media detail fetch and image bundle for a single MV_ or TV_ id."
+		/>
+	</div>
+</Frame>
+
+## What to load (and when)
+
+- **Always** — **[`getMedia(mediaId)`](/sdk-reference/media/get-media)** for the canonical **`MediaResponse`**: either **`movie`** or **`tv`** is populated; use **`media_type`** and the nested object for copy, rating/vote info, genres, and (for TV) the **season list** metadata you need before episode fetches.
+- **Parallel (recommended)** — **[`getMediaAssets(mediaId)`](/sdk-reference/media/get-media-assets)** for **backdrops**, **logos**, and **posters** (one resolved URL per asset type). Pick a **logo** the way your product needs—e.g. prefer a locale, then fall back to the first entry—so the header can show **title art** instead of plain text.
+- **TV only, when a season is selected** — **[`getSeasonDetails(mediaId, seasonNumber, { language })`](/sdk-reference/media/get-season-details)** for that season’s **episodes** array (and season-level fields). The series id stays **`TV_…`**.
+- **Optional rail** — **[`getSimilarRecommendations(mediaId, { language, page })`](/sdk-reference/media/get-similar-recommendations)** for a **“More like this”** row. Treat **empty** or **404** as “no similar titles” and hide the section.
+
+Full response shapes are in the [`getMedia()`](/sdk-reference/media/get-media) SDK reference and [Type reference](/sdk-reference/types). For viewer-specific overlays (lists, **`playback`/`history`**, resume hints, and **completion**), **[`getMediaProfileMeta()`](/sdk-reference/media/get-media-profile-meta)**—see **[Understanding `getMediaProfileMeta`](/guides/profile-context/media-profile-meta)** and **[Profile context](/guides/profile-context)**. For per-episode progress within one TV season, see **[`getSeasonProfileMeta()`](/guides/profile-context/season-profile-meta)**.
+
+{/* sample: media-what-to-load-and-when */}
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { MediaAssetsResponse, MediaResponse } from "discovr";
+
+const client = new DiscovrClient("your-client-id");
+
+async function loadHeader(mediaId: string) {
+	const [details, images]: [MediaResponse, MediaAssetsResponse] = await Promise.all([
+		client.getMedia(mediaId),
+		client.getMediaAssets(mediaId),
+	]);
+	// Prefer a localized logo when present — exact shape is in MediaAssetsResponse / OpenAPI.
+	return { details, images };
+}
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.MediaAssetsResponse
+import api.discovr.models.MediaResponse
+
+suspend fun loadHeader(client: DiscovrClient, mediaId: String): Pair<MediaResponse, MediaAssetsResponse> {
+	// Parallelize with async/await if you use coroutines — shown sequential for clarity.
+	val details = client.getMedia(mediaId = mediaId)
+	val images = client.getMediaAssets(mediaId = mediaId)
+	return details to images
+}
+```
+
+```swift Swift
+import Discovr
+
+func loadHeader(client: DiscovrClient, mediaId: String) async throws -> (MediaResponse, MediaAssetsResponse) {
+	async let details = client.getMedia(mediaId: mediaId)
+	async let images = client.getMediaAssets(mediaId: mediaId)
+	return try await (details, images)
+}
+```
+
+</CodeGroup>
+
+## TV: seasons and episodes
+
+**`getMedia`** on a **`TV_…`** id includes a **season list** in the response. Use it to render a season picker, then call **`getSeasonDetails()`** when the user picks one to get the full episode list (runtime, stills, episode copy, etc.).
+
+<Frame>
+	<div className="dark:hidden">
+		<img
+			src="/assets/pages/media/media_seasons_episodes_light.png"
+			className="w-full rounded-md"
+			alt="Light theme TV detail: horizontal season selector or chips above a vertical or grid episode list with thumbnails and episode titles; maps to getMedia for season list then getSeasonDetails(mediaId, seasonNumber) for the episodes array."
+		/>
+	</div>
+	<div className="hidden dark:block">
+		<img
+			src="/assets/pages/media/media_seasons_episodes_dark.png"
+			className="w-full rounded-md"
+			alt="Dark theme TV layout: same season navigation plus scrollable episodes with artwork and metadata on dark UI; illustrates two-step TV flow after user picks a series from browse."
+		/>
+	</div>
+</Frame>
+
+{/* sample: media-tv-seasons-and-episodes */}
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { SeasonDetailsResponse } from "discovr";
+
+const client = new DiscovrClient("your-client-id");
+
+async function loadSeason(tvId: string, seasonNumber: number) {
+	const season: SeasonDetailsResponse = await client.getSeasonDetails(tvId, seasonNumber, {
+		language: "en",
+	});
+	return season.episodes ?? [];
+}
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.SeasonDetailsResponse
+
+suspend fun loadSeason(client: DiscovrClient, tvId: String, seasonNumber: Int) =
+	client.getSeasonDetails(mediaId = tvId, seasonNumber = seasonNumber, language = "en")
+```
+
+```swift Swift
+import Discovr
+
+func loadSeason(client: DiscovrClient, tvId: String, seasonNumber: Int) async throws -> SeasonDetailsResponse {
+	try await client.getSeasonDetails(mediaId: tvId, seasonNumber: seasonNumber, language: "en")
+}
+```
+
+</CodeGroup>
+
+## Similar titles
+
+Use **`getSimilarRecommendations`** to populate a **carousel** under the fold. Each result carries Discovr **`MV_` / `TV_`** ids suitable for **opening another detail** view or pushing onto your stack, plus a **`ref`** — pass that when your user taps a suggestion so their recommendations keep improving (see [passing the `ref` when your user acts](/guides/rows#pass-the-ref-when-your-user-acts)). If the call **404**s or returns **no results**, skip the rail.
+
+<Frame>
+	<div className="dark:hidden">
+		<img
+			src="/assets/pages/media/media_similar_light.png"
+			className="w-full rounded-md"
+			alt="Light theme horizontal similar-titles rail below main media detail: poster thumbnails for related movies or shows, scrollable row; pairs with getSimilarRecommendations and optional navigation to another media id."
+		/>
+	</div>
+	<div className="hidden dark:block">
+		<img
+			src="/assets/pages/media/media_similar_dark.png"
+			className="w-full rounded-md"
+			alt="Dark theme same similar-recommendations strip: related title posters on dark background beneath primary detail content; shows optional second-level discovery without leaving the detail pattern."
+		/>
+	</div>
+</Frame>
+
+{/* sample: media-similar-titles */}
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { SimilarResponse } from "discovr";
+
+const client = new DiscovrClient("your-client-id");
+
+async function loadSimilar(mediaId: string) {
+	try {
+		const res: SimilarResponse = await client.getSimilarRecommendations(mediaId, {
+			language: "en-US",
+			page: 1,
+		});
+		return res.results ?? [];
+	} catch {
+		return [];
+	}
+}
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.SimilarResponse
+
+suspend fun loadSimilar(client: DiscovrClient, mediaId: String): SimilarResponse? {
+	return try {
+		client.getSimilarRecommendations(mediaId = mediaId, language = "en-US", page = 1)
+	} catch (_: Exception) {
+		null
+	}
+}
+```
+
+```swift Swift
+import Discovr
+
+func loadSimilar(client: DiscovrClient, mediaId: String) async -> [SimilarResult] {
+	do {
+		let res = try await client.getSimilarRecommendations(mediaId: mediaId, language: "en-US", page: 1)
+		return res.results
+	} catch {
+		return []
+	}
+}
+```
+
+</CodeGroup>
+
+## Related reading
+
+- [Rows overview](/guides/rows) — where **`mediaId`** comes from on **`media`** / **`top_n`** items
+- [Pages overview](/guides/pages) — hero items also carry titles you can open in detail
+- [Error handling](/guides/reference/error-handling) — session refresh if a call fails with **`401`** after snapshot or token changes
+- SDK: [`getMedia()`](/sdk-reference/media/get-media) · [`getMediaAssets()`](/sdk-reference/media/get-media-assets) · [`getSeasonDetails()`](/sdk-reference/media/get-season-details) · [`getSimilarRecommendations()`](/sdk-reference/media/get-similar-recommendations) · [`getMediaProfileMeta()`](/sdk-reference/media/get-media-profile-meta)
+- HTTP: **[Get media details](/api-reference/discovr/get-media)** · **[Get media assets](/api-reference/discovr/get-media-assets)** · **[Get season details](/api-reference/discovr/get-season-details)** · **[Similar recommendations](/api-reference/discovr/get-similar-recommendations)**
+
+---
+
+**Next:** [Search — let users find titles by name or cast](/guides/media/search)

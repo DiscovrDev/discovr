@@ -1,0 +1,55 @@
+---
+title: "handleRedirectResult()"
+description: "Complete a redirect flow sign-in"
+---
+
+Completes a sign-in started with signInWithWebAuth(). Call it on the page or deep-link handler the user lands on: it redeems the one-time authorization code in the URL for the refresh token (using the PKCE verifier the SDK kept), stores it, and removes the parameters from the address bar. It claims only a return whose state is the one this SDK stored, so another provider's callback, or a link someone crafted, is left alone and reported as not a sign-in return. Throws AuthCancelledError if the user cancelled. Swift needs no equivalent — its signInWithWebAuth() presents the flow natively and returns only once sign-in has finished.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+handleRedirectResult(): Promise<SignInResult | null>
+```
+
+```kotlin Kotlin
+suspend fun handleRedirectUri(uri: String): Boolean
+```
+
+</CodeGroup>
+
+<Info>Not available in Swift. See the guide for the equivalent on those platforms.</Info>
+
+## Returns
+
+`SignInResult \| null` — An object with refreshToken, publicId, and expiresAt if successful. null if this page load is not a sign-in return.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+// On your callback page after redirect:
+const client = new DiscovrClient("your-client-id");
+const result = await client.handleRedirectResult();
+if (result) {
+	console.log("Signed in!");
+	// Proceed to profile selection
+} else {
+	console.log("Not a sign-in return");
+}
+```
+
+```kotlin Kotlin
+// In your deep-link handler:
+val client = DiscovrClient("your-client-id", storage = prefs)
+val success = client.handleRedirectUri(intent.data.toString())
+if (success) {
+  println("Signed in!")
+} else {
+  println("Not a sign-in return")
+}
+```
+
+</CodeGroup>

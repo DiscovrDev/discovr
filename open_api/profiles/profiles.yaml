@@ -1,0 +1,240 @@
+# Path operations for profile endpoints
+# Contains all HTTP methods for profile collection and item operations
+
+collection:
+  # Collection operations: GET /profiles
+  get:
+    tags:
+      - Discovr
+      - Profiles
+    summary: List profiles
+    description: |
+      Returns the signed-in user's profiles, newest first. Each one carries its
+      ID, display name, avatar URL, and creation timestamp.
+
+      A profile that can't be read is left out of the response rather than
+      failing it, so a single bad profile never costs the user their whole
+      picker. Treat the list as complete for display purposes, and don't assume
+      a missing profile means it was deleted.
+
+      **Auth tier:** identity — send your refresh token in the `Authorization: Bearer` header.
+    operationId: getProfiles
+    x-tier: identity
+    x-cache-policy: session
+    security:
+      - BearerAuth: []
+    responses:
+      "200":
+        description: Profiles returned successfully
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/GetProfilesResponse"
+            example:
+              profiles:
+                - id: "profile_abc123xyz"
+                  name: "Sci-Fi Lover"
+                  avatarUrl: "https://example.com/avatar.jpg"
+                  createdAt: "2023-01-01T00:00:00.000Z"
+                - id: "profile_def456uvw"
+                  name: "Action Movie Fan"
+                  avatarUrl: "https://example.com/avatar2.jpg"
+                  createdAt: "2023-01-02T00:00:00.000Z"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+  # Collection operations: POST /profiles
+  post:
+    tags:
+      - Discovr
+      - Profiles
+    summary: Create a profile
+    description: |
+      Creates a new profile for the signed-in user. Provide a display name and an avatar URL.
+
+      On success you'll get back a `profileId`. Use that ID with `POST /auth/session-token` to mint a session token and start browsing recommendations for this profile.
+    operationId: createProfile
+    x-tier: identity
+    x-cache-invalidates: [getProfiles]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/CreateProfilePayload"
+          example:
+            name: "Sci-Fi Lover"
+            avatarUrl: "https://example.com/avatar.jpg"
+    responses:
+      "201":
+        description: Profile created. The response contains the new profile's ID.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/CreateProfileResponse"
+            example:
+              profileId: "profile_abc123xyz"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+    security:
+      - BearerAuth: []
+
+item:
+  # Item operations: GET /profiles/{profileId}
+  get:
+    tags:
+      - Discovr
+      - Profiles
+    summary: Get a profile
+    description: |
+      Returns a single profile by ID. Returns 404 if the profile doesn't exist or doesn't belong to the signed-in user.
+    operationId: getProfile
+    x-tier: identity
+    x-cache-policy: session
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: profileId
+        in: path
+        required: true
+        description: The ID of the profile to retrieve.
+        schema:
+          type: string
+        example: "profile_abc123xyz"
+    responses:
+      "200":
+        description: Profile returned successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/Profile"
+            example:
+              id: "profile_abc123xyz"
+              name: "Sci-Fi Lover"
+              avatarUrl: "https://example.com/avatar.jpg"
+              createdAt: "2023-01-01T00:00:00.000Z"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../shared/responses.yaml#/NotFound"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+  # Item operations: PATCH /profiles/{profileId}
+  patch:
+    tags:
+      - Discovr
+      - Profiles
+    summary: Update a profile
+    description: |
+      Updates a profile's name, avatar URL, or both. Provide only the fields you want to change — omitted fields stay as-is.
+
+      Returns the updated profile object. Returns 404 if the profile doesn't exist or doesn't belong to the signed-in user.
+    operationId: updateProfile
+    x-tier: identity
+    x-cache-invalidates: [getProfiles, getProfile]
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: profileId
+        in: path
+        required: true
+        description: The ID of the profile to update.
+        schema:
+          type: string
+        example: "profile_abc123xyz"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/UpdateProfilePayload"
+          example:
+            name: "Action Movie Fan"
+            avatarUrl: "https://example.com/new-avatar.jpg"
+    responses:
+      "200":
+        description: Profile updated successfully. Returns the full updated profile object.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/Profile"
+            example:
+              id: "profile_abc123xyz"
+              name: "Action Movie Fan"
+              avatarUrl: "https://example.com/new-avatar.jpg"
+              createdAt: "2023-01-01T00:00:00.000Z"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../shared/responses.yaml#/NotFound"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+  # Item operations: DELETE /profiles/{profileId}
+  delete:
+    tags:
+      - Discovr
+      - Profiles
+    summary: Delete a profile
+    description: |
+      Permanently deletes the profile. This action can't be undone.
+
+      Deleting an account's only profile is allowed. The account then has no profiles and can't mint a session token until a new one is created — see [Handle zero profiles](/guides/profiles/listing-and-selecting-profiles). Returns 404 if the profile doesn't exist or doesn't belong to the signed-in user.
+    operationId: deleteProfile
+    x-tier: identity
+    x-cache-invalidates: [getProfiles, getProfile]
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: profileId
+        in: path
+        required: true
+        description: The ID of the profile to delete.
+        schema:
+          type: string
+        example: "profile_abc123xyz"
+    responses:
+      "200":
+        description: Profile deleted.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/DeleteProfileResponse"
+            example:
+              message: "Profile deleted successfully"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../shared/responses.yaml#/NotFound"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"

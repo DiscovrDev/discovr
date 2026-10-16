@@ -1,0 +1,45 @@
+# Shared schemas used across all API endpoints
+# Named ApiError to avoid conflict with language built-ins (Error in TS/Kotlin/Swift)
+
+ApiError:
+  type: object
+  description: "An API error response. `error` is either a machine-readable code or a plain description of what went wrong. The SDKs translate the codes into typed errors, so most apps never read it directly."
+  required:
+    - error
+  properties:
+    error:
+      type: string
+      description: |
+        Why the request failed. Authentication endpoints return one of these codes:
+        `session-expired`, `session-already-consumed`, `session-not-found`,
+        `client-not-found`, `client-mismatch`, `device-code-not-found`,
+        `device-code-expired`, `device-code-already-consumed`,
+        `device-code-denied`, `code-verifier-invalid`, `token-invalid`. Other endpoints return a
+        plain description.
+      example: "device-code-expired"
+  additionalProperties: true
+
+RateLimitedError:
+  type: object
+  description: |
+    A `429` body. Same shape as `ApiError` plus the wait hint, which `ApiError`
+    can't carry because it forbids extra properties — a strict validator would
+    reject the very body every limiter sends.
+  required:
+    - error
+  properties:
+    error:
+      type: string
+      description: Machine-readable error code. Always `RATE_LIMITED` for a `429`.
+      example: "RATE_LIMITED"
+    retryAfterSeconds:
+      type: integer
+      minimum: 1
+      description: Seconds until the current limit window rolls over. Mirrors the `Retry-After` header.
+      example: 14
+  additionalProperties: false
+
+FreeformObject:
+  type: object
+  description: An untyped, provider-dependent object. Shape varies by item; treat properties as opaque.
+  additionalProperties: true

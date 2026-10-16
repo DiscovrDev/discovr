@@ -1,0 +1,109 @@
+---
+title: "getMediaProfileMeta()"
+description: "Get profile interaction data for a title"
+---
+
+Returns the current profile's interaction data for a title — everything you need to render the right UI state for that title.
+
+Response includes:
+
+- **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each).
+- **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows).
+- **Providers** _(optional)_: the streaming services where this title is available for the profile's selected region. Pass `providers=true` to include this.
+- **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).
+
+**Auth tier:** session — send your session token in `Authorization: Bearer`.
+
+## Parameters
+
+| Name      | Type      | Required | Description                                                                                                                                                                                                                                                                                       |
+| --------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId   | `string`  | Yes      | The unique identifier of the media item. Use `MV_&lt;id&gt;` for movies or `TV_&lt;id&gt;` for TV shows (e.g., `MV_550`, `TV_1396`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+| providers | `boolean` | No       | Set to `true` to include streaming provider availability in the response.                                                                                                                                                                                                                         |
+
+## Returns
+
+[`MediaProfileMeta`](/sdk-reference/types/media#mediaprofilemeta) — Profile interaction data returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "watchlist": false,
+  "liked": false,
+  "disliked": false,
+  "super_liked": false,
+  "playback": {
+  "inlist": false,
+  "data": {
+  "mediaId": "string",
+  "mediaType": "movie" /* enum: "movie", "tv" */,
+  "createdAt": "string" /* date-time */,
+  "progress": 0.0,
+  "updatedAt": "string" /* date-time */,
+  "season": 2,
+  "episode": 5
+}
+},
+  "history": false,
+  "completed": false,
+  "completedSeasons": ["integer"],
+  "providers": [
+{
+  "id": "string",
+  "title": "string",
+  "logos": {
+  "60": "https://is1-ssl.mzstatic.com/image/thumb/.../60x60bb.jpg",
+  "100": "https://is1-ssl.mzstatic.com/image/thumb/.../100x100bb.jpg",
+  "512": "https://is1-ssl.mzstatic.com/image/thumb/.../512x512bb.jpg",
+  "1024": "https://is1-ssl.mzstatic.com/image/thumb/.../1024x1024bb.png"
+},
+  "regions": {
+  "<key>": "object" /* dynamic keys, shape not fixed in OpenAPI */
+}
+}
+]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { MediaProfileMeta } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: MediaProfileMeta = await discovr.getMediaProfileMeta("example", {
+	providers: false,
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.MediaProfileMeta
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: MediaProfileMeta = client.getMediaProfileMeta(mediaId = "example", providers = false)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// MediaProfileMeta
+let response: MediaProfileMeta = try await client.getMediaProfileMeta(mediaId: "example", providers: false)
+print(response)
+```
+
+</CodeGroup>

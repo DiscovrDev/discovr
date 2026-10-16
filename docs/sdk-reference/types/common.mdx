@@ -1,0 +1,44 @@
+---
+title: "Common Types"
+description: "Shared types used across multiple SDK operations."
+---
+
+## MediaItem
+
+<a id="mediaitem" />
+
+A media item in a recommendation row, with display metadata.
+
+| Property      | Type                | Required | Description                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------- | ------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id            | `string`            | Yes      | Unique identifier for the media item                                                                                                                                                                                                                                                                                                                                                      |
+| title         | `string`            | Yes      | Title of the media item                                                                                                                                                                                                                                                                                                                                                                   |
+| overview      | `string`            | Yes      | Synopsis/summary text for this title.                                                                                                                                                                                                                                                                                                                                                     |
+| poster_path   | `object`            | No       | Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                              |
+| backdrop_path | `object`            | No       | Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                            |
+| media_type    | `"movie"` \| `"tv"` | Yes      | Type of media                                                                                                                                                                                                                                                                                                                                                                             |
+| year          | `integer`           | No       | Release year (the first air year for TV). Absent when the title has no date.                                                                                                                                                                                                                                                                                                              |
+| rating        | `number`            | No       | Average viewer rating out of 10, to one decimal. Absent until a title has votes.                                                                                                                                                                                                                                                                                                          |
+| genres        | `string[]`          | No       | Genre names, most relevant first. Absent when none are known.                                                                                                                                                                                                                                                                                                                             |
+| type          | `"media"`           | Yes      | Discriminator field indicating this is a media item                                                                                                                                                                                                                                                                                                                                       |
+| ref           | `string`            | No       | This item's `id` with the place it was shown attached. Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, adding it to a list, scrobbling it. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`. A bare `id` always works; `ref` is never required. |
+
+## MediaItemType
+
+<a id="mediaitemtype" />
+
+Discriminator value indicating a media item
+
+Allowed values: `"media"`
+
+## SuccessMessage
+
+<a id="successmessage" />
+
+Confirmation response with the action taken. For exclusive lists (liked/disliked/super_liked), also includes `added` (which list the item was added to) and optionally `removed` (which list it was removed from).
+
+| Property | Type     | Required | Description                                                           |
+| -------- | -------- | -------- | --------------------------------------------------------------------- |
+| message  | `string` | Yes      | Success message                                                       |
+| added    | `string` | No       | The list type the item was added to (for exclusive lists)             |
+| removed  | `string` | No       | The list type the item was removed from, if any (for exclusive lists) |

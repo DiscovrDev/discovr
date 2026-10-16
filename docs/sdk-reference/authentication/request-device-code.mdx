@@ -1,0 +1,89 @@
+---
+title: "requestDeviceCode()"
+description: "Request device code"
+---
+
+Starts the TV / device sign-in flow. Call this to get a user code and QR code to display on screen.
+The user opens Discovr on their phone, scans the QR code or types the user code, and confirms sign-in.
+Once they do, your next poll to `/auth/device-codes/&#123;deviceCode&#125;/poll` returns a refresh token.
+
+**Response format:**
+
+- `format=json` (default) — returns `&#123; deviceCode, userCode, authQRCode, verificationUrl, expiresIn, interval &#125;`. The `authQRCode` is a base64 data URL — drop it straight into an `&lt;img&gt;` tag. Show `verificationUrl` next to the code so people who can't scan can type `userCode` there.
+
+Keep `deviceCode` on the device. It is what you poll with, so it is never put in the QR code or shown to the person; the QR code and the screen carry only `userCode`.
+
+- `format=image` — returns a raw PNG binary. Handy if you're embedding the image directly without a data URL wrapper.
+
+**QR code size:**
+Use the `size` parameter to match your display. TV screens benefit from larger codes (600–800 px). Default is 300 px.
+
+## Parameters
+
+| Name     | Type                | Required | Description                                                                                                                                                       |
+| -------- | ------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| size     | `integer`           | No       | QR code size in pixels. Larger sizes are recommended for TV displays.                                                                                             |
+| format   | `"json" \| "image"` | No       | Response format. Use "image" for native clients to receive binary PNG directly.                                                                                   |
+| clientID | `string`            | Yes      | Your registered app ID.                                                                                                                                           |
+| demo     | `boolean`           | No       | Set when the requesting SDK is configured with demo mode, so the sign-in screen offers "Continue as Demo" as an alternative to a real sign-in. Defaults to false. |
+
+## Returns
+
+[`DeviceCodeResponse`](/sdk-reference/types/authentication#devicecoderesponse) — Device code created successfully. Response format depends on `format` query parameter.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "deviceCode": "string",
+  "userCode": "string",
+  "authQRCode": "string" /* uri */,
+  "verificationUrl": "string" /* uri */,
+  "expiresIn": 600000,
+  "interval": 5
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { DeviceCodePayload, DeviceCodeResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+const response: DeviceCodeResponse = await discovr.requestDeviceCode("abc123xyz", {
+	demo: false,
+	size: 600,
+	format: "json",
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.DeviceCodePayload
+import api.discovr.models.DeviceCodeResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: DeviceCodeResponse = client.requestDeviceCode(clientID = "abc123xyz", demo = false, size = 600, format = DiscovrApi.FormatRequestDeviceCode.json)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// DeviceCodePayload, DeviceCodeResponse
+let response: DeviceCodeResponse = try await client.requestDeviceCode(clientID: "abc123xyz", demo: false, size: 600, format: DiscovrAPI.Format_requestDeviceCode.json)
+print(response)
+```
+
+</CodeGroup>

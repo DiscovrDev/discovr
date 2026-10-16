@@ -1,0 +1,64 @@
+---
+title: "onRecommendationsChanged()"
+description: "Subscribe to recommendation turnovers"
+---
+
+Fires when the user's recommendations actually move, roughly every 30 minutes. Routine credential renewals don't fire it, so every call here means the rows behind your page IDs changed. Page IDs don't change, so refetch the page you're showing (getPage + getRows) rather than recreating it. Don't swap the rows out the instant it fires, though — a reader mid-scroll doesn't want the screen to jump. Flag the page stale and reload it on the user's next navigation. Unlike onSessionRefreshed() this doesn't fire on subscribe: it reports an event, not a state, so a new subscriber won't immediately refetch data it just loaded.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+onRecommendationsChanged(cb: () => void): Unsubscribe
+```
+
+```kotlin Kotlin
+val recommendationChanges: SharedFlow<Unit>  // collect to subscribe
+```
+
+```swift Swift
+var recommendationChangeStream: AsyncStream<Void>  // iterate to subscribe
+```
+
+</CodeGroup>
+
+## Parameters
+
+| Name            | Type       | Required | Description                                                                |
+| --------------- | ---------- | -------- | -------------------------------------------------------------------------- |
+| cb (TypeScript) | `callback` | Yes      | Function called with no arguments each time the recommendations turn over. |
+
+## Returns
+
+`Unsubscribe` — Unsubscribe function (TS only; Kotlin/Swift use Flow/AsyncStream lifecycle).
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+client.onRecommendationsChanged(() => {
+	// Same page ID — only the rows behind it moved. Flag it; reload the page
+	// the next time the user navigates, not mid-scroll.
+	markRecommendationsStale();
+});
+```
+
+```kotlin Kotlin
+lifecycleScope.launch {
+  client.recommendationChanges.collect {
+    markRecommendationsStale()
+  }
+}
+```
+
+```swift Swift
+Task {
+  for await _ in await client.recommendationChangeStream {
+    markRecommendationsStale()
+  }
+}
+```
+
+</CodeGroup>

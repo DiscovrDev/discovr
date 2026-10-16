@@ -1,0 +1,508 @@
+---
+title: "Search"
+description: "Let users search for titles by name, cast, or keywords. Learn how to build a search UI and handle results."
+---
+
+You've built the browse experience — home page, recommendation rows, and title details. Now let users find specific titles by name, cast, or keyword. The search endpoint wires up in minutes.
+
+The screenshot is **illustrative** — layout, chip filters, and how much detail each row shows are all up to you.
+
+<Frame>
+	<div className="dark:hidden">
+		<img
+			src="/assets/pages/search/search_light.png"
+			className="w-full rounded-md"
+			alt="Light theme search overlay over the home page: a query in the search field, All/Movies/Series filter chips below it, and a scrollable list of title rows each showing a poster thumbnail, title, type, year, rating, and a two-line synopsis — one searchMedia() call rendered as a single results list."
+		/>
+	</div>
+	<div className="hidden dark:block">
+		<img
+			src="/assets/pages/search/search_dark.png"
+			className="w-full rounded-md"
+			alt="Dark theme search overlay: the same query field, filter chips, and synopsis-bearing result rows on a dark background — a page can return duplicate titles under different release years, which is why the synopsis and year both matter for telling results apart."
+		/>
+	</div>
+</Frame>
+
+## Make a search request
+
+Call `searchMedia()` with a query string. You get back one page of results with movies, TV shows, and people mixed together, ordered by relevance.
+
+{/* sample: media-search-make-a-search-request */}
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+
+const client = new DiscovrClient("your-client-id");
+const response = await client.searchMedia({ query: "blade runner" });
+
+for (const result of response.results) {
+	console.log(result.id, result.mediaType, result.title ?? result.name);
+}
+// MV_335984  movie  Blade Runner 2049
+// TV_92782   tv     Blade Runner: Black Lotus
+// 30614      person Ryan Gosling
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+
+val client = DiscovrClient("your-client-id", storage = TokenStorage())
+val response = client.searchMedia(query = "blade runner")
+
+response.results.forEach { result ->
+    println("${result.id} ${result.mediaType} ${result.title ?: result.name}")
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = await DiscovrClient(clientId: "your-client-id")
+let response = try await client.searchMedia(query: "blade runner")
+
+for result in response.results {
+    print(result.id, result.mediaType.rawValue, result.title ?? result.name ?? "")
+}
+```
+
+</CodeGroup>
+
+<Note>
+	Search needs an active profile session. If you haven't selected a profile yet, start with
+	[`selectProfile()`](/sdk-reference/authentication/select-profile). Results are the same for every
+	profile — personalization comes later, when you fetch the detail view.
+</Note>
+
+**Keep the order you're given.** Results arrive ranked by relevance, and that ranking is doing real work — for a query like `nolan` the director comes back above the films. Re-sorting by year or rating in your UI throws it away.
+
+## Handle result types
+
+Every result carries a `media_type` of `movie`, `tv`, or `person`, and the shape differs between them.
+
+**Movies and TV shows** have a `title` (movies) or `name` (TV shows), an `overview`, and `poster_path` / `backdrop_path` image maps. Their `id` is prefixed — `MV_` for movies, `TV_` for shows — and can be passed straight to [`getMedia()`](/guides/media).
+
+**People** have a `name`, a `profile_path` headshot map, a `known_for_department`, and a `known_for` array of their best-known titles. Their `id` is a bare number.
+
+<Warning>
+	A person's `id` is **not** a valid `mediaId`. Passing one to `getMedia()` or any other media
+	endpoint returns a validation error. Use the ids inside their `known_for` array instead — those
+	are already prefixed and ready to use.
+</Warning>
+
+Image fields are maps keyed by width — `w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original` — so you can pick a size without a second request. Use a small bucket for list thumbnails and save `original` for full-bleed artwork.
+
+{/* sample: media-search-handle-result-types */}
+
+<CodeGroup>
+
+```typescript TypeScript
+for (const result of response.results) {
+	if (result.mediaType === "person") {
+		renderPerson(result.name, result.profilePath?.w185);
+		continue;
+	}
+
+	renderTitle({
+		id: result.id,
+		title: result.title ?? result.name,
+		poster: result.posterPath?.w185,
+		year: (result.releaseDate ?? result.firstAirDate)?.getFullYear(),
+	});
+}
+```
+
+```kotlin Kotlin
+for (result in response.results) {
+    if (result.mediaType == SearchResult.MediaType.person) {
+        renderPerson(result.name, result.profilePath?.get("w185"))
+        continue
+    }
+
+    renderTitle(
+        id = result.id,
+        title = result.title ?: result.name,
+        poster = result.posterPath?.get("w185"),
+    )
+}
+```
+
+```swift Swift
+for result in response.results {
+    if result.mediaType == .person {
+        renderPerson(result.name, result.profilePath?["w185"])
+        continue
+    }
+
+    renderTitle(
+        id: result.id,
+        title: result.title ?? result.name,
+        poster: result.posterPath?["w185"]
+    )
+}
+```
+
+</CodeGroup>
+
+<Note>
+	Each non-person result also carries a **`ref`** — its `id` with the search it came from attached.
+	Pass that instead of `result.id` when the user opens a result and Discovr learns which query led
+	them there, which sharpens the recommendations that profile sees next. The titles in a person's
+	`known_for` array carry one too. A bare `id` always works; `ref` is never required. See [passing
+	the `ref` when your user acts](/guides/rows#pass-the-ref-when-your-user-acts).
+</Note>
+
+## Give people somewhere to go
+
+There's no person detail endpoint, so a person result is a dead end unless you do something with it. The `known_for` array is what makes it useful — a few of their best-known titles, each with a prefixed id you can open directly.
+
+A nice pattern: show people as a row of avatars, and reveal their credits when one is tapped.
+
+<Frame>
+	<div className="dark:hidden">
+		<img
+			src="/assets/pages/search/search_people_light.png"
+			className="w-full rounded-md"
+			alt="Light theme people strip: a row of circular avatars matching the query, one expanded to reveal a horizontal rail of poster thumbnails below it — the person's known_for array, each poster already carrying a prefixed id ready for getMedia()."
+		/>
+	</div>
+	<div className="hidden dark:block">
+		<img
+			src="/assets/pages/search/search_people_dark.png"
+			className="w-full rounded-md"
+			alt="Dark theme people strip with one avatar expanded: several avatars fall back to initials because not every matching person has a headshot, and the expanded known-for rail shows three posters for the same actor's other titles."
+		/>
+	</div>
+</Frame>
+
+{/* sample: media-search-give-people-somewhere-to-go */}
+
+<CodeGroup>
+
+```typescript TypeScript
+const people = response.results.filter((r) => r.mediaType === "person");
+const titles = response.results.filter((r) => r.mediaType !== "person");
+
+function onPersonTapped(person: SearchResult) {
+	// Their credits open exactly like any other title.
+	for (const credit of person.knownFor ?? []) {
+		renderTitle({
+			id: credit.id, // already MV_ / TV_ prefixed
+			title: credit.title ?? credit.name,
+			poster: credit.posterPath?.w185,
+		});
+	}
+}
+```
+
+```kotlin Kotlin
+val people = response.results.filter { it.mediaType == SearchResult.MediaType.person }
+val titles = response.results.filter { it.mediaType != SearchResult.MediaType.person }
+
+fun onPersonTapped(person: SearchResult) {
+    // Their credits open exactly like any other title.
+    person.knownFor.orEmpty().forEach { credit ->
+        renderTitle(
+            id = credit.id, // already MV_ / TV_ prefixed
+            title = credit.title ?: credit.name,
+            poster = credit.posterPath?.get("w185"),
+        )
+    }
+}
+```
+
+```swift Swift
+let people = response.results.filter { $0.mediaType == .person }
+let titles = response.results.filter { $0.mediaType != .person }
+
+func onPersonTapped(_ person: SearchResult) {
+    for credit in person.knownFor ?? [] {
+        renderTitle(
+            id: credit.id,
+            title: credit.title ?? credit.name,
+            poster: credit.posterPath?["w185"]
+        )
+    }
+}
+```
+
+</CodeGroup>
+
+## Debounce your input
+
+Search is rate limited to **25 requests per minute per client**. That's plenty for real use and easy to blow through if you fire a request per keystroke.
+
+Wait for a pause in typing before searching — around 350ms works well. At normal typing speed a twenty-character query then costs about one request instead of twenty. Also skip queries shorter than two characters; they match most of the catalogue and tell the user nothing.
+
+{/* sample: media-search-debounce-your-input */}
+
+<CodeGroup>
+
+```typescript TypeScript
+let timer: ReturnType<typeof setTimeout>;
+
+input.addEventListener("input", () => {
+	clearTimeout(timer);
+	const query = input.value.trim();
+	if (query.length < 2) return;
+
+	timer = setTimeout(async () => {
+		const response = await client.searchMedia({ query });
+		render(response.results);
+	}, 350);
+});
+```
+
+```kotlin Kotlin
+var searchJob: Job? = null
+
+fun onQueryChanged(query: String) {
+    searchJob?.cancel()
+    if (query.trim().length < 2) return
+
+    searchJob = scope.launch {
+        delay(350)
+        render(client.searchMedia(query = query.trim()).results)
+    }
+}
+```
+
+```swift Swift
+var searchTask: Task<Void, Never>?
+
+func onQueryChanged(_ query: String) {
+    searchTask?.cancel()
+    let trimmed = query.trimmingCharacters(in: .whitespaces)
+    guard trimmed.count >= 2 else { return }
+
+    searchTask = Task {
+        try? await Task.sleep(for: .milliseconds(350))
+        guard !Task.isCancelled else { return }
+        let response = try? await client.searchMedia(query: trimmed)
+        render(response?.results ?? [])
+    }
+}
+```
+
+</CodeGroup>
+
+If you do hit the limit you'll get a `429`. Show a short "give it a second" message rather than retrying immediately — retrying is what keeps it failing, and it clears on its own within the minute.
+
+## Load more results
+
+Pass `page` to go deeper, and check `has_more` to know whether there's anything left.
+
+{/* sample: media-search-load-more-results */}
+
+<CodeGroup>
+
+```typescript TypeScript
+let page = 1;
+let results: SearchResult[] = [];
+
+async function loadMore(query: string) {
+	const response = await client.searchMedia({ query, page });
+	results = [...results, ...response.results];
+	page += 1;
+	return response.hasMore;
+}
+```
+
+```kotlin Kotlin
+var page = 1
+val results = mutableListOf<SearchResult>()
+
+suspend fun loadMore(query: String): Boolean {
+    val response = client.searchMedia(query = query, page = page)
+    results += response.results
+    page += 1
+    return response.hasMore
+}
+```
+
+```swift Swift
+var page = 1
+var results: [SearchResult] = []
+
+func loadMore(query: String) async throws -> Bool {
+    let response = try await client.searchMedia(query: query, page: page)
+    results.append(contentsOf: response.results)
+    page += 1
+    return response.hasMore
+}
+```
+
+</CodeGroup>
+
+<Note>
+	There's no total result count. Check `has_more` to know whether to request another page — don't
+	infer it from `results.length`.
+</Note>
+
+Prefer an explicit "Load more" button over auto-loading on scroll. With a rate-limited endpoint and pages that can arrive empty, reaching the bottom of a short list isn't a reliable signal that someone wants more.
+
+## Handle an empty result
+
+If nothing matched, `results` comes back empty. Say so plainly, and give people a way to try again.
+
+{/* sample: media-search-handle-an-empty-result */}
+
+<CodeGroup>
+
+```typescript TypeScript
+try {
+	const response = await client.searchMedia({ query });
+
+	if (response.results.length === 0 && !response.hasMore) {
+		showEmptyState(`No matches for "${query}". Try a different search.`);
+		return;
+	}
+
+	render(response.results);
+} catch (error) {
+	showError(error);
+}
+```
+
+```kotlin Kotlin
+try {
+    val response = client.searchMedia(query = query)
+
+    if (response.results.isEmpty() && !response.hasMore) {
+        showEmptyState("No matches for \"$query\". Try a different search.")
+    } else {
+        render(response.results)
+    }
+} catch (e: Exception) {
+    showError(e)
+}
+```
+
+```swift Swift
+do {
+    let response = try await client.searchMedia(query: query)
+
+    if response.results.isEmpty && !response.hasMore {
+        showEmptyState("No matches for \"\(query)\". Try a different search.")
+    } else {
+        render(response.results)
+    }
+} catch {
+    showError(error)
+}
+```
+
+</CodeGroup>
+
+## Filtering is a different tool
+
+Search takes a query string and nothing else — no genre, year, runtime, or provider filters. That's deliberate: it's built for "I know what I'm looking for."
+
+For "show me sci-fi films from the last five years", use [pages](/guides/pages) with `pageFilters` instead. The two systems complement each other: search for intent, pages for browsing.
+
+## Put it together
+
+A complete search-to-detail flow:
+
+{/* sample: media-search-put-it-together */}
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient, type SearchResult } from "discovr";
+
+const client = new DiscovrClient("your-client-id");
+
+async function runSearch(query: string) {
+	const response = await client.searchMedia({ query });
+
+	if (response.results.length === 0) {
+		console.log("No matches — try a different search.");
+		return;
+	}
+
+	const first = response.results[0];
+
+	if (first.mediaType === "person") {
+		// People have no detail view; open one of their credits instead.
+		const credit = first.knownFor?.[0];
+		if (credit) {
+			const media = await client.getMedia(credit.id);
+			console.log(`${first.name} → ${media.movie?.title ?? media.tv?.name}`);
+		}
+		return;
+	}
+
+	const media = await client.getMedia(first.id);
+	const details = media.movie ?? media.tv;
+	console.log(media.movie?.title ?? media.tv?.name, details?.overview);
+}
+
+runSearch("oppenheimer");
+```
+
+```kotlin Kotlin
+suspend fun runSearch(query: String) {
+    val client = DiscovrClient("your-client-id", storage = TokenStorage())
+    val response = client.searchMedia(query = query)
+
+    val first = response.results.firstOrNull() ?: run {
+        println("No matches — try a different search.")
+        return
+    }
+
+    if (first.mediaType == SearchResult.MediaType.person) {
+        // People have no detail view; open one of their credits instead.
+        first.knownFor?.firstOrNull()?.let { credit ->
+            val media = client.getMedia(credit.id)
+            println("${first.name} → ${media.movie?.title ?: media.tv?.name}")
+        }
+        return
+    }
+
+    val media = client.getMedia(first.id)
+    println("${media.movie?.title ?: media.tv?.name} ${(media.movie?.overview ?: media.tv?.overview)}")
+}
+```
+
+```swift Swift
+import Discovr
+
+func runSearch(query: String) async throws {
+    let client = await DiscovrClient(clientId: "your-client-id")
+    let response = try await client.searchMedia(query: query)
+
+    guard let first = response.results.first else {
+        print("No matches — try a different search.")
+        return
+    }
+
+    if first.mediaType == .person {
+        // People have no detail view; open one of their credits instead.
+        if let credit = first.knownFor?.first {
+            let media = try await client.getMedia(mediaId: credit.id)
+            print("\(first.name ?? "") → \(media.movie?.title ?? media.tv?.name ?? "")")
+        }
+        return
+    }
+
+    let media = try await client.getMedia(mediaId: first.id)
+    print(media.movie?.title ?? media.tv?.name ?? "", media.movie?.overview ?? media.tv?.overview ?? "")
+}
+```
+
+</CodeGroup>
+
+## Related reading
+
+- [Media details](/guides/media) — After a search result tap, fetch the full media object and show cast, seasons, and similar titles
+- [Browse recommendations](/guides/pages) — For users who don't know what to search for, and for genre or year filtering that search doesn't offer
+- [Error handling](/guides/reference/error-handling) — Rate limits, expired sessions, and how to recover from each
+
+**API Reference:** [Search media](/api-reference/discovr/search-media) · **SDK Reference:** [`searchMedia()`](/sdk-reference/search/search-media)
+
+---
+
+**Next:** [Profile context — watchlist, likes, and playback](/guides/profile-context)

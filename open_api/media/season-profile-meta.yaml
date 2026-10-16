@@ -1,0 +1,56 @@
+get:
+  tags:
+    - Discovr
+    - Media
+  summary: Get which episodes of a TV season are finished
+  description: |
+    Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.
+
+    Pair this with `getSeasonDetails` for episode titles and artwork, and with `getMediaProfileMeta` for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn't tracked, so it won't show a progress bar. The profile's place in the episode it is watching now is `playback` on `getMediaProfileMeta`.
+
+    **Auth tier:** session — send your session token in `Authorization: Bearer`.
+  operationId: getSeasonProfileMeta
+  x-tier: session
+  x-sdk-group: "Profile Meta"
+  # Never cache: reflects live, cross-device, cross-endpoint mutable profile state (lists, playback, completion).
+  x-cache-policy: none
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: mediaId
+      in: path
+      required: true
+      description: |
+        The unique identifier of the TV show (e.g., `TV_1396`).
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      schema:
+        type: string
+        pattern: '^(TV)_\d+(@[0-9A-Za-z_-]+)?$'
+    - name: seasonNumber
+      in: path
+      required: true
+      description: The season number.
+      schema:
+        type: integer
+        minimum: 0
+        example: 1
+  responses:
+    "200":
+      description: Season progress returned successfully.
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SeasonProfileMeta"
+    "400":
+      $ref: "../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../shared/responses.yaml#/ServiceUnavailable"

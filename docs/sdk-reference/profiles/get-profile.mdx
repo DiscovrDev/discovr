@@ -1,0 +1,68 @@
+---
+title: "getProfile()"
+description: "Get a profile"
+---
+
+Returns a single profile by ID. Returns 404 if the profile doesn't exist or doesn't belong to the signed-in user.
+
+## Parameters
+
+| Name      | Type     | Required | Description                        |
+| --------- | -------- | -------- | ---------------------------------- |
+| profileId | `string` | Yes      | The ID of the profile to retrieve. |
+
+## Returns
+
+[`Profile`](/sdk-reference/types/profiles#profile) — Profile returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "id": "string",
+  "name": "string",
+  "avatarUrl": "string" /* uri */,
+  "avatarMediaType": "image/png" /* AvatarMediaType: "image/png", "image/jpeg", "image/webp", "image/gif", "video/mp4", "video/webm" */,
+  "createdAt": "string" /* date-time */
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { Profile } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in …
+const response: Profile = await discovr.getProfile("profile_abc123xyz");
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.Profile
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: Profile = client.getProfile(profileId = "profile_abc123xyz")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// Profile
+let response: Profile = try await client.getProfile(profileId: "profile_abc123xyz")
+print(response)
+```
+
+</CodeGroup>

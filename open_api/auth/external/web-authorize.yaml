@@ -1,0 +1,126 @@
+# Path operations for /auth/web/authorize
+# Contains all HTTP methods for this path
+
+get:
+  tags:
+    - Discovr
+    - Authentication
+  summary: Redirect to web authentication
+  security: [] # Public endpoint - no authentication required
+  description: |
+    Starts a web sign-in: sends the user's browser to the Discovr page where they sign in and approve your app.
+    After they do, Discovr hands your app a short-lived, single-use **authorization code** (never the long-lived
+    credential), and your app trades it for a refresh token with `POST /auth/web/token`. This is the OAuth
+    authorization code flow with PKCE, so the SDKs do all of it for you.
+
+    - **`clientID`** — your registered app ID, so Discovr knows which app is requesting access.
+    - **`state`** — your app's CSRF token. Discovr echoes it back unchanged so you can verify the response came from Discovr and not a third party.
+    - **`codeChallenge`** / **`codeChallengeMethod`** — `base64url(SHA-256(verifier))` of a random `codeVerifier` you keep, and `S256`. Required on every request.
+    - **`redirectURL`** — where to send the user after sign-in; it must be registered for your client. For a popup, send `openerOrigin` instead (the SDK does).
+
+    **What your app receives.** On your `redirectURL` as query parameters, or as a `postMessage` to the popup's opener:
+    `{ code, state }` on success, or `{ error, state }` when the person cancels (`authorization-cancelled`) or sign-in cannot
+    complete. `error` is one of the codes in `ApiError`. Check `state` first, then redeem `code` with your `codeVerifier`.
+  operationId: authorizeClientWeb
+  parameters:
+    - name: clientID
+      in: query
+      required: true
+      description: The client ID of the third-party application
+      schema:
+        type: string
+      example: "abc123xyz"
+    - name: redirectURL
+      in: query
+      required: false
+      description: |
+        Optional custom redirect URL. If omitted, redirects to the hosted callback page at 
+        https://auth.discovr.media/callback.html which handles token exchange via postMessage 
+        for web popup flows or deep links for mobile apps. Must be URL encoded when provided.
+      schema:
+        type: string
+        format: uri
+      example: "https://yourapp.com/callback"
+    - name: state
+      in: query
+      required: true
+      description: |
+        Opaque value to prevent CSRF; echoed back in the callback response. 16 to 256 URL-safe characters
+        (`A-Z a-z 0-9 - _`); 32 random bytes, hex-encoded, is 64.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 256
+      example: "9f2c41d07be34a85b1c6e0d3f7a29c84"
+    - name: codeChallenge
+      in: query
+      required: true
+      description: |
+        `base64url(SHA-256(codeVerifier))`, 43 characters. Generate a fresh random `codeVerifier` per sign-in and keep it;
+        you send it to `POST /auth/web/token` when you redeem the code.
+      schema:
+        type: string
+        pattern: "^[A-Za-z0-9_-]{43}$"
+      example: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+    - name: codeChallengeMethod
+      in: query
+      required: true
+      x-ts-coerce: any
+      description: Always `S256`. `plain` is not accepted.
+      schema:
+        type: string
+        enum: [S256]
+      example: "S256"
+    - name: platform
+      in: query
+      required: false
+      x-ts-coerce: any
+      description: |
+        Optional platform hint (web popup, mobile deep link, etc.). Not currently used.
+      schema:
+        type: string
+        enum: [web, mobile, tv]
+      example: "web"
+  responses:
+    "200":
+      description: |
+        Successful operation (Documentation only).
+        In practice, this endpoint always redirects (302).
+    "302":
+      description: Redirect to authentication page
+      headers:
+        Location:
+          description: The authentication URL
+          schema:
+            type: string
+            format: uri
+    "400":
+      description: Bad request — missing, invalid, or unregistered query parameters
+      content:
+        application/json:
+          schema:
+            $ref: "../../shared/schemas.yaml#/ApiError"
+          examples:
+            missingClientID:
+              value:
+                error: "Missing or invalid required query parameter: clientID"
+            clientNotFound:
+              summary: clientID is not registered
+              value:
+                error: "client-not-found"
+            codeChallengeRequired:
+              summary: No PKCE challenge was sent
+              value:
+                error: "code-challenge-required"
+            codeChallengeInvalid:
+              summary: The challenge is not a base64url SHA-256, or the method is not S256
+              value:
+                error: "code-challenge-invalid"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"

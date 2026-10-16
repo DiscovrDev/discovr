@@ -1,0 +1,32 @@
+name: Bug report
+description: Something in an SDK, the API behavior it describes, or the docs is wrong.
+labels: [bug]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where is the problem?
+      options:
+        - TypeScript SDK
+        - Kotlin SDK
+        - Swift SDK
+        - Documentation
+        - API specification
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: SDK version
+      description: For example 1.0.0-alpha.1. Leave blank for a documentation problem.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps or code to reproduce
+      description: Please leave out client IDs and tokens.

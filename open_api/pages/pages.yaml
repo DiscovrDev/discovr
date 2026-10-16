@@ -1,0 +1,94 @@
+# Path operations for page endpoints
+
+collection:
+  # Collection operations: POST /pages
+  post:
+    tags:
+      - Discovr
+      - Pages
+    summary: Create a recommendation page
+    description: |
+      Resolves a set of filters to the page that represents them.
+
+      A page's ID is determined by its filters alone, so the same filters always return the same ID — for every profile, on every device, indefinitely. Call this once and keep the ID.
+
+      Creating pages up front for your top-level tabs is cheap.
+
+      **Auth tier:** session — send your session token in `Authorization: Bearer`.
+    operationId: createPage
+    # Same filters always return the same page, so the SDK caches this POST for the session.
+    x-cache-policy: session
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/CreatePagePayload"
+    responses:
+      "201":
+        description: Page created successfully
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/CreatePageResponse"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../shared/responses.yaml#/NotFound"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+
+item:
+  # Item operations: GET /pages/{pageId}
+  get:
+    tags:
+      - Discovr
+      - Pages
+    summary: Get a page
+    description: |
+      Returns a page and its metadata.
+
+      Page IDs are stable and permanent. The same ID keeps working across sessions, profiles and devices, so it's safe in a URL, a bookmark or a deep link.
+
+      What changes is the content: recommendations refresh roughly every 30 minutes, and after they do this returns the same page with re-ranked rows. There's nothing to handle — no error, no ID to swap.
+
+      **Auth tier:** session.
+    operationId: getPage
+    x-cache-policy: session
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: pageId
+        in: path
+        required: true
+        description: |
+          The page to retrieve. Accepts either a page id or the `ref` from the navigation or provider tile you're opening — both resolve to the same page.
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Page retrieved successfully
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/Page"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../shared/responses.yaml#/NotFound"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"

@@ -1,0 +1,82 @@
+---
+title: "signInWithDeviceCode()"
+description: "Sign in using a device code (second-screen flow)"
+---
+
+Initiates a device-code sign-in flow. Returns a user code and QR code immediately. Display these to the user on the device. They scan the QR or enter the code on another device to authorize, or decline there. The SDK polls in the background, at the pace the server sets, and completes sign-in automatically. Await the result's completion to learn that the person declined or the code ran out.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+signInWithDeviceCode(options?: { qrSize?: number }): Promise<DeviceCodeResult>
+```
+
+```kotlin Kotlin
+suspend fun signInWithDeviceCode(qrSize: Int? = null): DeviceCodeResult
+```
+
+```swift Swift
+func signInWithDeviceCode(qrSize: Int? = nil) async throws -> DeviceCodeResult
+```
+
+</CodeGroup>
+
+## Parameters
+
+| Name   | Type     | Required | Description                                                                                                                   |
+| ------ | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| qrSize | `number` | No       | QR code size in pixels, 100 to 1000 (default: 300). A TV screen wants 600 to 800. TypeScript takes this in an options object. |
+
+## Returns
+
+`DeviceCodeResult` — An object containing userCode (short code for display), qrCode (base64 data URL), verificationUrl (where to send someone who can't scan: they type the code there), deviceCode (internal; keep it on the device), expiresIn (milliseconds), completion (settles when the flow ends: normal on sign-in, DeviceCodeDeniedError, DeviceCodeExpiredError or AuthCancelledError otherwise), and unsubscribe / cancel (stops polling).
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+const client = new DiscovrClient("your-client-id");
+const { userCode, qrCode } = await client.signInWithDeviceCode();
+console.log("Code:", userCode);
+// Render qrCode in your UI
+
+client.onAuthStateChanged(({ signedIn }) => {
+	if (signedIn) {
+		console.log("User authorized! Proceed with profile selection.");
+	}
+});
+```
+
+```kotlin Kotlin
+val client = DiscovrClient("your-client-id", storage = prefs)
+val code = client.signInWithDeviceCode()
+println("Code: ${code.userCode}")
+// Display code.qrCode
+
+lifecycleScope.launch {
+  client.authState.collect { state ->
+    if (state.signedIn) {
+      println("Authorized!")
+    }
+  }
+}
+```
+
+```swift Swift
+let client = await DiscovrClient(clientId: "your-client-id")
+let code = try await client.signInWithDeviceCode()
+print("Code: \(code.userCode)")
+// Render code.qrCode
+
+for await state in await client.authStateStream {
+  if state.signedIn {
+    print("Authorized!")
+    break
+  }
+}
+```
+
+</CodeGroup>

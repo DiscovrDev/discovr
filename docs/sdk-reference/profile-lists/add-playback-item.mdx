@@ -1,0 +1,76 @@
+---
+title: "addPlaybackItem()"
+description: "Add an item to playback list"
+---
+
+Records a new playback position for a title. If the title is already being tracked, returns 409 — use PATCH to update an existing entry.
+
+- `mediaId`: the title to track. Use `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `MV_550`, `TV_1396`).
+- `progress`: how far through the title the user is, as a percentage (0–100). Optional — omit if you don't have a position yet.
+- `updatedAt`: the ISO 8601 timestamp of when this progress was recorded. Defaults to now. Send the actual client time so resume positions stay accurate if the user is offline.
+
+## Parameters
+
+| Name      | Type                 | Required | Description                                                                                                                                                                                                                                                     |
+| --------- | -------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId   | `string`             | Yes      | Full media ID — `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `MV_550`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+| progress  | `number`             | No       | Initial playback progress percentage (0-100)                                                                                                                                                                                                                    |
+| updatedAt | `string (date-time)` | No       | ISO 8601 timestamp for when playback was last updated                                                                                                                                                                                                           |
+
+## Returns
+
+[`SuccessMessage`](/sdk-reference/types/common#successmessage) — Item added successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "message": "string",
+  "added": "string",
+  "removed": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { AddPlaybackPayload, SuccessMessage } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: SuccessMessage = await discovr.addPlaybackItem("MV_550", {
+	progress: 25.5,
+	updatedAt: "2023-01-15T00:00:00.000Z",
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.AddPlaybackPayload
+import api.discovr.models.SuccessMessage
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SuccessMessage = client.addPlaybackItem(mediaId = "MV_550", progress = 25.5, updatedAt = "2023-01-15T00:00:00.000Z")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// AddPlaybackPayload, SuccessMessage
+let response: SuccessMessage = try await client.addPlaybackItem(mediaId: "MV_550", progress: 25.5, updatedAt: "2023-01-15T00:00:00.000Z")
+print(response)
+```
+
+</CodeGroup>

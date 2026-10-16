@@ -1,0 +1,72 @@
+---
+title: "updatePlaybackItem()"
+description: "Update playback progress"
+---
+
+Updates the playback position for an existing entry. Same fields as the add endpoint. If no entry exists for the `mediaId`, one is created.
+
+## Parameters
+
+| Name      | Type                 | Required | Description                                                                                                                                                                                                                                                     |
+| --------- | -------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId   | `string`             | Yes      | Full media ID — `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `MV_550`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+| progress  | `number`             | No       | New playback progress percentage (0-100)                                                                                                                                                                                                                        |
+| updatedAt | `string (date-time)` | No       | ISO 8601 timestamp for when playback was last updated                                                                                                                                                                                                           |
+
+## Returns
+
+[`SuccessMessage`](/sdk-reference/types/common#successmessage) — Item updated successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "message": "string",
+  "added": "string",
+  "removed": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { EditPlaybackPayload, SuccessMessage } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: SuccessMessage = await discovr.updatePlaybackItem("MV_550", {
+	progress: 75,
+	updatedAt: "2023-01-15T00:00:00.000Z",
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.EditPlaybackPayload
+import api.discovr.models.SuccessMessage
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SuccessMessage = client.updatePlaybackItem(mediaId = "MV_550", progress = 75, updatedAt = "2023-01-15T00:00:00.000Z")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// EditPlaybackPayload, SuccessMessage
+let response: SuccessMessage = try await client.updatePlaybackItem(mediaId: "MV_550", progress: 75, updatedAt: "2023-01-15T00:00:00.000Z")
+print(response)
+```
+
+</CodeGroup>

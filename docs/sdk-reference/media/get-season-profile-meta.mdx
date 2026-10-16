@@ -1,0 +1,76 @@
+---
+title: "getSeasonProfileMeta()"
+description: "Get which episodes of a TV season are finished"
+---
+
+Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.
+
+Pair this with `getSeasonDetails` for episode titles and artwork, and with `getMediaProfileMeta` for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn't tracked, so it won't show a progress bar. The profile's place in the episode it is watching now is `playback` on `getMediaProfileMeta`.
+
+**Auth tier:** session — send your session token in `Authorization: Bearer`.
+
+## Parameters
+
+| Name         | Type      | Required | Description                                                                                                                                                                                                          |
+| ------------ | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId      | `string`  | Yes      | The unique identifier of the TV show (e.g., `TV_1396`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+| seasonNumber | `integer` | Yes      | The season number.                                                                                                                                                                                                   |
+
+## Returns
+
+[`SeasonProfileMeta`](/sdk-reference/types/media#seasonprofilemeta) — Season progress returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "season": 1,
+  "completed": false,
+  "episodes": [
+{
+  "episode": 5,
+  "completed": false
+}
+]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { SeasonProfileMeta } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: SeasonProfileMeta = await discovr.getSeasonProfileMeta("example", 1);
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.SeasonProfileMeta
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SeasonProfileMeta = client.getSeasonProfileMeta(mediaId = "example", seasonNumber = 1)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// SeasonProfileMeta
+let response: SeasonProfileMeta = try await client.getSeasonProfileMeta(mediaId: "example", seasonNumber: 1)
+print(response)
+```
+
+</CodeGroup>

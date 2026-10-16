@@ -1,0 +1,102 @@
+---
+title: "Discovr API"
+description: "Add personalized recommendation rows to your app — sign-in, profiles, pages, and playback tracking in one API."
+---
+
+Discovr is the recommendation engine for your streaming app. Your users sign in, pick a profile, and get a personalized home screen of rows — movies, series, providers, and more — that keeps up with what they watch.
+
+<Frame>
+	<img
+		src="/assets/pages/pages/pages_example_light.png"
+		className="dark:hidden"
+		alt="A streaming app home screen built with Discovr: hero carousel at the top with featured titles, stacked recommendation rows below — the finished result of a Discovr integration."
+	/>
+	<img
+		src="/assets/pages/pages/pages_example_dark.png"
+		className="hidden dark:block"
+		alt="Dark theme: same home screen with hero and recommendation rows on a charcoal background."
+	/>
+</Frame>
+
+## Before you start
+
+You need two things:
+
+1. **A Client ID** for your app. In your [dashboard](https://discovr.media/dashboard), switch on **Developer**, open **Developer Options → Demo sessions** and copy the Client ID shown there, or email [dev@discovr.media](mailto:dev@discovr.media). If you're a coding agent, ask the person for it rather than signing in to the dashboard for them.
+2. **The SDK** — installed in your project. The [Quick Start](/guides/getting-started/quickstart) covers this.
+
+## What a complete integration looks like
+
+A Discovr integration has six building blocks. You can have the first three running in an afternoon, so build in this order:
+
+1. **Sign in** — web popup or TV device code flow
+2. **Profile picker** — "who's watching?" before the browse screen
+3. **Recommendation pages** — Home, Movies, Series tabs with a hero carousel and rows
+4. **Media details** — title sheets with artwork, seasons, and similar titles
+5. **Playback tracking** — scrobble progress to power "Continue Watching"
+6. **Search** — let users find titles by name or cast
+
+The [Quick Start](/guides/getting-started/quickstart) takes you through steps 1–3. The rest of the guides cover each building block in depth.
+
+The six blocks are the order to build in, not the whole job. A finished app also lets viewers rate titles, pick a GIF avatar, see where to watch and mark things watched.
+
+## How it works
+
+<CardGroup cols={3}>
+	<Card title="Sign in & profiles" icon="shield">
+		Your users sign in once and pick a profile. The SDK handles credentials from there — your app
+		never touches a token.
+	</Card>
+	<Card title="Pages & rows" icon="table-rows">
+		Call `createPage()` to get a personalized browse screen. Each page has a hero and rows of
+		recommendations, paginated and ready to render.
+	</Card>
+	<Card title="Profile context" icon="bookmark">
+		Track playback, watchlists, and liked titles per profile. Scrobble progress as users watch and
+		power a "Continue Watching" row.
+	</Card>
+</CardGroup>
+
+## Start here
+
+<CardGroup cols={2}>
+	<Card title="Quick Start →" icon="rocket" href="/guides/getting-started/quickstart">
+		Install the SDK and get your first page of recommendations in under 10 minutes — complete
+		working example included.
+	</Card>
+	<Card title="Developer Agent Skills & MCP" icon="bot" href="/guides/getting-started/agent-setup">
+		Point Claude, Cursor, Codex, or Antigravity at these docs so it writes Discovr code that
+		actually compiles.
+	</Card>
+</CardGroup>
+
+## Already integrated?
+
+<CardGroup cols={2}>
+	<Card title="Authentication" icon="lock" href="/guides/authentication">
+		Web sign-in and device code flows, profile selection, and signing out.
+	</Card>
+	<Card title="Pages" icon="notebook-text" href="/guides/pages">
+		Hero, rows, tab filtering (Home / Movies / Series), navigation depth.
+	</Card>
+	<Card title="Rows" icon="layout-list" href="/guides/rows">
+		Four row types, item shapes, and pagination.
+	</Card>
+	<Card title="Profile context" icon="bookmark" href="/guides/profile-context">
+		Watchlist, playback, scrobbling — everything tied to the active viewer.
+	</Card>
+	<Card title="API Reference" icon="file-code" href="/api-reference/discovr/get-profiles">
+		Browse every endpoint with request and response shapes.
+	</Card>
+	<Card title="SDK Reference" icon="book-open" href="/sdk-reference/types">
+		Type definitions and method signatures for TypeScript, Kotlin, and Swift.
+	</Card>
+</CardGroup>
+
+## Found a bug or want a feature?
+
+Report bugs and request features on the [Discovr Feedback Board](https://discoverapi.userjot.com/). That's also where the public roadmap and the changelog live, so check it to see what's planned and what has shipped. For anything urgent or account-specific, email [dev@discovr.media](mailto:dev@discovr.media).
+
+---
+
+**Next:** [Quick Start — install the SDK and render your first page](/guides/getting-started/quickstart)

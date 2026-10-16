@@ -1,0 +1,156 @@
+---
+title: "Rows Types"
+description: "Types used by Rows SDK operations."
+---
+
+## GetRowItemsResponse
+
+<a id="getrowitemsresponse" />
+
+Paginated list of items within a row.
+
+| Property      | Type        | Required | Description                                                                                  |
+| ------------- | ----------- | -------- | -------------------------------------------------------------------------------------------- |
+| items         | `RowItem[]` | Yes      | Array of row items - can be MediaItem, NavigationItem, or ProviderItem based on the row type |
+| hasMore       | `boolean`   | Yes      | Whether there are more items available                                                       |
+| nextPageToken | `string`    | No       | Opaque token to fetch the next page of results                                               |
+
+## GetRowsResponse
+
+<a id="getrowsresponse" />
+
+Paginated list of rows for the page.
+
+| Property      | Type      | Required | Description                                              |
+| ------------- | --------- | -------- | -------------------------------------------------------- |
+| rows          | `Row[]`   | Yes      | Rows in this page, in the order they should be rendered. |
+| hasMore       | `boolean` | Yes      | Whether there are more rows available                    |
+| nextPageToken | `string`  | No       | Opaque token to fetch the next page of results           |
+
+## NavigationItem
+
+<a id="navigationitem" />
+
+A tile that drills into another page rather than opening a title — a genre, a decade, a curated collection.
+
+| Property        | Type           | Required | Description                                                                                                                                                                                                                                                                                             |
+| --------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id              | `string`       | Yes      | Unique identifier for the navigation item                                                                                                                                                                                                                                                               |
+| title           | `string`       | Yes      | Title of the navigation item                                                                                                                                                                                                                                                                            |
+| vertical_path   | `object`       | No       | Vertical tile image URLs keyed by size: `original` (800×1200) and `thumbnail` (400×600), pre-rendered at build time.                                                                                                                                                                                    |
+| horizontal_path | `object`       | No       | Horizontal tile image URLs keyed by size: `original` (1080×608) and `thumbnail` (540×304), pre-rendered at build time.                                                                                                                                                                                  |
+| page_id         | `string`       | Yes      | ID of the page this navigation item links to                                                                                                                                                                                                                                                            |
+| ref             | `string`       | No       | This tile's `page_id` with the place it was shown attached. Prefer it over `page_id` when opening the page this tile links to. It resolves to the same page and sharpens the user's recommendations. Use it for the profile it was returned to. A bare `page_id` always works; `ref` is never required. |
+| type            | `"navigation"` | Yes      | Discriminator field indicating this is a navigation item                                                                                                                                                                                                                                                |
+
+## NavigationItemType
+
+<a id="navigationitemtype" />
+
+Discriminator value indicating a navigation item
+
+Allowed values: `"navigation"`
+
+## ProviderItem
+
+<a id="provideritem" />
+
+A tile for a streaming service, drilling into what's available on it.
+
+| Property | Type         | Required | Description                                                                                                                                                                                                                                                                                             |
+| -------- | ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id       | `string`     | Yes      | Unique identifier for the provider item                                                                                                                                                                                                                                                                 |
+| title    | `string`     | Yes      | Title of the provider (streaming service name)                                                                                                                                                                                                                                                          |
+| page_id  | `string`     | Yes      | ID of the page this provider item links to                                                                                                                                                                                                                                                              |
+| ref      | `string`     | No       | This tile's `page_id` with the place it was shown attached. Prefer it over `page_id` when opening the page this tile links to. It resolves to the same page and sharpens the user's recommendations. Use it for the profile it was returned to. A bare `page_id` always works; `ref` is never required. |
+| type     | `"provider"` | Yes      | Discriminator field indicating this is a provider item                                                                                                                                                                                                                                                  |
+| paths    | `object`     | Yes      | Square Logo URLs in various resolutions (keys are resolution IDs like "60", "100", "512", "1024")                                                                                                                                                                                                       |
+
+## ProviderItemType
+
+<a id="provideritemtype" />
+
+Discriminator value indicating a provider item
+
+Allowed values: `"provider"`
+
+## Row
+
+<a id="row" />
+
+A single row within a page — a labeled group of media items with display info and pagination cursor.
+
+| Property  | Type                                                     | Required | Description                                                                                                                                                                                                 |
+| --------- | -------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id        | `string`                                                 | Yes      | Opaque reference to this row. Pass it back unchanged to fetch the row's items. It stays valid across a recommendations refresh, so a rail the user has already opened keeps working.                        |
+| title     | `string`                                                 | Yes      | Display title for the row                                                                                                                                                                                   |
+| pageId    | `string`                                                 | Yes      | The stable ID of the page this row belongs to — the same value you passed in.                                                                                                                               |
+| type      | `"media"` \| `"navigation"` \| `"provider"` \| `"top_n"` | Yes      | Type of row - media rows contain media items, navigation rows contain navigation items, provider rows contain provider items, top_n rows contain media items (same as media rows but distinguished by type) |
+| index     | `integer`                                                | Yes      | Display order of this row within the page (lower values appear first)                                                                                                                                       |
+| createdAt | `string`                                                 | Yes      | Creation timestamp                                                                                                                                                                                          |
+
+## RowItem
+
+<a id="rowitem" />
+
+A row item can be a MediaItem, NavigationItem, or ProviderItem.
+Use the `type` field to determine which type it is:
+
+- `type: "media"` indicates a MediaItem (has `media_type` field)
+- `type: "navigation"` indicates a NavigationItem (has `page_id` field)
+- `type: "provider"` indicates a ProviderItem (has `paths` field with resolution URLs)
+
+Discriminated union on `type`.
+
+### MediaItem
+
+A media item in a recommendation row, with display metadata.
+
+| Property      | Type                | Required | Description                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------- | ------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id            | `string`            | Yes      | Unique identifier for the media item                                                                                                                                                                                                                                                                                                                                                      |
+| title         | `string`            | Yes      | Title of the media item                                                                                                                                                                                                                                                                                                                                                                   |
+| overview      | `string`            | Yes      | Synopsis/summary text for this title.                                                                                                                                                                                                                                                                                                                                                     |
+| poster_path   | `object`            | No       | Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                              |
+| backdrop_path | `object`            | No       | Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                            |
+| media_type    | `"movie"` \| `"tv"` | Yes      | Type of media                                                                                                                                                                                                                                                                                                                                                                             |
+| year          | `integer`           | No       | Release year (the first air year for TV). Absent when the title has no date.                                                                                                                                                                                                                                                                                                              |
+| rating        | `number`            | No       | Average viewer rating out of 10, to one decimal. Absent until a title has votes.                                                                                                                                                                                                                                                                                                          |
+| genres        | `string[]`          | No       | Genre names, most relevant first. Absent when none are known.                                                                                                                                                                                                                                                                                                                             |
+| type          | `"media"`           | Yes      | Discriminator field indicating this is a media item                                                                                                                                                                                                                                                                                                                                       |
+| ref           | `string`            | No       | This item's `id` with the place it was shown attached. Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, adding it to a list, scrobbling it. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`. A bare `id` always works; `ref` is never required. |
+
+### NavigationItem
+
+A tile that drills into another page rather than opening a title — a genre, a decade, a curated collection.
+
+| Property        | Type           | Required | Description                                                                                                                                                                                                                                                                                             |
+| --------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id              | `string`       | Yes      | Unique identifier for the navigation item                                                                                                                                                                                                                                                               |
+| title           | `string`       | Yes      | Title of the navigation item                                                                                                                                                                                                                                                                            |
+| vertical_path   | `object`       | No       | Vertical tile image URLs keyed by size: `original` (800×1200) and `thumbnail` (400×600), pre-rendered at build time.                                                                                                                                                                                    |
+| horizontal_path | `object`       | No       | Horizontal tile image URLs keyed by size: `original` (1080×608) and `thumbnail` (540×304), pre-rendered at build time.                                                                                                                                                                                  |
+| page_id         | `string`       | Yes      | ID of the page this navigation item links to                                                                                                                                                                                                                                                            |
+| ref             | `string`       | No       | This tile's `page_id` with the place it was shown attached. Prefer it over `page_id` when opening the page this tile links to. It resolves to the same page and sharpens the user's recommendations. Use it for the profile it was returned to. A bare `page_id` always works; `ref` is never required. |
+| type            | `"navigation"` | Yes      | Discriminator field indicating this is a navigation item                                                                                                                                                                                                                                                |
+
+### ProviderItem
+
+A tile for a streaming service, drilling into what's available on it.
+
+| Property | Type         | Required | Description                                                                                                                                                                                                                                                                                             |
+| -------- | ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id       | `string`     | Yes      | Unique identifier for the provider item                                                                                                                                                                                                                                                                 |
+| title    | `string`     | Yes      | Title of the provider (streaming service name)                                                                                                                                                                                                                                                          |
+| page_id  | `string`     | Yes      | ID of the page this provider item links to                                                                                                                                                                                                                                                              |
+| ref      | `string`     | No       | This tile's `page_id` with the place it was shown attached. Prefer it over `page_id` when opening the page this tile links to. It resolves to the same page and sharpens the user's recommendations. Use it for the profile it was returned to. A bare `page_id` always works; `ref` is never required. |
+| type     | `"provider"` | Yes      | Discriminator field indicating this is a provider item                                                                                                                                                                                                                                                  |
+| paths    | `object`     | Yes      | Square Logo URLs in various resolutions (keys are resolution IDs like "60", "100", "512", "1024")                                                                                                                                                                                                       |
+
+## RowType
+
+<a id="rowtype" />
+
+Type of row - media, navigation, provider, or top_n
+
+Allowed values: `"media"`, `"navigation"`, `"provider"`, `"top_n"`

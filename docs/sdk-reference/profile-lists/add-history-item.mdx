@@ -1,0 +1,85 @@
+---
+title: "addHistoryItem()"
+description: "Add an item to history list"
+---
+
+Records a watch history entry. Unlike other lists, history allows multiple entries for the same title — each completed viewing is tracked separately.
+
+- `mediaId`: the title to record. Use `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows.
+- `progress`: how far through the title the user watched, as a percentage (0–100). Optional.
+- `updatedAt`: the ISO 8601 timestamp of when the viewing was recorded. Defaults to now if omitted.
+
+**TV Shows:**
+Include `season` (required for TV shows) and optionally `episode` to track per-episode history. Omitting `episode` records a season-level entry — clients can use this to mark all episodes in a season as watched in a single call.
+
+## Parameters
+
+| Name      | Type                 | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| --------- | -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId   | `string`             | Yes      | Full media ID — `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `TV_1396`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.                                                                                                                                                                                                                                                                                  |
+| updatedAt | `string (date-time)` | No       | ISO 8601 timestamp indicating when the history entry was last updated                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| progress  | `number`             | No       | Playback progress percentage (0-100)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| season    | `integer`            | No       | Season number (required for TV shows)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| episode   | `integer`            | No       | Episode number (optional for TV shows). When omitted, creates a "Default for Episode" entry that applies to all episodes in the season where episode.air_date &lt; historyItem.updatedAt. This allows updating multiple episodes with a single history entry. **Overriding Season Defaults:** When provided, creates an explicit episode entry that takes precedence over any season default entries. To unmark an episode completed via season default, create an explicit entry with progress &lt; 80% (which will not be marked as completed). |
+| imported  | `string`             | No       | Source of import (e.g., "trakt") if this item was imported                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+
+## Returns
+
+[`SuccessMessage`](/sdk-reference/types/common#successmessage) — Item added successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "message": "string",
+  "added": "string",
+  "removed": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { AddHistoryPayload, SuccessMessage } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: SuccessMessage = await discovr.addHistoryItem("TV_1396", {
+	updatedAt: "2023-01-15T00:00:00.000Z",
+	progress: 45.5,
+	season: 1,
+	episode: 5,
+	imported: "trakt",
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.AddHistoryPayload
+import api.discovr.models.SuccessMessage
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SuccessMessage = client.addHistoryItem(mediaId = "TV_1396", updatedAt = "2023-01-15T00:00:00.000Z", progress = 45.5, season = 1, episode = 5, imported = "trakt")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// AddHistoryPayload, SuccessMessage
+let response: SuccessMessage = try await client.addHistoryItem(mediaId: "TV_1396", updatedAt: "2023-01-15T00:00:00.000Z", progress: 45.5, season: 1, episode: 5, imported: "trakt")
+print(response)
+```
+
+</CodeGroup>

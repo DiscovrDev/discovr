@@ -1,0 +1,77 @@
+---
+title: "patchHistoryItem()"
+description: "Update or create a history item"
+---
+
+Updates the history entry for a title. If no entry exists, creates one (upsert). This ensures only one entry exists per `mediaId` + `season` + `episode` combination.
+
+For TV shows, `season` is required as a query parameter. Include `episode` to target a specific episode; omit it to update the season-level entry.
+
+- `progress`: how far through the title the user watched, as a percentage (0–100).
+
+## Parameters
+
+| Name     | Type      | Required | Description                                                                                                                                                                                                                                                       |
+| -------- | --------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId  | `string`  | Yes      | The media ID of the title. Format: `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows. Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+| season   | `integer` | No       | Season number. Required for TV shows (`TV_` mediaId); ignored for movies.                                                                                                                                                                                         |
+| episode  | `integer` | No       | Episode number. Optional — omit to update the season-level entry; include to target a specific episode.                                                                                                                                                           |
+| progress | `number`  | Yes      | Playback progress percentage (0-100). Values &gt;= 80% are considered completed, values &lt; 80% are not completed. Use progress: 0 to unmark an episode that was completed via season default.                                                                   |
+
+## Returns
+
+[`SuccessMessage`](/sdk-reference/types/common#successmessage) — History item updated or created successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "message": "string",
+  "added": "string",
+  "removed": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { PatchHistoryPayload, SuccessMessage } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: SuccessMessage = await discovr.patchHistoryItem("TV_1396", 0, {
+	season: 1,
+	episode: 5,
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.PatchHistoryPayload
+import api.discovr.models.SuccessMessage
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SuccessMessage = client.patchHistoryItem(mediaId = "TV_1396", progress = 0, season = 1, episode = 5)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// PatchHistoryPayload, SuccessMessage
+let response: SuccessMessage = try await client.patchHistoryItem(mediaId: "TV_1396", progress: 0, season: 1, episode: 5)
+print(response)
+```
+
+</CodeGroup>

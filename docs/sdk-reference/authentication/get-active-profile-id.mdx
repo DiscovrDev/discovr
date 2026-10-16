@@ -1,0 +1,49 @@
+---
+title: "getActiveProfileId()"
+description: "Get the currently selected profile ID"
+---
+
+Returns the ID of the currently selected profile, or null if no profile is active.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+getActiveProfileId(): string | null
+```
+
+```kotlin Kotlin
+fun getActiveProfileId(): String?
+```
+
+```swift Swift
+func getActiveProfileId() async -> String?
+```
+
+</CodeGroup>
+
+## Returns
+
+`string \| null / String? / String?` — The active profile ID, or null if none.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+const profileId = client.getActiveProfileId();
+console.log("Active profile:", profileId);
+```
+
+```kotlin Kotlin
+val profileId = client.getActiveProfileId()
+println("Active: $profileId")
+```
+
+```swift Swift
+let profileId = await client.getActiveProfileId()
+print("Active: \(profileId ?? "none")")
+```
+
+</CodeGroup>

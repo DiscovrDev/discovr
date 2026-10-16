@@ -1,0 +1,15 @@
+import { DiscovrClient } from "{{npmName}}";
+
+// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
+// the SDK Reference at https://docs.discovr.media.
+const client = new DiscovrClient("your-client-id", {
+  basePath: "https://api.discovr.media",
+});
+
+async function example() {
+  {{#hasAuthMethods}}// After sign-in and profile selection …
+  {{/hasAuthMethods}}const result = await client.{{operationId}}(/* see API reference */);
+  console.log(result);
+}
+
+example().catch(console.error);

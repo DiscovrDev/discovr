@@ -1,0 +1,86 @@
+---
+title: "getRows()"
+description: "List rows"
+---
+
+Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.
+
+Row IDs are opaque references — pass them straight back to `GET /pages/&#123;pageId&#125;/rows/&#123;rowId&#125;/items`. They keep working even if recommendations refresh while the user is scrolling, so a rail they've already opened stays readable to the end.
+
+Pagination continues in the set of results it started with. Very occasionally that set is no longer available and you'll get `409 CURSOR_EXPIRED`; restart pagination on the same page ID.
+
+**Auth tier:** session.
+
+## Parameters
+
+| Name          | Type      | Required | Description                                             |
+| ------------- | --------- | -------- | ------------------------------------------------------- |
+| pageId        | `string`  | Yes      | The unique identifier of the page                       |
+| nextPageToken | `string`  | No       | Opaque pagination token returned from the previous page |
+| limit         | `integer` | No       | Maximum number of rows to return                        |
+
+## Returns
+
+[`GetRowsResponse`](/sdk-reference/types/rows#getrowsresponse) — List of rows retrieved successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "rows": [
+{
+  "id": "string",
+  "title": "string",
+  "pageId": "string",
+  "type": "media" /* RowType: "media", "navigation", "provider", "top_n" */,
+  "index": 0,
+  "createdAt": "string" /* date-time */
+}
+],
+  "hasMore": false,
+  "nextPageToken": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { GetRowsResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: GetRowsResponse = await discovr.getRows("example", {
+	nextPageToken: "example",
+	limit: 5,
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.GetRowsResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: GetRowsResponse = client.getRows(pageId = "example", nextPageToken = "example", limit = 5)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// GetRowsResponse
+let response: GetRowsResponse = try await client.getRows(pageId: "example", nextPageToken: "example", limit: 5)
+print(response)
+```
+
+</CodeGroup>

@@ -1,0 +1,65 @@
+---
+title: "Pages Types"
+description: "Types used by Pages SDK operations."
+---
+
+## CreatePagePayload
+
+<a id="createpagepayload" />
+
+Optional filters to shape the recommendation page. Omit for a default page based on the profile's full taste history.
+
+| Property    | Type     | Required | Description                                                                                                                                                                                                                                                                                                                                            |
+| ----------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| pageFilters | `object` | No       | Filters that shape which titles appear in the page's rows.                                                                                                                                                                                                                                                                                             |
+| name        | `string` | No       | Optional label for your own use. It doesn't affect the page you get back and isn't stored — keep your own mapping from page ID to display name if you need one. A page's identity comes from its filters alone. Two calls with the same filters return the **same page** whatever you call it, so give pages that should be distinct distinct filters. |
+
+## CreatePageResponse
+
+<a id="createpageresponse" />
+
+The page's ID and the filters it stands for. Pass the `id` to `GET /pages/&#123;pageId&#125;` or `GET /pages/&#123;pageId&#125;/rows`.
+
+| Property    | Type     | Required | Description                                                               |
+| ----------- | -------- | -------- | ------------------------------------------------------------------------- |
+| id          | `string` | Yes      | Stable identifier for the page. Safe to bookmark, store, or put in a URL. |
+| pageFilters | `object` | No       | Filters that shape which titles appear in the page's rows.                |
+
+## FilterSpec
+
+<a id="filterspec" />
+
+Filters that shape which titles appear in a page's rows. All filters are optional.
+
+| Property              | Type                           | Required | Description                        |
+| --------------------- | ------------------------------ | -------- | ---------------------------------- |
+| genres                | `integer[]`                    | No       | Genre IDs to filter by             |
+| keywords              | `integer[]`                    | No       | Keyword IDs to filter by           |
+| media_type            | `"movie"` \| `"tv"` \| `"all"` | No       | Media type filter                  |
+| region                | `string[]`                     | No       | Region codes (e.g., "US", "GB")    |
+| with_runtime_gte      | `integer`                      | No       | Minimum runtime in minutes         |
+| with_runtime_lte      | `integer`                      | No       | Maximum runtime in minutes         |
+| with_release_date_gte | `string`                       | No       | Earliest release date (YYYY-MM-DD) |
+| with_release_date_lte | `string`                       | No       | Latest release date (YYYY-MM-DD)   |
+| with_watch_providers  | `string[]`                     | No       | Streaming provider IDs             |
+
+## HeroItem
+
+<a id="heroitem" />
+
+A MediaItem specifically for hero sections. Extends MediaItem but requires
+the logo_path field to always be present (may be null, but field must exist).
+overview is inherited from MediaItem.
+
+## Page
+
+<a id="page" />
+
+A recommendation page containing rows of media titles. Its ID comes from its filters alone, so the same page keeps the same ID for every profile, on every device, indefinitely.
+
+| Property  | Type         | Required | Description                                                                                                                                                                                                                                                                                                               |
+| --------- | ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id        | `string`     | Yes      | Stable identifier for the page. Safe to store, bookmark or put in a URL.                                                                                                                                                                                                                                                  |
+| createdAt | `string`     | Yes      | When this view of the page was built. Moves when recommendations refresh; it is not the page's own age.                                                                                                                                                                                                                   |
+| hero      | `HeroItem[]` | Yes      | Array of exactly 10 featured HeroItems for the hero section                                                                                                                                                                                                                                                               |
+| name      | `string`     | No       | Human-readable page title, suitable for a breadcrumb (e.g. "Movies & Series • Anime • Fantasy"). Present only for pages that carry their own name — navigation tiles and built-in pages. A `name` you pass to `POST /pages` is a label for your own use and is not returned here. Absent otherwise — read it defensively. |

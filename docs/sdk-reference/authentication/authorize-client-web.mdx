@@ -1,0 +1,70 @@
+---
+title: "authorizeClientWeb()"
+description: "Redirect to web authentication"
+---
+
+Starts a web sign-in: sends the user's browser to the Discovr page where they sign in and approve your app.
+After they do, Discovr hands your app a short-lived, single-use **authorization code** (never the long-lived
+credential), and your app trades it for a refresh token with `POST /auth/web/token`. This is the OAuth
+authorization code flow with PKCE, so the SDKs do all of it for you.
+
+- **`clientID`** — your registered app ID, so Discovr knows which app is requesting access.
+- **`state`** — your app's CSRF token. Discovr echoes it back unchanged so you can verify the response came from Discovr and not a third party.
+- **`codeChallenge`** / **`codeChallengeMethod`** — `base64url(SHA-256(verifier))` of a random `codeVerifier` you keep, and `S256`. Required on every request.
+- **`redirectURL`** — where to send the user after sign-in; it must be registered for your client. For a popup, send `openerOrigin` instead (the SDK does).
+
+**What your app receives.** On your `redirectURL` as query parameters, or as a `postMessage` to the popup's opener:
+`&#123; code, state &#125;` on success, or `&#123; error, state &#125;` when the person cancels (`authorization-cancelled`) or sign-in cannot
+complete. `error` is one of the codes in `ApiError`. Check `state` first, then redeem `code` with your `codeVerifier`.
+
+## Parameters
+
+| Name                | Type                        | Required | Description                                                                                                                                                                                                                                                    |
+| ------------------- | --------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| clientID            | `string`                    | Yes      | The client ID of the third-party application                                                                                                                                                                                                                   |
+| redirectURL         | `string (uri)`              | No       | Optional custom redirect URL. If omitted, redirects to the hosted callback page at https://auth.discovr.media/callback.html which handles token exchange via postMessage for web popup flows or deep links for mobile apps. Must be URL encoded when provided. |
+| state               | `string`                    | Yes      | Opaque value to prevent CSRF; echoed back in the callback response. 16 to 256 URL-safe characters (`A-Z a-z 0-9 - _`); 32 random bytes, hex-encoded, is 64.                                                                                                    |
+| codeChallenge       | `string`                    | Yes      | `base64url(SHA-256(codeVerifier))`, 43 characters. Generate a fresh random `codeVerifier` per sign-in and keep it; you send it to `POST /auth/web/token` when you redeem the code.                                                                             |
+| codeChallengeMethod | `"S256"`                    | Yes      | Always `S256`. `plain` is not accepted.                                                                                                                                                                                                                        |
+| platform            | `"web" \| "mobile" \| "tv"` | No       | Optional platform hint (web popup, mobile deep link, etc.). Not currently used.                                                                                                                                                                                |
+
+## Returns
+
+`Response` — Successful operation (Documentation only).
+In practice, this endpoint always redirects (302).
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+await discovr.authorizeClientWeb(
+	"abc123xyz",
+	"9f2c41d07be34a85b1c6e0d3f7a29c84",
+	"E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+	"S256",
+	{ redirectURL: "https://yourapp.com/callback", platform: "web" },
+);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    client.authorizeClientWeb(clientID = "abc123xyz", state = "9f2c41d07be34a85b1c6e0d3f7a29c84", codeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM", codeChallengeMethod = DiscovrApi.CodeChallengeMethodAuthorizeClientWeb.S256, redirectURL = "https://yourapp.com/callback", platform = DiscovrApi.PlatformAuthorizeClientWeb.web)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+try await client.authorizeClientWeb(clientID: "abc123xyz", state: "9f2c41d07be34a85b1c6e0d3f7a29c84", codeChallenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM", codeChallengeMethod: DiscovrAPI.CodeChallengeMethod_authorizeClientWeb.S256, redirectURL: "https://yourapp.com/callback", platform: DiscovrAPI.Platform_authorizeClientWeb.web)
+```
+
+</CodeGroup>

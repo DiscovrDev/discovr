@@ -1,0 +1,97 @@
+# Shared HTTP response definitions used across all API endpoints
+
+BadRequest:
+  description: "The request is missing a required field or contains an invalid value. Check the `error` field for details."
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas.yaml#/ApiError"
+      examples:
+        default:
+          value:
+            error: "Missing or invalid required field: clientID"
+
+Unauthorized:
+  description: "Authentication failed — the token is missing, expired, or invalid."
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas.yaml#/ApiError"
+      examples:
+        default:
+          value:
+            error: "Invalid ClientID"
+
+NotFound:
+  description: "The requested resource wasn't found."
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas.yaml#/ApiError"
+      examples:
+        default:
+          value:
+            error: "Device code not found"
+
+CursorExpired:
+  description: |
+    Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid — start its pagination again from the beginning.
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas.yaml#/ApiError"
+      examples:
+        default:
+          value:
+            error: "CURSOR_EXPIRED"
+
+Conflict:
+  description: "The request conflicts with existing data."
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas.yaml#/ApiError"
+      examples:
+        default:
+          value:
+            error: "Watched item already exists. Use editWatched to update count."
+
+InternalServerError:
+  description: "Something went wrong on Discovr's end. Try again, and contact support if the issue persists."
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas.yaml#/ApiError"
+      examples:
+        default:
+          value:
+            error: "Internal server error"
+
+RateLimited:
+  description: "Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn't affect other clients."
+  headers:
+    Retry-After:
+      description: Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be.
+      schema:
+        type: integer
+        minimum: 1
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas.yaml#/RateLimitedError"
+      examples:
+        default:
+          value:
+            error: "RATE_LIMITED"
+            retryAfterSeconds: 14
+
+ServiceUnavailable:
+  description: "The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr's status page if this persists."
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas.yaml#/ApiError"
+      examples:
+        default:
+          value:
+            error: "SERVICE_UNAVAILABLE"

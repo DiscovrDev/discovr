@@ -1,0 +1,323 @@
+# Path operations for history list endpoints
+
+get:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: History
+  summary: Get history items
+  description: |
+    Returns the profile's full watch history, newest entries first.
+
+    History allows multiple entries for the same title — every completed viewing is tracked separately, so you may see the same `mediaId` more than once.
+
+    **Pagination:**
+    Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available.
+  operationId: getHistoryItems
+  # Never cache: reflects live, cross-device mutable profile state.
+  x-cache-policy: none
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: nextPageToken
+      in: query
+      required: false
+      description: "Opaque token from previous page for pagination"
+      schema:
+        type: string
+    - name: limit
+      in: query
+      required: false
+      description: "Maximum number of items to return (1-50, default: 10)"
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 10
+  responses:
+    "200":
+      description: List of history items retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/HistoryListResponse"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"
+
+post:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: History
+  summary: Add an item to history list
+  description: |
+    Records a watch history entry. Unlike other lists, history allows multiple entries for the same title — each completed viewing is tracked separately.
+
+    - `mediaId`: the title to record. Use `MV_<number>` for movies, `TV_<number>` for TV shows.
+    - `progress`: how far through the title the user watched, as a percentage (0–100). Optional.
+    - `updatedAt`: the ISO 8601 timestamp of when the viewing was recorded. Defaults to now if omitted.
+
+    **TV Shows:**
+    Include `season` (required for TV shows) and optionally `episode` to track per-episode history. Omitting `episode` records a season-level entry — clients can use this to mark all episodes in a season as watched in a single call.
+  operationId: addHistoryItem
+  security:
+    - BearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "./schemas.yaml#/AddHistoryPayload"
+        example:
+          mediaId: "TV_1396"
+          updatedAt: "2023-01-15T20:00:00.000Z"
+          progress: 100
+          season: 1
+          episode: 5
+  responses:
+    "201":
+      description: Item added successfully
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SuccessMessage"
+          example:
+            message: "Item added to history list successfully"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"
+
+getByMediaId:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: History
+  summary: Get history items for a specific media
+  description: |
+    Returns history entries for a specific title. Newest entries first.
+
+    For TV shows, pass `season` as a query parameter (required) and optionally `episode` to filter by episode. Omitting `episode` returns all entries for the whole season.
+
+    **Pagination:**
+    Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available.
+  operationId: getHistoryItemsByMediaId
+  # Never cache: reflects live, cross-device mutable profile state.
+  x-cache-policy: none
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: mediaId
+      in: path
+      required: true
+      description: |
+        The media ID of the title. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      schema:
+        type: string
+      example: "TV_1396"
+    - name: season
+      in: query
+      required: false
+      description: "Season number. Required for TV shows (`TV_` mediaId); ignored for movies."
+      schema:
+        type: integer
+        minimum: 1
+      example: 1
+    - name: episode
+      in: query
+      required: false
+      description: "Episode number. Optional — omit to return all entries for the season; include to filter to a specific episode."
+      schema:
+        type: integer
+        minimum: 1
+      example: 5
+    - name: nextPageToken
+      in: query
+      required: false
+      description: "Opaque token from previous page for pagination"
+      schema:
+        type: string
+    - name: limit
+      in: query
+      required: false
+      description: "Maximum number of items to return (1-50, default: 10)"
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 10
+  responses:
+    "200":
+      description: List of history items retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/HistoryListResponse"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"
+
+patch:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: History
+  summary: Update or create a history item
+  description: |
+    Updates the history entry for a title. If no entry exists, creates one (upsert). This ensures only one entry exists per `mediaId` + `season` + `episode` combination.
+
+    For TV shows, `season` is required as a query parameter. Include `episode` to target a specific episode; omit it to update the season-level entry.
+
+    - `progress`: how far through the title the user watched, as a percentage (0–100).
+  operationId: patchHistoryItem
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: mediaId
+      in: path
+      required: true
+      description: |
+        The media ID of the title. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      schema:
+        type: string
+      example: "TV_1396"
+    - name: season
+      in: query
+      required: false
+      description: "Season number. Required for TV shows (`TV_` mediaId); ignored for movies."
+      schema:
+        type: integer
+        minimum: 1
+      example: 1
+    - name: episode
+      in: query
+      required: false
+      description: "Episode number. Optional — omit to update the season-level entry; include to target a specific episode."
+      schema:
+        type: integer
+        minimum: 1
+      example: 5
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "./schemas.yaml#/PatchHistoryPayload"
+        example:
+          progress: 0
+  responses:
+    "200":
+      description: History item updated or created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SuccessMessage"
+          example:
+            message: "History item updated or created successfully"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"
+
+delete:
+  tags:
+    - Discovr
+    - Profile Lists
+  x-sdk-group: History
+  summary: Delete an item from history list
+  description: |
+    Deletes history entries for a title. Because history allows duplicates, this removes all matching entries for the specified media (and episode, if provided).
+
+    For TV shows, pass `season` as a query parameter (required) and optionally `episode`. Include `episode` to delete that episode's entries. Omit it to delete the entries that were recorded for the season as a whole, without an episode (for example, marking a season watched in one go); entries for individual episodes are kept.
+
+    To take a title back to unwatched, use [`DELETE /profile/watched/{mediaId}`](/api-reference/discovr/mark-unwatched) instead. This call removes history entries and nothing else: it doesn't touch the in-progress list, and a TV show's `completed` state is brought up to date from whatever history is left.
+  operationId: deleteHistoryItem
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: mediaId
+      in: path
+      required: true
+      description: |
+        The media ID of the title to delete. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      schema:
+        type: string
+      example: "TV_1396"
+    - name: season
+      in: query
+      required: false
+      description: "Season number. Required for TV shows (`TV_` mediaId); ignored for movies."
+      schema:
+        type: integer
+        minimum: 1
+      example: 1
+    - name: episode
+      in: query
+      required: false
+      description: "Episode number. Optional — omit to delete the season-level entries (those recorded without an episode); include to delete a specific episode's entries only."
+      schema:
+        type: integer
+        minimum: 1
+      example: 5
+  responses:
+    "200":
+      description: Item deleted successfully
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SuccessMessage"
+          example:
+            message: "History deleted successfully"
+    "400":
+      $ref: "../../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"

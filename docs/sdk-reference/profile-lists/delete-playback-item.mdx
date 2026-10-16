@@ -1,0 +1,66 @@
+---
+title: "deletePlaybackItem()"
+description: "Delete an item from playback list"
+---
+
+Removes a title from the in-progress list. Use `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `MV_550`, `TV_1396`).
+
+## Parameters
+
+| Name    | Type     | Required | Description                                                                                                                                                                                                                                                                 |
+| ------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId | `string` | Yes      | The media ID of the title to remove. Format: `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows. Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+
+## Returns
+
+[`SuccessMessage`](/sdk-reference/types/common#successmessage) — Item deleted successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "message": "string",
+  "added": "string",
+  "removed": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { SuccessMessage } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: SuccessMessage = await discovr.deletePlaybackItem("MV_550");
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.SuccessMessage
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SuccessMessage = client.deletePlaybackItem(mediaId = "MV_550")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// SuccessMessage
+let response: SuccessMessage = try await client.deletePlaybackItem(mediaId: "MV_550")
+print(response)
+```
+
+</CodeGroup>

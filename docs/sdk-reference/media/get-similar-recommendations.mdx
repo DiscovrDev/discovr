@@ -1,0 +1,100 @@
+---
+title: "getSimilarRecommendations()"
+description: "Get similar titles"
+---
+
+Returns titles that are similar to the given movie or TV show. Useful for "More like this" sections.
+
+This is a public endpoint — no authentication required. Returns only generic catalog metadata.
+
+## Parameters
+
+| Name     | Type      | Required | Description                                                                                                                                                                                                                                                                                       |
+| -------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId  | `string`  | Yes      | The unique identifier of the media item. Use `MV_&lt;id&gt;` for movies or `TV_&lt;id&gt;` for TV shows (e.g., `MV_550`, `TV_1396`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
+| language | `string`  | No       | Language code for results (e.g., `en-US`).                                                                                                                                                                                                                                                        |
+| page     | `integer` | No       | Page number for pagination (default: 1).                                                                                                                                                                                                                                                          |
+
+## Returns
+
+[`SimilarResponse`](/sdk-reference/types/media#similarresponse) — Similar titles returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "page": 1,
+  "results": [
+{
+  "id": "string",
+  "ref": "string",
+  "tmdb_id": 1396,
+  "media_type": "movie" /* enum: "movie", "tv" */,
+  "title": "string",
+  "name": "string",
+  "original_title": "string",
+  "original_name": "string",
+  "overview": "string",
+  "poster_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "backdrop_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "release_date": "string" /* date */,
+  "first_air_date": "string" /* date */,
+  "popularity": 0.0,
+  "vote_average": 0.0,
+  "vote_count": 0
+}
+],
+  "total_pages": 10,
+  "total_results": 100
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { SimilarResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+const response: SimilarResponse = await discovr.getSimilarRecommendations("example", {
+	language: "en-US",
+	page: 1,
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.SimilarResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SimilarResponse = client.getSimilarRecommendations(mediaId = "example", language = "en-US", page = 1)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// SimilarResponse
+let response: SimilarResponse = try await client.getSimilarRecommendations(mediaId: "example", language: "en-US", page: 1)
+print(response)
+```
+
+</CodeGroup>

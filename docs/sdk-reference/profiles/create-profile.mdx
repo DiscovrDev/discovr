@@ -1,0 +1,81 @@
+---
+title: "createProfile()"
+description: "Create a profile"
+---
+
+Creates a new profile for the signed-in user. Provide a display name and an avatar URL.
+
+On success you'll get back a `profileId`. Use that ID with `POST /auth/session-token` to mint a session token and start browsing recommendations for this profile.
+
+## Parameters
+
+| Name            | Type                                                               | Required | Description                       |
+| --------------- | ------------------------------------------------------------------ | -------- | --------------------------------- |
+| name            | `string`                                                           | Yes      | The display name for the profile. |
+| avatarUrl       | `string (uri)`                                                     | Yes      | URL of the profile avatar image.  |
+| avatarMediaType | [`AvatarMediaType`](/sdk-reference/types/profiles#avatarmediatype) | No       |                                   |
+
+<AccordionGroup>
+	<Accordion title="View AvatarMediaType structure">
+		```json "image/png" /* enum: "image/png", "image/jpeg", "image/webp", "image/gif", "video/mp4",
+		"video/webm" */ ```
+	</Accordion>
+</AccordionGroup>
+
+## Returns
+
+[`CreateProfileResponse`](/sdk-reference/types/profiles#createprofileresponse) — Profile created. The response contains the new profile's ID.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "profileId": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { AvatarMediaType, CreateProfilePayload, CreateProfileResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in …
+const response: CreateProfileResponse = await discovr.createProfile(
+	"Sci-Fi Lover",
+	"https://example.com/avatar.jpg",
+	{ avatarMediaType: "image/png" },
+);
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.AvatarMediaType
+import api.discovr.models.CreateProfilePayload
+import api.discovr.models.CreateProfileResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: CreateProfileResponse = client.createProfile(name = "Sci-Fi Lover", avatarUrl = "https://example.com/avatar.jpg", avatarMediaType = "image/png")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// AvatarMediaType, CreateProfilePayload, CreateProfileResponse
+let response: CreateProfileResponse = try await client.createProfile(name: "Sci-Fi Lover", avatarUrl: "https://example.com/avatar.jpg", avatarMediaType: "image/png")
+print(response)
+```
+
+</CodeGroup>

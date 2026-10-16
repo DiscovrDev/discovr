@@ -1,0 +1,45 @@
+delete:
+  tags:
+    - Discovr
+    - Authentication
+  summary: Sign out the current device
+  operationId: signOutSession
+  x-tier: identity
+  description: |
+    Signs out the current device by revoking the refresh token you send in the `Authorization` header.
+    Other devices the user is signed into aren't affected — you can only sign out the current device from a third-party app.
+
+    Identity-tier calls using this token fail immediately after revocation.
+    Any existing session tokens (valid for 30 minutes) remain usable until they naturally expire.
+
+    Works the same way for a demo session's refresh token — a demo sandbox is an ordinary account, so this is a quick way to end one early and test how your app handles it.
+
+    Using an SDK? Call `signOut()` instead — it wraps this endpoint and also clears
+    the credentials stored on the device.
+
+    **Auth tier:** identity — send your refresh token in the `Authorization: Bearer` header.
+  security:
+    - BearerAuth: []
+  responses:
+    "200":
+      description: Refresh token revoked. Device is signed out.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [revoked]
+            properties:
+              revoked:
+                type: boolean
+                description: Always `true` on success — the refresh token you sent is no longer usable.
+                example: true
+    "401":
+      $ref: "../../shared/responses.yaml#/Unauthorized"
+    "405":
+      description: Method not allowed.
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"

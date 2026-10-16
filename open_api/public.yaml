@@ -1,0 +1,358 @@
+openapi: 3.1.0
+info:
+  title: The Discovr API
+  description: |
+    The Discovr API powers personalized recommendation experiences for your streaming app.
+
+    **Authentication.** Two tokens, two jobs:
+
+    - **Refresh token** (long-lived, 90 days). Used for identity-tier
+      endpoints — managing profiles, signing out the current device, and
+      starting browsing sessions. Treat it as a credential.
+    - **Session token** (short-lived, 30 minutes). Scoped to a selected
+      profile. Used for session-tier endpoints — pages, rows, items, and
+      writes to profile-scoped data.
+
+    Sign in via the web flow or the device-code flow → receive a refresh
+    token → call `POST /auth/session-token` with a chosen `profileId` → use
+    the returned session token for everything else. SDKs handle this
+    transparently; see the
+    [Authentication guide](https://docs.discovr.media/guides/authentication).
+
+    **Profiles.** A user can have multiple profiles, each with independent
+    likes, history, playback, and watchlists. The active profile is carried
+    by the session token, so profile-scoped endpoints don't accept a
+    `profileId` path parameter — they live under `/profile/*`.
+  version: 1.0.0-alpha.1
+  license:
+    name: Discovr Developer Terms
+    url: https://discovr.media/terms
+  contact:
+    name: The Discovr API Team
+    email: dev@discovr.media
+
+servers:
+  - url: https://api.discovr.media
+    description: Production
+
+tags:
+  - name: Discovr
+    description: Unified client API — every operation accessible through one client instance.
+  - name: Authentication
+    description: Sign-in flows, session-token minting, and session management.
+  - name: Profiles
+    description: Profile management — list, create, update, and delete profiles.
+  - name: Profile Lists
+    description: |
+      Profile-scoped data — likes, dislikes, super-likes, watchlist, playback
+      progress, and watch history. The active profile is carried by the session
+      token, so these endpoints don't accept a `profileId` parameter.
+  - name: Media
+    description: Media details, search, and similar titles.
+  - name: Pages
+    description: Recommendation pages — stable IDs whose rows refresh periodically.
+  - name: Rows
+    description: Rows within a recommendation page.
+  - name: Misc
+    description: Utility endpoints — avatar images and GIF search.
+
+paths:
+  # ── Authentication ──────────────────────────────────────────────────
+  /auth/device-codes:
+    $ref: "./auth/external/device-codes.yaml"
+  /auth/device-codes/{deviceCode}/poll:
+    $ref: "./auth/external/device-codes-poll.yaml"
+  /auth/web/authorize:
+    $ref: "./auth/external/web-authorize.yaml"
+  /auth/web/token:
+    $ref: "./auth/external/web-token.yaml"
+  /auth/session-token:
+    post:
+      $ref: "./auth/external/session-token.yaml#/post"
+  /auth/demo-session:
+    post:
+      $ref: "./auth/external/demo-session.yaml#/post"
+  /auth/session:
+    delete:
+      $ref: "./auth/external/auth-sessions.yaml#/delete"
+
+  # ── Pages ───────────────────────────────────────────────────────────
+  /pages:
+    post:
+      $ref: "./pages/pages.yaml#/collection/post"
+  /pages/{pageId}:
+    get:
+      $ref: "./pages/pages.yaml#/item/get"
+  /pages/{pageId}/rows:
+    get:
+      $ref: "./pages/rows/rows.yaml#/collection/get"
+  /pages/{pageId}/rows/{rowId}:
+    get:
+      $ref: "./pages/rows/rows.yaml#/item/get"
+  /pages/{pageId}/rows/{rowId}/items:
+    get:
+      $ref: "./pages/rows/rows.yaml#/items/get"
+
+  # ── Profiles (identity-tier — refresh-token bearer) ─────────────────
+  /profiles:
+    get:
+      $ref: "./profiles/profiles.yaml#/collection/get"
+    post:
+      $ref: "./profiles/profiles.yaml#/collection/post"
+  /profiles/{profileId}:
+    get:
+      $ref: "./profiles/profiles.yaml#/item/get"
+    patch:
+      $ref: "./profiles/profiles.yaml#/item/patch"
+    delete:
+      $ref: "./profiles/profiles.yaml#/item/delete"
+
+  # ── Profile-scoped data (session-tier — session-token bearer) ───────
+  # The active profile comes from the session token; these paths don't
+  # carry a `profileId` parameter.
+  /profile/liked:
+    get:
+      $ref: "./profiles/lists/liked.yaml#/get"
+    post:
+      $ref: "./profiles/lists/liked.yaml#/post"
+  /profile/liked/{mediaId}:
+    delete:
+      $ref: "./profiles/lists/liked.yaml#/delete"
+
+  /profile/disliked:
+    get:
+      $ref: "./profiles/lists/disliked.yaml#/get"
+    post:
+      $ref: "./profiles/lists/disliked.yaml#/post"
+  /profile/disliked/{mediaId}:
+    delete:
+      $ref: "./profiles/lists/disliked.yaml#/delete"
+
+  /profile/super_liked:
+    get:
+      $ref: "./profiles/lists/super_liked.yaml#/get"
+    post:
+      $ref: "./profiles/lists/super_liked.yaml#/post"
+  /profile/super_liked/{mediaId}:
+    delete:
+      $ref: "./profiles/lists/super_liked.yaml#/delete"
+
+  /profile/watchlist:
+    get:
+      $ref: "./profiles/lists/watchlist.yaml#/get"
+    post:
+      $ref: "./profiles/lists/watchlist.yaml#/post"
+  /profile/watchlist/{mediaId}:
+    delete:
+      $ref: "./profiles/lists/watchlist.yaml#/delete"
+
+  /profile/playback:
+    get:
+      $ref: "./profiles/lists/playback.yaml#/get"
+    post:
+      $ref: "./profiles/lists/playback.yaml#/post"
+    patch:
+      $ref: "./profiles/lists/playback.yaml#/patch"
+  /profile/playback/{mediaId}:
+    delete:
+      $ref: "./profiles/lists/playback.yaml#/delete"
+
+  /profile/watched/{mediaId}:
+    delete:
+      $ref: "./profiles/watched.yaml#/delete"
+
+  /profile/scrobble/{mediaId}:
+    post:
+      $ref: "./profiles/scrobble.yaml#/post"
+  /profile/scrobble/{mediaId}/skip:
+    post:
+      $ref: "./profiles/scrobble.yaml#/skip/post"
+
+  /profile/history:
+    get:
+      $ref: "./profiles/lists/history.yaml#/get"
+    post:
+      $ref: "./profiles/lists/history.yaml#/post"
+  /profile/history/{mediaId}:
+    get:
+      $ref: "./profiles/lists/history.yaml#/getByMediaId"
+    patch:
+      $ref: "./profiles/lists/history.yaml#/patch"
+    delete:
+      $ref: "./profiles/lists/history.yaml#/delete"
+
+  # ── Media ───────────────────────────────────────────────────────────
+  /media/{mediaId}:
+    get:
+      $ref: "./media/paths.yaml#/media/get"
+  /media/{mediaId}/assets:
+    $ref: "./media/assets.yaml"
+  /media/{mediaId}/profile_meta:
+    $ref: "./media/profile-meta.yaml"
+  /media/{mediaId}/seasons/{seasonNumber}:
+    $ref: "./media/seasons.yaml"
+  /media/{mediaId}/seasons/{seasonNumber}/meta:
+    $ref: "./media/season-profile-meta.yaml"
+  /media/{mediaId}/similar:
+    get:
+      $ref: "./media/paths.yaml#/media~1{mediaId}~1similar/get"
+  /search:
+    get:
+      $ref: "./media/paths.yaml#/search/get"
+
+  # ── Misc ────────────────────────────────────────────────────────────
+  /profile-images:
+    get:
+      $ref: "./misc/profile-images.yaml#/get"
+  /gif-search:
+    get:
+      $ref: "./misc/gif-search.yaml#/get"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Bearer token authentication. Which token you send depends on the tier:
+
+        - **Identity tier** (`/profiles`, `/auth/session-token`, `/auth/session`)
+          — your refresh token (`rt_<hex>`), valid for 90 days.
+        - **Session tier** (`/pages/*`, `/profile/*`) — the session token
+          returned by `POST /auth/session-token`, valid for 30 minutes.
+
+        Format: `Authorization: Bearer {token}`
+
+        Using an SDK? You never set this header yourself. Sign in, select a
+        profile, and the SDK sends the right token on every call and renews it
+        before it runs out.
+
+        **Just want to try these endpoints?** Grab a temporary demo token from
+        Developer Options in your [dashboard](https://discovr.media/dashboard)
+        and paste it here — no sign-up needed. The dialog gives you both tokens
+        above; use the refresh token for identity-tier endpoints and the session
+        token for session-tier ones.
+
+        Step-by-step, including which endpoints want a `clientId` instead:
+        [How to get playground credentials](https://docs.discovr.media/guides/getting-started/try-it-in-the-docs).
+
+  schemas:
+    # Auth schemas
+    DeviceCodePayload:
+      $ref: "./auth/external/schemas.yaml#/DeviceCodePayload"
+    DeviceCodeResponse:
+      $ref: "./auth/external/schemas.yaml#/DeviceCodeResponse"
+    RefreshTokenResponse:
+      $ref: "./auth/external/schemas.yaml#/RefreshTokenResponse"
+    MintSessionTokenPayload:
+      $ref: "./auth/external/schemas.yaml#/MintSessionTokenPayload"
+    SessionTokenResponse:
+      $ref: "./auth/external/schemas.yaml#/SessionTokenResponse"
+
+    # Profile schemas
+    AvatarMediaType:
+      $ref: "./profiles/schemas.yaml#/AvatarMediaType"
+    CreateProfilePayload:
+      $ref: "./profiles/schemas.yaml#/CreateProfilePayload"
+    CreateProfileResponse:
+      $ref: "./profiles/schemas.yaml#/CreateProfileResponse"
+    Profile:
+      $ref: "./profiles/schemas.yaml#/Profile"
+    GetProfilesResponse:
+      $ref: "./profiles/schemas.yaml#/GetProfilesResponse"
+    UpdateProfilePayload:
+      $ref: "./profiles/schemas.yaml#/UpdateProfilePayload"
+    DeleteProfileResponse:
+      $ref: "./profiles/schemas.yaml#/DeleteProfileResponse"
+
+    # Profile lists schemas
+    SimpleListItem:
+      $ref: "./profiles/lists/schemas.yaml#/SimpleListItem"
+    PlaybackItem:
+      $ref: "./profiles/lists/schemas.yaml#/PlaybackItem"
+    HistoryItem:
+      $ref: "./profiles/lists/schemas.yaml#/HistoryItem"
+    AddSimpleListItemPayload:
+      $ref: "./profiles/lists/schemas.yaml#/AddSimpleListItemPayload"
+    AddPlaybackPayload:
+      $ref: "./profiles/lists/schemas.yaml#/AddPlaybackPayload"
+    EditPlaybackPayload:
+      $ref: "./profiles/lists/schemas.yaml#/EditPlaybackPayload"
+    AddHistoryPayload:
+      $ref: "./profiles/lists/schemas.yaml#/AddHistoryPayload"
+    SimpleListResponse:
+      $ref: "./profiles/lists/schemas.yaml#/SimpleListResponse"
+    PlaybackListResponse:
+      $ref: "./profiles/lists/schemas.yaml#/PlaybackListResponse"
+    HistoryListResponse:
+      $ref: "./profiles/lists/schemas.yaml#/HistoryListResponse"
+    SuccessMessage:
+      $ref: "./profiles/lists/schemas.yaml#/SuccessMessage"
+    ScrobbleProgressPayload:
+      $ref: "./profiles/schemas.yaml#/ScrobbleProgressPayload"
+    ScrobbleResponse:
+      $ref: "./profiles/schemas.yaml#/ScrobbleResponse"
+    ScrobbleSkipResponse:
+      $ref: "./profiles/schemas.yaml#/ScrobbleSkipResponse"
+
+    # Errors
+    ApiError:
+      $ref: "./shared/schemas.yaml#/ApiError"
+    RateLimitedError:
+      $ref: "./shared/schemas.yaml#/RateLimitedError"
+
+    # Page and Row Schemas
+    Page:
+      $ref: "./pages/schemas.yaml#/Page"
+    Row:
+      $ref: "./pages/schemas.yaml#/Row"
+    CreatePagePayload:
+      $ref: "./pages/schemas.yaml#/CreatePagePayload"
+    CreatePageResponse:
+      $ref: "./pages/schemas.yaml#/CreatePageResponse"
+    GetRowsResponse:
+      $ref: "./pages/schemas.yaml#/GetRowsResponse"
+    GetRowItemsResponse:
+      $ref: "./pages/schemas.yaml#/GetRowItemsResponse"
+    MediaItem:
+      $ref: "./pages/schemas.yaml#/MediaItem"
+    FilterSpec:
+      $ref: "./pages/schemas.yaml#/FilterSpec"
+
+    # Media Schemas
+    MediaResponse:
+      $ref: "./media/schemas.yaml#/MediaResponse"
+    MediaProfileMeta:
+      $ref: "./media/schemas.yaml#/MediaProfileMeta"
+    SearchResult:
+      $ref: "./media/schemas.yaml#/SearchResult"
+    SearchResponse:
+      $ref: "./media/schemas.yaml#/SearchResponse"
+    SimilarResult:
+      $ref: "./media/schemas.yaml#/SimilarResult"
+    SimilarResponse:
+      $ref: "./media/schemas.yaml#/SimilarResponse"
+    MediaAssetsResponse:
+      $ref: "./media/schemas.yaml#/MediaAssetsResponse"
+
+    # Misc Schemas
+    ProfileImagesResponse:
+      $ref: "./misc/schemas.yaml#/ProfileImagesResponse"
+    GifItem:
+      $ref: "./misc/schemas.yaml#/GifItem"
+    GifPreview:
+      $ref: "./misc/schemas.yaml#/GifPreview"
+    GifSearchResponse:
+      $ref: "./misc/schemas.yaml#/GifSearchResponse"
+
+  responses:
+    BadRequest:
+      $ref: "./shared/responses.yaml#/BadRequest"
+    Unauthorized:
+      $ref: "./shared/responses.yaml#/Unauthorized"
+    NotFound:
+      $ref: "./shared/responses.yaml#/NotFound"
+    Conflict:
+      $ref: "./shared/responses.yaml#/Conflict"
+    InternalServerError:
+      $ref: "./shared/responses.yaml#/InternalServerError"

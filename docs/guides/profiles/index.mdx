@@ -1,0 +1,71 @@
+---
+title: "Profiles Overview"
+description: "How profiles scope recommendations, and how to build picker and management flows."
+---
+
+A **profile** represents one viewer on an account—each profile has its own lists (watch history, likes, playback, etc.) and feeds into **personalized recommendations** when you browse pages and rows.
+
+The layout below is only an example; your picker can look different while using the same APIs.
+
+<Frame>
+	<img
+		src="/assets/pages/profiles/profiles_example_light.png"
+		className="dark:hidden"
+		alt="Light theme profile picker: grid or row of profile tiles with names and avatars plus an add-profile entry; illustrates the who’s-watching step before browsing."
+	/>
+	<img
+		src="/assets/pages/profiles/profiles_example_dark.png"
+		className="hidden dark:block"
+		alt="Dark theme profile picker: same who’s-watching pattern—profile cards and add affordance on dark UI; maps to getProfiles then selectProfile in the SDK."
+	/>
+</Frame>
+
+## Why profiles matter
+
+- **After sign-in** — The SDK keeps a refresh token for account operations (listing and managing profiles via `/profiles`).
+- **One active profile** — When you call [`selectProfile()`](/sdk-reference/authentication/select-profile), the SDK creates a session for that profile. All browsing calls (pages, rows, personalized recommendations) use that session. Each profile's recommendations and analytics are separate.
+- **Household UX** — The same Discovr user can switch profiles so each family member keeps separate taste and playback state without separate accounts.
+
+- **`avatarUrl`** — a plain URL: still image, animated GIF, or short video clip. You pick it; Discovr stores it. Your app renders it wherever you show a profile picture — handle both image and video since you don't control which the user picks.
+- **`avatarMediaType`** — what kind of file that URL is, as a MIME type. Choose your view from it rather than guessing from the URL; it can be absent, in which case treat the avatar as a still image. See [Managing profiles](/guides/profiles/managing-profiles#profile-avatars) for avatar helpers, options, and when to animate.
+
+| What's separate per profile | Shared across profiles |
+| --------------------------- | ---------------------- |
+| Recommendation rows         | Account (sign-in)      |
+| Watch history               | Billing                |
+| Watchlist, likes            | Client ID              |
+| Playback position           |                        |
+| Session credential          |                        |
+
+<Note>
+	This hub covers profiles **as a product concept** and the **UI patterns** around them. For signing
+	in and out, see [Authentication](/guides/authentication).
+</Note>
+
+## What you typically build
+
+A **picker** ([`selectProfile()`](/sdk-reference/authentication/select-profile)) and **management** screens for profile data. Start with listing and selecting to build your picker, then set up profile management:
+
+<CardGroup cols={2}>
+	<Card
+		title="Listing and selecting profiles"
+		icon="square-check-big"
+		href="/guides/profiles/listing-and-selecting-profiles"
+	>
+		Use `getProfiles()` for your picker UI, call `selectProfile`, and wait for it before fetching.
+	</Card>
+	<Card title="Managing profiles" icon="folder-cog" href="/guides/profiles/managing-profiles">
+		Create, read, update, delete—avatars as image or MP4 URLs, helpers for defaults and GIF search.
+	</Card>
+</CardGroup>
+
+## Related SDK reference
+
+- [`getProfiles()`](/sdk-reference/profiles/get-profiles) · [`getProfile()`](/sdk-reference/profiles/get-profile)
+- [`createProfile()`](/sdk-reference/profiles/create-profile) · [`updateProfile()`](/sdk-reference/profiles/update-profile) · [`deleteProfile()`](/sdk-reference/profiles/delete-profile)
+- [`getProfileImages()`](/sdk-reference/misc/get-profile-images) · [`searchGifs()`](/sdk-reference/misc/search-gifs)
+- [`selectProfile()`](/sdk-reference/authentication/select-profile) · [`switchProfile()`](/sdk-reference/authentication/switch-profile)
+
+---
+
+**Next:** [Listing and selecting profiles](/guides/profiles/listing-and-selecting-profiles)

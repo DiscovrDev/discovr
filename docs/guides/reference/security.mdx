@@ -1,0 +1,263 @@
+---
+title: "Security Best Practices"
+description: "Protect refresh tokens. Use HTTPS. Let SDK handle secure storage."
+---
+
+Authentication security boils down to protecting refresh tokens and handling them correctly.
+
+| ❌ Avoid                      | ✅ Do instead                                           |
+| ----------------------------- | ------------------------------------------------------- |
+| Token in URL params           | Token in `Authorization` header only                    |
+| `console.log(token)`          | Log `"token present: true"` at most                     |
+| Token in `localStorage`       | Use SDK storage (Keychain / EncryptedSharedPreferences) |
+| HTTP in production            | HTTPS always                                            |
+| Storing tokens in state/redux | Let the SDK manage all token state                      |
+
+## Your responsibilities
+
+### Don't expose tokens
+
+**Never:**
+
+- Log tokens to console, file, or error tracking
+- Put tokens in URLs (e.g., `?token=...`)
+- Send tokens in unencrypted connections
+- Store tokens in plain text or localStorage (SDK handles this)
+- Share tokens across users or devices
+
+**Why:** Tokens in URLs appear in browser history, server logs, and HTTP referer headers. If exposed, attackers can impersonate users.
+
+<Warning>
+	If you ever see a token in your logs, console, or URLs, that's a security issue. Review your code
+	immediately and revoke affected tokens.
+</Warning>
+
+### Use HTTPS only
+
+When redirecting to/from sign-in, **always use HTTPS**. HTTP is only safe for `localhost` development.
+
+{/* sample: reference-security-use-https-only */}
+
+<CodeGroup>
+
+```typescript TypeScript
+// Good: HTTPS redirect
+const redirectUri = "https://myapp.com/auth/callback";
+
+// Good: localhost development
+const devRedirectUri = "http://localhost:3000/auth/callback";
+
+// Bad: HTTP production
+const badRedirectUri = "http://myapp.com/auth/callback"; // ❌ Don't do this
+```
+
+```kotlin Kotlin
+// Good: HTTPS redirect
+val redirectUri = "https://myapp.com/auth/callback"
+
+// Good: localhost development (emulator)
+val devRedirectUri = "http://10.0.2.2:8000/auth/callback"
+
+// Bad: HTTP production
+// val redirectUri = "http://myapp.com/auth/callback" // ❌ Don't do this
+```
+
+```swift Swift
+// Good: HTTPS redirect
+let redirectUri = "https://myapp.com/auth/callback"
+
+// Good: localhost development
+let devRedirectUri = "http://localhost:3000/auth/callback"
+
+// Bad: HTTP production
+// let redirectUri = "http://myapp.com/auth/callback" // ❌ Don't do this
+```
+
+</CodeGroup>
+
+### Sign out when needed
+
+Call [`signOut()`](/sdk-reference/authentication/sign-out) when:
+
+- User clicks "Sign Out" button
+- User logs out of your app
+- Account security concern detected
+- App is closed on sensitive devices
+
+{/* sample: reference-security-sign-out-when-needed */}
+
+<CodeGroup>
+
+```typescript TypeScript
+// When user clicks sign out
+async function handleSignOut() {
+	await client.signOut(); // Revokes this device's refresh token
+	// Clear local state, redirect to login page
+	redirectTo("/login");
+}
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+
+suspend fun handleSignOut(client: DiscovrClient) {
+    // When user clicks sign out
+    client.signOut() // Revokes this device's refresh token
+
+    // Clear local state, redirect to login page
+    // navigateTo(LoginScreen)
+}
+```
+
+```swift Swift
+import Discovr
+
+@MainActor
+func handleSignOut(client: DiscovrClient) async {
+    // When user clicks sign out
+    await client.signOut() // Revokes this device's refresh token
+
+    // Clear local state, redirect to login page
+    // navigate(to: LoginView)
+}
+```
+
+</CodeGroup>
+
+## What the SDK handles for you
+
+✅ **Refresh token storage:** Written to the platform store described above — Keychain on iOS, your `AuthStorage` on Android, `localStorage` on web
+✅ **CSRF protection:** State parameter in web flow validated automatically
+✅ **Token refresh:** Session tokens auto-refresh before expiry
+✅ **Tokens never logged:** SDK doesn't log tokens
+✅ **Tokens never in URLs:** SDK sends tokens in Authorization headers, not URLs
+
+You don't need to worry about these—SDK handles them automatically.
+
+<Note>Never try to access or log tokens. Let SDK manage them entirely.</Note>
+
+## Where tokens are stored
+
+Storage differs by platform, and on one of them it's your call:
+
+| SDK                  | Where tokens live                                                     |
+| -------------------- | --------------------------------------------------------------------- |
+| **Swift / iOS**      | Keychain. Handled for you.                                            |
+| **Kotlin / Android** | Whatever you pass as `storage` when you build the client — see below. |
+| **TypeScript / Web** | `localStorage`, under the `discovr_` key prefix.                      |
+
+Only the sign-in is kept between launches. Which profile the user picked is kept too only if you ask for it with `rememberProfile` (see [Listing and selecting profiles](/guides/profiles/listing-and-selecting-profiles#on-the-next-launch)).
+
+### Kotlin / Android — you choose the backing store
+
+The Kotlin client takes an `AuthStorage` implementation as a **required** constructor argument and reads and writes through it. There's no default: nothing persists until you provide one, and the SDK can't encrypt on your behalf because it doesn't own the store. On Android, back it with `EncryptedSharedPreferences`.
+
+<CodeGroup>
+
+```kotlin Kotlin
+val client = DiscovrClient(
+    clientId = "your-client-id",
+    storage = encryptedPrefsStorage, // your AuthStorage, backed by EncryptedSharedPreferences
+)
+```
+
+</CodeGroup>
+
+### Swift / iOS — Keychain, automatically
+
+Nothing to configure. The client writes credentials to the Keychain and reads them back on launch.
+
+<CodeGroup>
+
+```swift Swift
+let client = DiscovrClient(clientId: "your-client-id")
+// Credentials go to the Keychain; a relaunch restores them.
+```
+
+</CodeGroup>
+
+### TypeScript / Web — `localStorage`, and what that means for you
+
+<Warning>
+	Tokens live in `localStorage`, which **any script running on your origin can read**. That's a
+	deliberate trade-off for a browser SDK that has to survive a page reload, but it means an XSS bug
+	on your site exposes the signed-in session. Treat a strong Content Security Policy and disciplined
+	review of third-party scripts as part of your integration, and offer
+	[`signOut()`](/sdk-reference/authentication/sign-out) on shared devices.
+</Warning>
+
+<CodeGroup>
+
+```typescript TypeScript
+const client = new DiscovrClient("your-client-id");
+await client.signInWithPopup();
+// Credentials are in localStorage under the `discovr_` prefix.
+```
+
+</CodeGroup>
+
+Never log tokens or put them in URLs — the `Authorization` header is the only place they belong.
+
+## Advanced: Custom client security
+
+If building a custom client without DiscovrSDK:
+
+<Expandable title="Manual implementation security guidelines">
+
+1. **Validate the `state` parameter** in the web flow's callback, and **redeem the code with PKCE**
+
+   ```
+   YOUR_CALLBACK?code=...&state=RANDOM_STATE
+   // Verify state matches what you sent earlier
+   // If mismatch: reject (CSRF attack)
+   // Then POST /auth/web/token with the code and the codeVerifier you kept.
+   // The callback never carries a credential; the verifier never leaves your app.
+   ```
+
+   See [Advanced: Manual HTTP implementation](/guides/authentication/web-sign-in#advanced-manual-http-implementation) for the full flow this callback is part of.
+
+2. **Use HTTPS** for all token-related requests
+
+3. **Store the refresh token in the strongest store your platform offers**
+   - Keychain (iOS)
+   - `EncryptedSharedPreferences` (Android) — never plain `SharedPreferences`
+   - On the web, an HttpOnly cookie set by your own backend keeps the token out of reach of page
+     scripts. That's stronger than what a browser SDK can do on its own, and it's available to you
+     because you control the server — worth taking if your architecture allows it.
+
+4. **Never log tokens**
+
+   ```typescript
+   // Bad: don't do this
+   console.log("Token:", token); // ❌
+
+   // Good: only log for debugging, never in production
+   if (DEBUG) console.log("Token length:", token.length);
+   ```
+
+5. **Always use HTTPS** for redirects and token endpoints
+
+6. **Revoke tokens** when user signs out
+
+   ```
+   DELETE /auth/session
+   Authorization: Bearer <refresh-token>
+   ```
+
+7. **Handle token expiry gracefully**
+   ```
+   If token expires: ask user to sign in again
+   Don't retry indefinitely
+   ```
+
+</Expandable>
+
+---
+
+## Related SDK reference
+
+[signOut](/sdk-reference/authentication/sign-out) · [signInWithPopup](/sdk-reference/authentication/sign-in-with-popup) · [signInWithWebAuth](/sdk-reference/authentication/sign-in-with-web-auth)
+
+---
+
+Reference — you don't need to read this end to end. See also [Error handling](/guides/reference/error-handling).

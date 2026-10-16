@@ -1,0 +1,50 @@
+---
+title: "signOut()"
+description: "Sign out the current device"
+---
+
+Signs the user out on this device and clears the credentials stored here. Other devices they're signed in on aren't affected. Your onAuthStateChanged handler fires with signedIn false, so a single subscription is enough to send the app back to its sign-in screen. There is no profile-level sign-out — to leave a profile without signing out, switchProfile() to another one. This wraps the signOutSession endpoint; call the endpoint directly only if you aren't using an SDK.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+signOut(): Promise<void>
+```
+
+```kotlin Kotlin
+suspend fun signOut()
+```
+
+```swift Swift
+func signOut() async
+```
+
+</CodeGroup>
+
+## Returns
+
+`void` — Refresh token revoked, local storage cleared.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+await client.signOut();
+console.log("Signed out");
+// Show login screen
+```
+
+```kotlin Kotlin
+client.signOut()
+println("Signed out")
+```
+
+```swift Swift
+await client.signOut()
+print("Signed out")
+```
+
+</CodeGroup>

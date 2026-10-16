@@ -1,0 +1,73 @@
+---
+title: "getPage()"
+description: "Get a page"
+---
+
+Returns a page and its metadata.
+
+Page IDs are stable and permanent. The same ID keeps working across sessions, profiles and devices, so it's safe in a URL, a bookmark or a deep link.
+
+What changes is the content: recommendations refresh roughly every 30 minutes, and after they do this returns the same page with re-ranked rows. There's nothing to handle — no error, no ID to swap.
+
+**Auth tier:** session.
+
+## Parameters
+
+| Name   | Type     | Required | Description                                                                                                                                      |
+| ------ | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| pageId | `string` | Yes      | The page to retrieve. Accepts either a page id or the `ref` from the navigation or provider tile you're opening — both resolve to the same page. |
+
+## Returns
+
+[`Page`](/sdk-reference/types/pages#page) — Page retrieved successfully
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "id": "string",
+  "createdAt": "string" /* date-time */,
+  "hero": ["any"],
+  "name": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { Page } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: Page = await discovr.getPage("example");
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.Page
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: Page = client.getPage(pageId = "example")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// Page
+let response: Page = try await client.getPage(pageId: "example")
+print(response)
+```
+
+</CodeGroup>

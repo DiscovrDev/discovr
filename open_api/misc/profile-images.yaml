@@ -1,0 +1,51 @@
+get:
+  tags:
+    - Discovr
+    - Misc
+  summary: List avatar images
+  security: [] # Public endpoint - no authentication required
+  description: |
+    Returns publicly available avatar images for use in profile setup. Paginated — pass `nextToken` from the previous response as `pageToken` to load more. These are curated still images.
+
+    No authentication required.
+  operationId: getProfileImages
+  x-cache-policy: session
+  parameters:
+    - name: limit
+      in: query
+      required: false
+      description: Maximum number of images to return (1–50).
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 16
+      example: 16
+    - name: pageToken
+      in: query
+      required: false
+      description: Pagination cursor from the `nextToken` field of the previous response. Omit to start from the beginning.
+      schema:
+        type: string
+  responses:
+    "200":
+      description: Avatar images returned successfully.
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/ProfileImagesResponse"
+          example:
+            images:
+              - https://api.discovr.media/profile-images/profile-amber.png
+              - https://api.discovr.media/profile-images/profile-sage.png
+              - https://api.discovr.media/profile-images/profile-indigo.png
+    "400":
+      $ref: "../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../shared/responses.yaml#/Unauthorized"
+    "500":
+      $ref: "../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../shared/responses.yaml#/ServiceUnavailable"

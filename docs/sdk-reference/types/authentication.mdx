@@ -1,0 +1,124 @@
+---
+title: "Authentication Types"
+description: "Types used by Authentication SDK operations."
+---
+
+## ApiError
+
+<a id="apierror" />
+
+An API error response. `error` is either a machine-readable code or a plain description of what went wrong. The SDKs translate the codes into typed errors, so most apps never read it directly.
+
+| Property | Type     | Required | Description                                                                                                                                                                                                                                                                                                                                                                        |
+| -------- | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| error    | `string` | Yes      | Why the request failed. Authentication endpoints return one of these codes: `session-expired`, `session-already-consumed`, `session-not-found`, `client-not-found`, `client-mismatch`, `device-code-not-found`, `device-code-expired`, `device-code-already-consumed`, `device-code-denied`, `code-verifier-invalid`, `token-invalid`. Other endpoints return a plain description. |
+
+## DemoSessionRequest
+
+<a id="demosessionrequest" />
+
+Starts a demo sandbox — a throwaway account, pre-populated, that needs no sign-up.
+
+| Property | Type      | Required | Description                                                                                                                                                                                                                 |
+| -------- | --------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| clientId | `string`  | Yes      | Your registered client id — the same one your SDK constructor already takes regardless of demo mode. Use `discovr-docs-playground` if you're trying this endpoint directly rather than through an app of your own.          |
+| ttlMs    | `integer` | No       | Override the sandbox's lifetime, in milliseconds. Can only shorten it below the default (30 minutes) — never lengthen it. Useful for testing how your app handles an expired session without waiting out the real interval. |
+
+## DemoSessionResponse
+
+<a id="demosessionresponse" />
+
+A refresh token for a freshly created demo sandbox.
+
+| Property     | Type      | Required | Description                                                                                                                                                                |
+| ------------ | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| refreshToken | `string`  | Yes      | A refresh token for the sandbox, exactly like the one you'd get from a real sign-in — use it the same way. It's short-lived, and when it expires the sandbox goes with it. |
+| expiresAt    | `integer` | Yes      | When the sandbox and its token expire, as a Unix timestamp (seconds).                                                                                                      |
+
+## DeviceCodePayload
+
+<a id="devicecodepayload" />
+
+Request body for starting the device code flow.
+
+| Property | Type      | Required | Description                                                                                                                                                       |
+| -------- | --------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| clientID | `string`  | Yes      | Your registered app ID.                                                                                                                                           |
+| demo     | `boolean` | No       | Set when the requesting SDK is configured with demo mode, so the sign-in screen offers "Continue as Demo" as an alternative to a real sign-in. Defaults to false. |
+
+## DeviceCodePendingResponse
+
+<a id="devicecodependingresponse" />
+
+Returned while polling and the user hasn't confirmed the device code yet. Keep polling.
+
+| Property | Type        | Required | Description                                                                                                             |
+| -------- | ----------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| status   | `"pending"` | Yes      | Always `pending`. Its presence is the signal to wait and poll again.                                                    |
+| interval | `integer`   | Yes      | Seconds to wait before the next poll. It can grow the longer the code has been waiting, so always use the latest value. |
+
+## DeviceCodeResponse
+
+<a id="devicecoderesponse" />
+
+Contains the codes needed for device authentication. Display `userCode` on screen and use `authQRCode` as an image source.
+Returned when `format=json` (the default). With `format=image`, the response is a binary PNG instead.
+
+| Property        | Type      | Required | Description                                                                                                                                                                                                                            |
+| --------------- | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| deviceCode      | `string`  | Yes      | The code that identifies this authorization request. Pass it to the poll endpoint. It is the secret you poll with, so keep it on the device: it is never shown to the person, never put in the QR code, and never needed by the phone. |
+| userCode        | `string`  | Yes      | A short numeric code for the user to type if they can't scan the QR code. Show it on screen. The QR code carries this code and nothing else.                                                                                           |
+| authQRCode      | `string`  | Yes      | A ready-to-display QR code image as a base64 data URL. Set it as the `src` of an `&lt;img&gt;` tag — no extra processing needed.                                                                                                       |
+| verificationUrl | `string`  | Yes      | The page where someone types `userCode` when they can't scan the QR code. Show it on screen next to the code.                                                                                                                          |
+| expiresIn       | `integer` | Yes      | How long the device code is valid, in milliseconds.                                                                                                                                                                                    |
+| interval        | `integer` | Yes      | How many seconds to wait between polls. The SDKs follow it for you. Every pending poll repeats it and may raise it, so a device that has been waiting a while polls less often.                                                        |
+
+## MintSessionTokenPayload
+
+<a id="mintsessiontokenpayload" />
+
+The profile to scope the session to.
+
+| Property   | Type      | Required | Description                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| profileId  | `string`  | Yes      | The ID of the profile to activate. Must belong to the signed-in user.                                                                                                                                                                                                                                                                                                          |
+| ttlMs      | `integer` | No       | Override the session token's lifetime, in milliseconds. Can only shorten it below the default (30 minutes) — never lengthen it. Whether or not you send this, a session token never outlives the refresh token that minted it, so a demo sandbox's session token ends with the sandbox.                                                                                        |
+| snapshotId | `string`  | No       | The `snapshotId` from your previous session token. Pass it to keep the user's recommendations where they were — renewing a session token is routine, and shouldn't reshuffle the screen underneath them. Omit it on a first sign-in, or when switching profiles — there's nothing to carry over in either case. Recommendations refresh on their own roughly every 30 minutes. |
+
+## RefreshTokenResponse
+
+<a id="refreshtokenresponse" />
+
+Returned when a sign-in completes: the device code was confirmed, or a web sign-in's authorization code was redeemed.
+Store the `refreshToken` securely — it's your long-lived credential.
+Call `POST /auth/session-token` with a `profileId` to get a session token and start browsing.
+
+| Property     | Type      | Required | Description                                                                                                                                                                                      |
+| ------------ | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| refreshToken | `string`  | Yes      | Your long-lived credential (valid for 90 days). Use it as the bearer for identity-tier endpoints and to mint session tokens. Keep it secure — treat it like a password and never put it in URLs. |
+| publicId     | `string`  | Yes      | An identifier for this device's sign-in. There's no way to target it directly — call `DELETE /auth/session` from this device to sign it out.                                                     |
+| expiresAt    | `integer` | Yes      | When the refresh token expires, as a Unix timestamp (seconds).                                                                                                                                   |
+
+## SessionTokenResponse
+
+<a id="sessiontokenresponse" />
+
+The session token scoped to the selected profile. Valid for 30 minutes.
+
+| Property     | Type      | Required | Description                                                                                                                                                                                                                                                                                                                                           |
+| ------------ | --------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| sessionToken | `string`  | Yes      | Your session credential, valid for 30 minutes. Send it as the bearer in the `Authorization` header for all session-tier endpoints (`/pages/*`, `/profile/*`).                                                                                                                                                                                         |
+| snapshotId   | `string`  | Yes      | Identifies the set of recommendations the user is currently browsing. Keep it and send it back on your next call to this endpoint, so renewing their credential doesn't reshuffle what they're looking at. Recommendations refresh roughly every 30 minutes; when they do, this value changes and pages come back re-ranked. Page IDs are unaffected. |
+| expiresAt    | `integer` | Yes      | When the session token expires, as a Unix timestamp (seconds).                                                                                                                                                                                                                                                                                        |
+
+## WebTokenPayload
+
+<a id="webtokenpayload" />
+
+Redeems the authorization code a web sign-in delivered to your app.
+
+| Property     | Type     | Required | Description                                                                                                                                                                                                                              |
+| ------------ | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| clientID     | `string` | Yes      | Your client ID — the one the sign-in was started with.                                                                                                                                                                                   |
+| code         | `string` | Yes      | The single-use authorization code Discovr delivered to your app (a `postMessage` to the sign-in window's opener, or the `code` query parameter on your redirect URL). It expires after 60 seconds and is useless without `codeVerifier`. |
+| codeVerifier | `string` | Yes      | The random secret you generated when you started the sign-in, whose SHA-256 you sent as `codeChallenge`. It never leaves your app until this call. A wrong verifier burns the code.                                                      |

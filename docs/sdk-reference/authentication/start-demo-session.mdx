@@ -1,0 +1,83 @@
+---
+title: "startDemoSession()"
+description: "Start a demo session"
+---
+
+Gives you a working Discovr account in one call — no sign-up, no credentials, nothing to configure. Use it while you build: to explore the API, prototype against realistic data, or try requests right here in the docs. It's a development tool, not something to put in front of your users.
+
+You get a private sandbox pre-loaded with profiles, watchlists, and viewing history, so recommendation rows are populated from the very first request. It behaves like any other account: writes really do save, and reading them back returns what you'd expect.
+
+The response is a refresh token. From here you're on the normal path — call [`POST /auth/session-token`](/api-reference/discovr/mint-session-token) with a profile ID to start browsing. Nothing else about your integration changes, which is the point: code you write against a demo session works unchanged against a real one.
+
+Two things to keep in mind:
+
+- **Sandboxes are temporary.** Yours lasts 30 minutes (you can ask for a shorter one with `ttlMs`, never a longer one) and everything in it is deleted afterwards. Once it has ended, requests made with its token fail with `401` `TOKEN_EXPIRED`. Don't build anything that expects it to still be there tomorrow.
+- **Sandboxes are rate limited.** You can start five per hour from the same network address, and that allowance is shared with the demo button on Discovr's sign-in screens and with a TV's device-code demo. When it runs out you get a `429` with a `Retry-After` header, so hold on to the token you're given rather than requesting a new one per request.
+
+You do still need a `clientId` — the same one your SDK constructor already takes regardless of demo mode, so this asks nothing new of a real integration. Trying this endpoint directly from this page? Use `discovr-docs-playground`, a client id that's always available for exactly that.
+
+It also powers the "Continue as Demo" button that Discovr's sign-in screens show to a client created with `demoMode`, which is meant for development builds.
+
+**Auth tier:** none — this is the one endpoint you can call without a credential.
+
+## Parameters
+
+| Name     | Type      | Required | Description                                                                                                                                                                                                                 |
+| -------- | --------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| clientId | `string`  | Yes      | Your registered client id — the same one your SDK constructor already takes regardless of demo mode. Use `discovr-docs-playground` if you're trying this endpoint directly rather than through an app of your own.          |
+| ttlMs    | `integer` | No       | Override the sandbox's lifetime, in milliseconds. Can only shorten it below the default (30 minutes) — never lengthen it. Useful for testing how your app handles an expired session without waiting out the real interval. |
+
+## Returns
+
+[`DemoSessionResponse`](/sdk-reference/types/authentication#demosessionresponse) — A new demo sandbox is ready.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "refreshToken": "string",
+  "expiresAt": 1733091000
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { DemoSessionRequest, DemoSessionResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+const response: DemoSessionResponse = await discovr.startDemoSession("discovr-docs-playground", {
+	ttlMs: 120000,
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.DemoSessionRequest
+import api.discovr.models.DemoSessionResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: DemoSessionResponse = client.startDemoSession(clientId = "discovr-docs-playground", ttlMs = 120000)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// DemoSessionRequest, DemoSessionResponse
+let response: DemoSessionResponse = try await client.startDemoSession(clientId: "discovr-docs-playground", ttlMs: 120000)
+print(response)
+```
+
+</CodeGroup>

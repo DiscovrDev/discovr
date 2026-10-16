@@ -1,0 +1,64 @@
+---
+title: "signInWithDemo()"
+description: "Sign in to a throwaway demo sandbox"
+---
+
+A development shortcut: signs in to a disposable sandbox account — no credentials, no sign-up, nothing to configure — so you can click through your app before your own sign-in exists. It isn't meant for your users, so don't ship it in a release build. It comes with profiles and viewing history already populated, so pages and rows have something to recommend from the first call. Everything afterwards is the ordinary flow, so code written against a sandbox works unchanged against a real account. A sandbox lasts 30 minutes and is then deleted, so treat the data as disposable. You can start five an hour from one network address, shared with the web sign-in screen's demo button and a TV's device-code demo, so keep the one you have rather than starting a new one per run. When the sandbox ends the client signs out with the reason demo-ended; it does not start another by itself. Construct the client with demoMode and the first sandbox is started automatically on first use.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+signInWithDemo(): Promise<SignInResult>
+```
+
+```kotlin Kotlin
+suspend fun signInWithDemo()
+```
+
+```swift Swift
+func signInWithDemo() async throws
+```
+
+</CodeGroup>
+
+## Returns
+
+`SignInResult \| void` — TypeScript returns the sandbox's refreshToken, publicId, and expiresAt, used exactly like a real sign-in's. Kotlin and Swift return nothing — the SDK stores the credential and you carry on.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+const client = new DiscovrClient("your-client-id");
+await client.signInWithDemo();
+
+const { profiles } = await client.getProfiles();
+await client.selectProfile(profiles[0].id);
+
+const page = await client.createPage();
+```
+
+```kotlin Kotlin
+val client = DiscovrClient("your-client-id", storage = prefs)
+client.signInWithDemo()
+
+val profiles = client.getProfiles().profiles
+client.selectProfile(profiles.first().id)
+
+val page = client.createPage()
+```
+
+```swift Swift
+let client = await DiscovrClient(clientId: "your-client-id")
+try await client.signInWithDemo()
+
+let profiles = try await client.getProfiles().profiles
+try await client.selectProfile(profileId: profiles[0].id)
+
+let page = try await client.createPage()
+```
+
+</CodeGroup>

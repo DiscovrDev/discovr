@@ -1,0 +1,111 @@
+# Path operations for /auth/device-codes/{deviceCode}/poll
+# Contains all HTTP methods for this path
+
+post:
+  tags:
+    - Discovr
+    - Authentication
+  summary: Poll for auth token
+  security: [] # Public endpoint - no authentication required
+  description: |
+    The second step of the device code flow. Call this repeatedly after showing the user code or QR code.
+
+    While the user hasn't confirmed yet, you'll get `{ status: "pending", interval }` — wait `interval`
+    seconds and poll again. Once they approve, the response changes to `{ refreshToken, publicId, expiresAt }`.
+    Store the `refreshToken` securely — it's your long-lived credential for all identity-tier calls.
+
+    **Polling interval:** the server sets it and repeats it in every pending answer; it grows the longer
+    the code has been waiting, so always use the latest value. The SDKs do this for you. Stop polling when
+    you receive a `refreshToken` or a `401` error.
+
+    A person can decline on their phone. Your next poll then returns `401` with `device-code-denied`
+    straight away (and on every poll after, until the code expires), so you can say so on screen instead
+    of waiting out the timeout.
+  operationId: pollDeviceCode
+  parameters:
+    - name: deviceCode
+      in: path
+      required: true
+      description: The device code obtained from the request device code endpoint
+      schema:
+        type: string
+      example: "dvc_abc123xyz789"
+  responses:
+    "200":
+      description: |
+        Poll result. Two possible shapes:
+        - **Authorized**: device code was approved — contains `refreshToken`, `publicId`, `expiresAt`.
+        - **Pending**: user has not yet approved — contains `status: "pending"` and the `interval` to wait. Keep polling.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "./schemas.yaml#/RefreshTokenResponse"
+              - $ref: "./schemas.yaml#/DeviceCodePendingResponse"
+          examples:
+            authorized:
+              summary: User approved — token issued
+              value:
+                refreshToken: "rt_a1b2c3d4e5f6..."
+                publicId: "MqXYz12abc"
+                expiresAt: 1733088000
+            pending:
+              summary: User has not yet approved
+              value:
+                status: "pending"
+                interval: 5
+    "400":
+      description: Bad request - invalid path structure
+      content:
+        application/json:
+          schema:
+            $ref: "../../shared/schemas.yaml#/ApiError"
+          example:
+            error: "Invalid path structure. Expected: /auth/device-codes/:deviceCode/poll"
+    "401":
+      description: |
+        Device code expired, already consumed, or declined by the person on their phone.
+        The `error` field contains a machine-readable code.
+      content:
+        application/json:
+          schema:
+            $ref: "../../shared/schemas.yaml#/ApiError"
+          examples:
+            expired:
+              summary: Device code TTL has passed
+              value:
+                error: "device-code-expired"
+            consumed:
+              summary: Device code was already exchanged for a token
+              value:
+                error: "device-code-already-consumed"
+            denied:
+              summary: The person declined the request on their phone
+              value:
+                error: "device-code-denied"
+    "403":
+      description: |
+        The account is on the closed-programme waitlist and may not be issued a
+        credential yet. Deliberately not a `401`: the credential presented was
+        valid and re-authenticating will not change the answer, so a client
+        that retries on `401` must not retry on this.
+      content:
+        application/json:
+          schema:
+            $ref: "../../shared/schemas.yaml#/ApiError"
+          example:
+            error: "access-not-granted"
+    "404":
+      description: Device code does not exist
+      content:
+        application/json:
+          schema:
+            $ref: "../../shared/schemas.yaml#/ApiError"
+          example:
+            error: "device-code-not-found"
+    "500":
+      $ref: "../../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../../shared/responses.yaml#/ServiceUnavailable"

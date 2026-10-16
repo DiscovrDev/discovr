@@ -1,0 +1,75 @@
+---
+title: "onAuthStateChanged()"
+description: "Subscribe to auth state changes"
+---
+
+Subscribes to authentication state changes (sign-in, profile switch, sign-out). Fires immediately with current state, then again on every change. Use this to update your UI's logged-in state and profile display. When signedIn is false, signOutReason says why: user (you called signOut), session-expired (the account's sign-in lapsed or was revoked), or demo-ended (a demoMode sandbox ran out, which only happens while developing); it is null on a fresh start with no credential. A lapsed credential is noticed on the next call that needs it, so a sign-out can arrive in the middle of a session.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+onAuthStateChanged(cb: (state: { signedIn: boolean; profileId: string | null; signOutReason: SignOutReason | null }) => void): Unsubscribe
+```
+
+```kotlin Kotlin
+val authState: StateFlow<AuthState>  // collect to subscribe
+```
+
+```swift Swift
+var authStateStream: AsyncStream<AuthState>  // iterate to subscribe
+```
+
+</CodeGroup>
+
+## Parameters
+
+| Name            | Type       | Required | Description                                                                                        |
+| --------------- | ---------- | -------- | -------------------------------------------------------------------------------------------------- |
+| cb (TypeScript) | `callback` | Yes      | Function called with &#123; signedIn, profileId, signOutReason &#125; whenever auth state changes. |
+
+## Returns
+
+`Unsubscribe` — Function to call when you're done listening. (TS only; Kotlin/Swift use Flow/AsyncStream lifecycle.)
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+const unsubscribe = client.onAuthStateChanged(({ signedIn, profileId }) => {
+	if (signedIn) {
+		console.log("Signed in, profile:", profileId);
+	} else {
+		console.log("Signed out — show login screen");
+	}
+});
+// Cleanup: unsubscribe();
+```
+
+```kotlin Kotlin
+lifecycleScope.launch {
+  client.authState.collect { state ->
+    if (state.signedIn) {
+      println("Signed in: ${state.profileId}")
+    } else {
+      println("Signed out")
+    }
+  }
+}
+```
+
+```swift Swift
+Task {
+  for await state in await client.authStateStream {
+    if state.signedIn {
+      print("Signed in: \(state.profileId ?? "none")")
+    } else {
+      print("Signed out")
+    }
+  }
+}
+```
+
+</CodeGroup>

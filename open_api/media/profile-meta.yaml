@@ -1,0 +1,57 @@
+get:
+  tags:
+    - Discovr
+    - Media
+  summary: Get profile interaction data for a title
+  description: |
+    Returns the current profile's interaction data for a title — everything you need to render the right UI state for that title.
+
+    Response includes:
+    - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each).
+    - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows).
+    - **Providers** *(optional)*: the streaming services where this title is available for the profile's selected region. Pass `providers=true` to include this.
+    - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).
+
+    **Auth tier:** session — send your session token in `Authorization: Bearer`.
+  operationId: getMediaProfileMeta
+  x-sdk-group: "Profile Meta"
+  # Never cache: reflects live, cross-device, cross-endpoint mutable profile state (lists, playback, completion).
+  x-cache-policy: none
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: mediaId
+      in: path
+      required: true
+      description: |
+        The unique identifier of the media item. Use `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).
+
+        Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+      schema:
+        type: string
+    - name: providers
+      in: query
+      required: false
+      description: Set to `true` to include streaming provider availability in the response.
+      schema:
+        type: boolean
+        default: false
+  responses:
+    "200":
+      description: Profile interaction data returned successfully.
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/MediaProfileMeta"
+    "400":
+      $ref: "../shared/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../shared/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../shared/responses.yaml#/NotFound"
+    "500":
+      $ref: "../shared/responses.yaml#/InternalServerError"
+    "429":
+      $ref: "../shared/responses.yaml#/RateLimited"
+    "503":
+      $ref: "../shared/responses.yaml#/ServiceUnavailable"

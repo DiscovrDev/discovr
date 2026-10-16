@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  typescript:
+    name: TypeScript SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # `prepare` builds the CommonJS and ES module outputs.
+      - name: Install and build the SDK
+        working-directory: sdks/typescript
+        run: npm install --no-audit --no-fund
+
+      # The guide samples import `discovr` the way an app would.
+      - name: Compile the guide samples
+        run: |
+          mkdir -p node_modules
+          ln -sfn ../sdks/typescript node_modules/discovr
+          sdks/typescript/node_modules/.bin/tsc -p samples/typescript
+
+  kotlin:
+    name: Kotlin SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Compile and test the SDK
+        working-directory: sdks/kotlin
+        run: |
+          chmod +x ./gradlew
+          ./gradlew compileKotlinJvm compileKotlinJs jvmTest --no-daemon
+
+      - name: Compile the guide samples
+        run: |
+          chmod +x sdks/kotlin/gradlew
+          sdks/kotlin/gradlew -p samples/kotlin compileKotlin --no-daemon
+
+  kotlin-ios:
+    name: Kotlin SDK (iOS targets)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # Apple targets only compile on macOS, so this is the job that checks them.
+      - name: Compile the iOS targets
+        working-directory: sdks/kotlin
+        run: |
+          chmod +x ./gradlew
+          ./gradlew compileKotlinIosSimulatorArm64 compileKotlinIosArm64 --no-daemon
+
+  swift:
+    name: Swift SDK
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Built from the repository root, which is how Swift Package Manager sees it.
+      - name: Build and test
+        run: |
+          swift build -Xswiftc -warnings-as-errors
+          swift test
+
+      - name: Build for tvOS
+        run: |
+          xcodebuild -scheme Discovr -destination 'generic/platform=tvOS Simulator' \
+            build OTHER_SWIFT_FLAGS="-warnings-as-errors"
+
+      # Errors only. A snippet in a guide leaves values unused on purpose, which
+      # -warnings-as-errors would reject; the SDK itself is built strictly above.
+      - name: Compile the guide samples
+        working-directory: samples/swift-samples
+        run: swift build

@@ -1,0 +1,188 @@
+---
+title: "Media Types"
+description: "Types used by Media SDK operations."
+---
+
+## Episode
+
+<a id="episode" />
+
+Details for a single TV episode.
+
+| Property        | Type               | Required | Description                                                                                                                         |
+| --------------- | ------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| episode_tmdb_id | `integer`          | Yes      | Numeric identifier for the episode.                                                                                                 |
+| episode_number  | `integer`          | Yes      | Episode number within the season.                                                                                                   |
+| name            | `string`           | Yes      | Episode title.                                                                                                                      |
+| overview        | `string`           | No       | Episode synopsis.                                                                                                                   |
+| still_path      | `object`           | No       | Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). |
+| air_date        | `string`           | No       | Original air date of the episode.                                                                                                   |
+| runtime         | `integer`          | No       | Episode runtime in minutes.                                                                                                         |
+| season_number   | `integer`          | Yes      | Season this episode belongs to.                                                                                                     |
+| show_id         | `integer`          | Yes      | Numeric identifier for the parent TV show.                                                                                          |
+| production_code | `string`           | No       | Production code for the episode.                                                                                                    |
+| vote_average    | `number`           | No       | Community rating for the episode.                                                                                                   |
+| vote_count      | `integer`          | No       | Number of ratings for the episode.                                                                                                  |
+| crew            | `FreeformObject[]` | No       | Crew members for this episode.                                                                                                      |
+| guest_stars     | `FreeformObject[]` | No       | Guest cast for this episode.                                                                                                        |
+
+## FreeformObject
+
+<a id="freeformobject" />
+
+An untyped, provider-dependent object. Shape varies by item; treat properties as opaque.
+
+## MediaAssetsResponse
+
+<a id="mediaassetsresponse" />
+
+Best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type.
+
+| Property | Type     | Required | Description                                                                                                                                                                                                          |
+| -------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| poster   | `object` | No       | Best poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no poster is available.                                                 |
+| backdrop | `object` | No       | Best backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no backdrop is available.                                             |
+| logo     | `object` | No       | Best title logo (English preferred) URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no logo is available.                                 |
+| trailer  | `object` | No       | The best trailer or clip for this title, picked from the available videos — prefers official YouTube trailers, then teasers, then clips, then the first available video. `null` when no videos exist for this title. |
+
+## MediaProfileMeta
+
+<a id="mediaprofilemeta" />
+
+The current profile's interaction data for a title.
+
+| Property         | Type             | Required | Description                                                                                                                                                                                                                                          |
+| ---------------- | ---------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| watchlist        | `boolean`        | Yes      | Whether the title is on the profile's watchlist.                                                                                                                                                                                                     |
+| liked            | `boolean`        | Yes      | Whether the profile has liked the title.                                                                                                                                                                                                             |
+| disliked         | `boolean`        | Yes      | Whether the profile has disliked the title.                                                                                                                                                                                                          |
+| super_liked      | `boolean`        | Yes      | Whether the profile has super-liked the title.                                                                                                                                                                                                       |
+| playback         | `object`         | Yes      | Where the profile is up to in this title. Drives a progress bar and a Resume button.                                                                                                                                                                 |
+| history          | `boolean`        | Yes      | Whether the profile has played any of this title before, even briefly. It does not mean they finished it; use `completed` for that.                                                                                                                  |
+| completed        | `boolean`        | Yes      | Whether the profile has completed this title (progress ≥ 80% for movies; all seasons complete for TV shows).                                                                                                                                         |
+| completedSeasons | `integer[]`      | No       | TV shows only — the season numbers the profile has fully completed. Not present for movies.                                                                                                                                                          |
+| providers        | `ProviderInfo[]` | No       | Streaming services where this title is available, filtered to the profile's selected providers. Only included when `providers=true` is passed. For the full, unfiltered list see `watch_providers` on the base `GET /media/&#123;id&#125;` response. |
+
+## MediaResponse
+
+<a id="mediaresponse" />
+
+Full details for a movie or TV show.
+
+| Property        | Type                | Required | Description                                                                                                                                                                                                                  |
+| --------------- | ------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id              | `string`            | Yes      | The unique identifier of the media item.                                                                                                                                                                                     |
+| media_type      | `"movie"` \| `"tv"` | Yes      | Whether this is a movie or TV show.                                                                                                                                                                                          |
+| movie           | `object`            | No       | Movie details — only present when `media_type` is `movie`.                                                                                                                                                                   |
+| tv              | `object`            | No       | TV show details — only present when `media_type` is `tv`.                                                                                                                                                                    |
+| watch_providers | `ProviderInfo[]`    | No       | Full list of where this title is available, not filtered to any profile's preferences. Use `profile_meta` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch. |
+
+## ProviderInfo
+
+<a id="providerinfo" />
+
+A streaming service and the regions where this title is available on it.
+
+| Property | Type     | Required | Description                                                                                    |
+| -------- | -------- | -------- | ---------------------------------------------------------------------------------------------- |
+| id       | `string` | Yes      | Provider identifier.                                                                           |
+| title    | `string` | Yes      | Display name of the streaming service.                                                         |
+| logos    | `object` | Yes      | Square logo images at various sizes, keyed by pixel dimension.                                 |
+| regions  | `object` | Yes      | Regions where this provider has the title available, keyed by ISO 3166-1 alpha-2 country code. |
+
+## SeasonDetailsResponse
+
+<a id="seasondetailsresponse" />
+
+Detailed information about a TV season, including its episodes.
+
+| Property         | Type        | Required | Description                                                                                                                         |
+| ---------------- | ----------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| show_id          | `string`    | Yes      | The TV show identifier (e.g., `TV_1396`).                                                                                           |
+| show_tmdb_id     | `integer`   | Yes      | Numeric identifier for the TV show.                                                                                                 |
+| tmdb_internal_id | `string`    | No       | Image asset identifier for the season.                                                                                              |
+| id               | `integer`   | Yes      | Season identifier.                                                                                                                  |
+| season_tmdb_id   | `integer`   | No       | Alias for `id`.                                                                                                                     |
+| name             | `string`    | No       | Name of the season                                                                                                                  |
+| overview         | `string`    | No       | Overview of the season                                                                                                              |
+| poster_path      | `object`    | No       | Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). |
+| season_number    | `integer`   | Yes      | The number of the season                                                                                                            |
+| air_date         | `string`    | No       | Air date of the season                                                                                                              |
+| episodes         | `Episode[]` | Yes      | List of episodes in the season                                                                                                      |
+
+## SeasonProfileMeta
+
+<a id="seasonprofilemeta" />
+
+The current profile's state for a TV season — which episodes it has finished, plus the season's own aggregate completion state.
+
+| Property  | Type                         | Required | Description                                             |
+| --------- | ---------------------------- | -------- | ------------------------------------------------------- |
+| season    | `integer`                    | Yes      | The season number this meta is for.                     |
+| completed | `boolean`                    | Yes      | Whether the profile has completed the entire season.    |
+| episodes  | `SeasonProfileMetaEpisode[]` | Yes      | Which episodes of this season the profile has finished. |
+
+## SeasonProfileMetaEpisode
+
+<a id="seasonprofilemetaepisode" />
+
+Whether the current profile has finished a single episode.
+
+| Property  | Type      | Required | Description                                                                 |
+| --------- | --------- | -------- | --------------------------------------------------------------------------- |
+| episode   | `integer` | Yes      | The episode number within the season.                                       |
+| completed | `boolean` | Yes      | Whether the profile has finished this episode (watched at least 80% of it). |
+
+## SimilarResponse
+
+<a id="similarresponse" />
+
+Paginated list of similar titles.
+
+| Property      | Type              | Required | Description                                      |
+| ------------- | ----------------- | -------- | ------------------------------------------------ |
+| page          | `integer`         | No       | Current page number.                             |
+| results       | `SimilarResult[]` | Yes      | Similar titles for the current page.             |
+| total_pages   | `integer`         | No       | Total number of pages available.                 |
+| total_results | `integer`         | No       | Total number of similar titles across all pages. |
+
+## SimilarResult
+
+<a id="similarresult" />
+
+A title that's similar to the requested media.
+
+| Property       | Type                | Required | Description                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------- | ------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id             | `string`            | Yes      | Unique identifier. `TV_&lt;id&gt;` for TV shows or `MV_&lt;id&gt;` for movies.                                                                                                                                                                                                                                                                                                   |
+| ref            | `string`            | No       | This title's `id` with the place it was suggested attached. Prefer it wherever you'd pass this title's `id` onward — opening its detail screen, adding it to a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`. A bare `id` always works; `ref` is never required. |
+| tmdb_id        | `integer`           | Yes      | The numeric ID for this title.                                                                                                                                                                                                                                                                                                                                                   |
+| media_type     | `"movie"` \| `"tv"` | Yes      | Whether this result is a movie or TV show.                                                                                                                                                                                                                                                                                                                                       |
+| title          | `string`            | No       | Title of the movie (only for movies)                                                                                                                                                                                                                                                                                                                                             |
+| name           | `string`            | No       | Name of the TV show (only for TV shows)                                                                                                                                                                                                                                                                                                                                          |
+| original_title | `string`            | No       | Original title of the movie (only for movies)                                                                                                                                                                                                                                                                                                                                    |
+| original_name  | `string`            | No       | Original name of the TV show (only for TV shows)                                                                                                                                                                                                                                                                                                                                 |
+| overview       | `string`            | No       | Overview or description                                                                                                                                                                                                                                                                                                                                                          |
+| poster_path    | `object`            | No       | Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                     |
+| backdrop_path  | `object`            | No       | Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                   |
+| release_date   | `string`            | No       | Release date (only for movies)                                                                                                                                                                                                                                                                                                                                                   |
+| first_air_date | `string`            | No       | First air date (only for TV shows)                                                                                                                                                                                                                                                                                                                                               |
+| popularity     | `number`            | No       | Popularity score                                                                                                                                                                                                                                                                                                                                                                 |
+| vote_average   | `number`            | No       | Average vote rating                                                                                                                                                                                                                                                                                                                                                              |
+| vote_count     | `integer`           | No       | Number of votes                                                                                                                                                                                                                                                                                                                                                                  |
+
+## schemas_PlaybackItem
+
+<a id="schemas_playbackitem" />
+
+A title the profile has started but not finished, with how far through they are.
+
+| Property  | Type                | Required | Description                                                                                   |
+| --------- | ------------------- | -------- | --------------------------------------------------------------------------------------------- |
+| mediaId   | `string`            | Yes      | The title being tracked, as `MV_&lt;id&gt;` or `TV_&lt;id&gt;`.                               |
+| mediaType | `"movie"` \| `"tv"` | Yes      | Whether this is a movie or TV show.                                                           |
+| createdAt | `string`            | Yes      | When the profile first started this title.                                                    |
+| progress  | `number`            | No       | How far through the title the profile is, as a percentage. Use it to position a progress bar. |
+| updatedAt | `string`            | No       | When progress was last recorded. Sort by this to order a Continue Watching row.               |
+| season    | `integer`           | No       | Season number (only for TV shows)                                                             |
+| episode   | `integer`           | No       | Episode number (only for TV shows)                                                            |

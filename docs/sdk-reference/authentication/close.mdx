@@ -1,0 +1,46 @@
+---
+title: "close()"
+description: "Release the client when you're done with it"
+---
+
+Releases everything the client is holding and stops its background work. Call it whenever a client is discarded rather than kept for the lifetime of the app — a component unmount, a ViewModel being cleared, a test teardown. Skipping it leaks a listener per instance, which adds up fast in a hot-reloading dev server or a re-mounting test. A long-lived singleton never needs it. After close(), don't reuse the client. Swift has no equivalent: its client releases in deinit.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+close(): void
+```
+
+```kotlin Kotlin
+fun close()
+```
+
+</CodeGroup>
+
+<Info>Not available in Swift. See the guide for the equivalent on those platforms.</Info>
+
+## Returns
+
+`void` — Nothing. The client must not be used again afterwards.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+useEffect(() => {
+	const client = new DiscovrClient("your-client-id");
+	return () => client.close();
+}, []);
+```
+
+```kotlin Kotlin
+override fun onCleared() {
+    client.close()
+    super.onCleared()
+}
+```
+
+</CodeGroup>

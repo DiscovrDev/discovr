@@ -1,0 +1,54 @@
+---
+title: "hasActiveProfile()"
+description: "Check if a profile is selected and session is ready"
+---
+
+true if a profile has been selected and a live session token is held (ready to call API methods). After a relaunch it is false until the first request renews the session, and with the default of not remembering the profile (rememberProfile: false) the profile is gone altogether until the user picks again, so to route a launch use onAuthStateChanged and its profileId.
+
+## Signature
+
+<CodeGroup>
+
+```typescript TypeScript
+hasActiveProfile(): boolean
+```
+
+```kotlin Kotlin
+val hasActiveProfile: Boolean
+```
+
+```swift Swift
+var hasActiveProfile: Bool { get async }
+```
+
+</CodeGroup>
+
+## Returns
+
+`boolean / Bool` — true if a profile is active and session is ready.
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+if (client.hasActiveProfile()) {
+	const page = await client.createPage();
+} else {
+	console.log("Select a profile first");
+}
+```
+
+```kotlin Kotlin
+if (client.hasActiveProfile) {
+  val page = client.createPage()
+}
+```
+
+```swift Swift
+if await client.hasActiveProfile {
+  let page = try await client.createPage()
+}
+```
+
+</CodeGroup>

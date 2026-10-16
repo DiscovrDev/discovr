@@ -1,0 +1,235 @@
+# Authentication schemas for external/public API endpoints.
+
+DeviceCodePayload:
+  type: object
+  description: Request body for starting the device code flow.
+  required:
+    - clientID
+  properties:
+    clientID:
+      type: string
+      description: Your registered app ID.
+      example: "abc123xyz"
+    demo:
+      type: boolean
+      description: |
+        Set when the requesting SDK is configured with demo mode, so the sign-in
+        screen offers "Continue as Demo" as an alternative to a real sign-in.
+        Defaults to false.
+      default: false
+  additionalProperties: false
+
+DeviceCodeResponse:
+  type: object
+  description: |
+    Contains the codes needed for device authentication. Display `userCode` on screen and use `authQRCode` as an image source.
+    Returned when `format=json` (the default). With `format=image`, the response is a binary PNG instead.
+  required:
+    - deviceCode
+    - userCode
+    - authQRCode
+    - verificationUrl
+    - expiresIn
+    - interval
+  properties:
+    deviceCode:
+      type: string
+      description: |
+        The code that identifies this authorization request. Pass it to the poll endpoint.
+        It is the secret you poll with, so keep it on the device: it is never shown to the person, never put in the QR code, and never needed by the phone.
+      example: "dvc_abc123xyz789"
+    userCode:
+      type: string
+      description: |
+        A short numeric code for the user to type if they can't scan the QR code. Show it on screen.
+        The QR code carries this code and nothing else.
+      pattern: "^[0-9]{4}$"
+      example: "1234"
+    authQRCode:
+      type: string
+      description: |
+        A ready-to-display QR code image as a base64 data URL. Set it as the `src` of an `<img>` tag — no extra processing needed.
+      format: uri
+      example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+    verificationUrl:
+      type: string
+      format: uri
+      description: |
+        The page where someone types `userCode` when they can't scan the QR code. Show it on screen next to the code.
+      example: "https://discovr.media/tv-auth"
+    expiresIn:
+      type: integer
+      description: How long the device code is valid, in milliseconds.
+      example: 600000
+    interval:
+      type: integer
+      minimum: 1
+      description: |
+        How many seconds to wait between polls. The SDKs follow it for you. Every pending
+        poll repeats it and may raise it, so a device that has been waiting a while polls less often.
+      example: 5
+  additionalProperties: false
+
+RefreshTokenResponse:
+  type: object
+  description: |
+    Returned when a sign-in completes: the device code was confirmed, or a web sign-in's authorization code was redeemed.
+    Store the `refreshToken` securely — it's your long-lived credential.
+    Call `POST /auth/session-token` with a `profileId` to get a session token and start browsing.
+  required:
+    - refreshToken
+    - publicId
+    - expiresAt
+  properties:
+    refreshToken:
+      type: string
+      description: |
+        Your long-lived credential (valid for 90 days). Use it as the bearer for identity-tier endpoints and to mint session tokens.
+        Keep it secure — treat it like a password and never put it in URLs.
+      example: "rt_a1b2c3d4e5f6..."
+    publicId:
+      type: string
+      description: An identifier for this device's sign-in. There's no way to target it directly — call `DELETE /auth/session` from this device to sign it out.
+      example: "MqXYz12abc"
+    expiresAt:
+      type: integer
+      format: int64
+      description: When the refresh token expires, as a Unix timestamp (seconds).
+      example: 1733088000
+  additionalProperties: false
+
+MintSessionTokenPayload:
+  type: object
+  description: The profile to scope the session to.
+  required:
+    - profileId
+  properties:
+    profileId:
+      type: string
+      description: The ID of the profile to activate. Must belong to the signed-in user.
+      example: "profile_abc123"
+    ttlMs:
+      type: integer
+      description: |
+        Override the session token's lifetime, in milliseconds. Can only shorten it below the default (30 minutes) — never lengthen it. Whether or not you send this, a session token never outlives the refresh token that minted it, so a demo sandbox's session token ends with the sandbox.
+      example: 120000
+    snapshotId:
+      type: string
+      description: |
+        The `snapshotId` from your previous session token. Pass it to keep the user's recommendations where they were — renewing a session token is routine, and shouldn't reshuffle the screen underneath them.
+
+        Omit it on a first sign-in, or when switching profiles — there's nothing to carry over in either case. Recommendations refresh on their own roughly every 30 minutes.
+      example: "Wm4rT9xKq2Lv7BnD"
+  additionalProperties: false
+
+DeviceCodePendingResponse:
+  type: object
+  description: Returned while polling and the user hasn't confirmed the device code yet. Keep polling.
+  required:
+    - status
+    - interval
+  properties:
+    status:
+      type: string
+      enum:
+        - pending
+      description: Always `pending`. Its presence is the signal to wait and poll again.
+    interval:
+      type: integer
+      minimum: 1
+      description: Seconds to wait before the next poll. It can grow the longer the code has been waiting, so always use the latest value.
+      example: 10
+  additionalProperties: false
+
+SessionTokenResponse:
+  type: object
+  description: The session token scoped to the selected profile. Valid for 30 minutes.
+  required:
+    - sessionToken
+    - snapshotId
+    - expiresAt
+  properties:
+    sessionToken:
+      type: string
+      description: |
+        Your session credential, valid for 30 minutes. Send it as the bearer in the `Authorization` header for all session-tier endpoints (`/pages/*`, `/profile/*`).
+      example: "sess_4f9c1a7e2b..."
+    snapshotId:
+      type: string
+      description: |
+        Identifies the set of recommendations the user is currently browsing. Keep it and send it back on your next call to this endpoint, so renewing their credential doesn't reshuffle what they're looking at.
+
+        Recommendations refresh roughly every 30 minutes; when they do, this value changes and pages come back re-ranked. Page IDs are unaffected.
+      example: "Wm4rT9xKq2Lv7BnD"
+    expiresAt:
+      type: integer
+      format: int64
+      description: When the session token expires, as a Unix timestamp (seconds).
+      example: 1733091000
+  additionalProperties: false
+
+DemoSessionRequest:
+  type: object
+  description: Starts a demo sandbox — a throwaway account, pre-populated, that needs no sign-up.
+  required:
+    - clientId
+  properties:
+    clientId:
+      type: string
+      description: |
+        Your registered client id — the same one your SDK constructor already takes regardless of demo mode. Use `discovr-docs-playground` if you're trying this endpoint directly rather than through an app of your own.
+      example: "discovr-docs-playground"
+    ttlMs:
+      type: integer
+      description: |
+        Override the sandbox's lifetime, in milliseconds. Can only shorten it below the default (30 minutes) — never lengthen it. Useful for testing how your app handles an expired session without waiting out the real interval.
+      example: 120000
+  additionalProperties: false
+
+DemoSessionResponse:
+  type: object
+  description: A refresh token for a freshly created demo sandbox.
+  required:
+    - refreshToken
+    - expiresAt
+  properties:
+    refreshToken:
+      type: string
+      description: |
+        A refresh token for the sandbox, exactly like the one you'd get from a real sign-in — use it the same way. It's short-lived, and when it expires the sandbox goes with it.
+      example: "rt_9f8c2a1b4d6e..."
+    expiresAt:
+      type: integer
+      format: int64
+      description: When the sandbox and its token expire, as a Unix timestamp (seconds).
+      example: 1733091000
+  additionalProperties: false
+
+WebTokenPayload:
+  type: object
+  description: Redeems the authorization code a web sign-in delivered to your app.
+  required:
+    - clientID
+    - code
+    - codeVerifier
+  properties:
+    clientID:
+      type: string
+      description: Your client ID — the one the sign-in was started with.
+      example: "abc123xyz"
+    code:
+      type: string
+      description: |
+        The single-use authorization code Discovr delivered to your app (a `postMessage` to the sign-in
+        window's opener, or the `code` query parameter on your redirect URL). It expires after 60 seconds and is
+        useless without `codeVerifier`.
+      example: "Gh2kd9QpXw3LmN7vRtYa.k3J9xQmPz1VbT6uYhN4oWcE8sA2dF5gLrXiUqZjKvBeM"
+    codeVerifier:
+      type: string
+      minLength: 43
+      maxLength: 128
+      description: |
+        The random secret you generated when you started the sign-in, whose SHA-256 you sent as `codeChallenge`.
+        It never leaves your app until this call. A wrong verifier burns the code.
+      example: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+  additionalProperties: false

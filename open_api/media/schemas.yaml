@@ -1,0 +1,931 @@
+MediaResponse:
+  type: object
+  description: Full details for a movie or TV show.
+  required:
+    - id
+    - media_type
+  properties:
+    id:
+      type: string
+      description: The unique identifier of the media item.
+    media_type:
+      type: string
+      enum: [movie, tv]
+      description: Whether this is a movie or TV show.
+    movie:
+      title: MediaResponseMovie
+      type: object
+      description: Movie details — only present when `media_type` is `movie`.
+      properties:
+        id:
+          type: string
+          description: The Discovr media ID for this movie — the `MV_<id>` value you pass to other endpoints.
+        tmdb_id:
+          type: integer
+          description: Catalogue identifier for this movie, without the `MV_` prefix.
+        title:
+          type: string
+          description: Display title, localised where a translation is available.
+        original_title:
+          type: string
+          description: Title in the movie's original language. Differs from `title` for translated releases.
+        overview:
+          type: string
+          description: Short synopsis, suitable for a detail sheet.
+        poster_path:
+          type: object
+          description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+          additionalProperties:
+            type: string
+            format: uri
+          example:
+            w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+            w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+            original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+          nullable: true
+        backdrop_path:
+          type: object
+          description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+          additionalProperties:
+            type: string
+            format: uri
+          example:
+            w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+            w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+            original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+          nullable: true
+        release_date:
+          type: string
+          format: date
+          description: Theatrical or first release date, as `YYYY-MM-DD`.
+        runtime:
+          type: integer
+          description: Length in whole minutes.
+        vote_average:
+          type: number
+          description: Average audience rating out of 10.
+        vote_count:
+          type: integer
+          description: How many ratings `vote_average` is based on — useful for deciding whether to show the score at all.
+        popularity:
+          type: number
+          description: Relative popularity score. Comparable between titles, but has no fixed upper bound, so treat it as a sort key rather than something to display.
+        genres:
+          type: array
+          description: Genres this movie belongs to.
+          items:
+            title: MediaResponseMovieGenre
+            type: object
+            properties:
+              tmdb_id:
+                type: integer
+                description: Genre identifier. Pass this as a `genres` filter when creating a page.
+              name:
+                type: string
+                description: Display name of the genre.
+        tagline:
+          type: string
+          description: Short marketing line, where one exists.
+        status:
+          type: string
+          description: Release status, such as `Released`, `In Production`, or `Post Production`.
+        budget:
+          type: integer
+          description: Production budget in US dollars. `0` when unknown.
+        revenue:
+          type: integer
+          description: Worldwide box office in US dollars. `0` when unknown.
+        homepage:
+          type: string
+          description: Official site for the movie, where one exists.
+        imdb_id:
+          type: string
+          description: IMDb identifier, for linking out to IMDb.
+    tv:
+      title: MediaResponseTv
+      type: object
+      description: TV show details — only present when `media_type` is `tv`.
+      properties:
+        id:
+          type: string
+          description: The Discovr media ID for this show — the `TV_<id>` value you pass to other endpoints.
+        tmdb_id:
+          type: integer
+          description: Catalogue identifier for this show, without the `TV_` prefix.
+        name:
+          type: string
+          description: Display name, localised where a translation is available.
+        original_name:
+          type: string
+          description: Name in the show's original language. Differs from `name` for translated releases.
+        overview:
+          type: string
+          description: Short synopsis, suitable for a detail sheet.
+        poster_path:
+          type: object
+          description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+          additionalProperties:
+            type: string
+            format: uri
+          example:
+            w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+            w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+            original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+          nullable: true
+        backdrop_path:
+          type: object
+          description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+          additionalProperties:
+            type: string
+            format: uri
+          example:
+            w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+            w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+            original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+          nullable: true
+        first_air_date:
+          type: string
+          format: date
+          description: Date the first episode aired, as `YYYY-MM-DD`.
+        last_air_date:
+          type: string
+          format: date
+          description: Date the most recent episode aired, as `YYYY-MM-DD`.
+        number_of_episodes:
+          type: integer
+          description: Total episodes released across every season.
+        number_of_seasons:
+          type: integer
+          description: Total seasons released.
+        vote_average:
+          type: number
+          description: Average audience rating out of 10.
+        vote_count:
+          type: integer
+          description: How many ratings `vote_average` is based on — useful for deciding whether to show the score at all.
+        popularity:
+          type: number
+          description: Relative popularity score. Comparable between titles, but has no fixed upper bound, so treat it as a sort key rather than something to display.
+        genres:
+          type: array
+          description: Genres this show belongs to.
+          items:
+            title: MediaResponseTvGenre
+            type: object
+            properties:
+              tmdb_id:
+                type: integer
+                description: Genre identifier. Pass this as a `genres` filter when creating a page.
+              name:
+                type: string
+                description: Display name of the genre.
+        tagline:
+          type: string
+          description: Short marketing line, where one exists.
+        status:
+          type: string
+          description: Production status, such as `Returning Series`, `Ended`, or `Canceled`.
+        homepage:
+          type: string
+          description: Official site for the show, where one exists.
+        in_production:
+          type: boolean
+          description: Whether more episodes are still being made.
+        seasons:
+          type: array
+          description: Every season of the show, including specials as season `0` where one exists.
+          items:
+            title: MediaResponseTvSeason
+            type: object
+            properties:
+              tmdb_id:
+                type: integer
+                description: Catalogue identifier for this season.
+              name:
+                type: string
+                description: Display name of the season, such as `Season 1` or `Specials`.
+              episode_count:
+                type: integer
+                description: Episodes in this season.
+              season_number:
+                type: integer
+                description: Position of the season, starting at `1`. Specials use `0`. Pass this to `getSeasonDetails`.
+              air_date:
+                type: string
+                format: date
+                description: Date the season's first episode aired, as `YYYY-MM-DD`.
+              poster_path:
+                type: object
+                description: Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+                additionalProperties:
+                  type: string
+                  format: uri
+                example:
+                  w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+                  w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+                  original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+                nullable: true
+
+    watch_providers:
+      type: array
+      description: |
+        Full list of where this title is available, not filtered to any profile's preferences. Use `profile_meta` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.
+      items:
+        $ref: "#/ProviderInfo"
+
+MediaProfileMeta:
+  type: object
+  description: The current profile's interaction data for a title.
+  properties:
+    watchlist:
+      type: boolean
+      description: Whether the title is on the profile's watchlist.
+    liked:
+      type: boolean
+      description: Whether the profile has liked the title.
+    disliked:
+      type: boolean
+      description: Whether the profile has disliked the title.
+    super_liked:
+      type: boolean
+      description: Whether the profile has super-liked the title.
+    playback:
+      title: MediaProfileMetaPlayback
+      type: object
+      description: Where the profile is up to in this title. Drives a progress bar and a Resume button.
+      required:
+        - inlist
+      properties:
+        inlist:
+          type: boolean
+          description: Whether the profile has started this title. When `false`, `data` is null and there's no progress to show.
+        data:
+          $ref: "#/PlaybackItem"
+          nullable: true
+    history:
+      type: boolean
+      description: Whether the profile has played any of this title before, even briefly. It does not mean they finished it; use `completed` for that.
+    completed:
+      type: boolean
+      description: |
+        Whether the profile has completed this title (progress ≥ 80% for movies; all seasons complete for TV shows).
+    completedSeasons:
+      type: array
+      description: |
+        TV shows only — the season numbers the profile has fully completed. Not present for movies.
+      items:
+        type: integer
+    providers:
+      type: array
+      description: |
+        Streaming services where this title is available, filtered to the profile's selected providers. Only included when `providers=true` is passed. For the full, unfiltered list see `watch_providers` on the base `GET /media/{id}` response.
+      items:
+        $ref: "#/ProviderInfo"
+  required:
+    - watchlist
+    - liked
+    - disliked
+    - super_liked
+    - playback
+    - history
+    - completed
+
+ProviderInfo:
+  type: object
+  description: A streaming service and the regions where this title is available on it.
+  required:
+    - id
+    - title
+    - logos
+    - regions
+  properties:
+    id:
+      type: string
+      description: Provider identifier.
+      example: "119"
+    title:
+      type: string
+      description: Display name of the streaming service.
+      example: "Amazon Prime Video"
+    logos:
+      type: object
+      description: Square logo images at various sizes, keyed by pixel dimension.
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        "60": "https://is1-ssl.mzstatic.com/image/thumb/.../60x60bb.jpg"
+        "100": "https://is1-ssl.mzstatic.com/image/thumb/.../100x100bb.jpg"
+        "512": "https://is1-ssl.mzstatic.com/image/thumb/.../512x512bb.jpg"
+        "1024": "https://is1-ssl.mzstatic.com/image/thumb/.../1024x1024bb.png"
+    regions:
+      type: object
+      description: |
+        Regions where this provider has the title available, keyed by ISO 3166-1 alpha-2 country code.
+      additionalProperties:
+        title: ProviderInfoRegion
+        type: object
+        required:
+          - english_name
+          - native_name
+          - link
+        properties:
+          english_name:
+            type: string
+            description: English name of the region.
+            example: "United States"
+          native_name:
+            type: string
+            description: Region name in the local language.
+            example: "United States"
+          link:
+            type: string
+            format: uri
+            description: Link to the watch page for this title in this region.
+            example: "https://example.com/movie/550/watch?locale=US"
+
+PlaybackItem:
+  type: object
+  description: A title the profile has started but not finished, with how far through they are.
+  required:
+    - mediaId
+    - mediaType
+    - createdAt
+  properties:
+    mediaId:
+      type: string
+      description: The title being tracked, as `MV_<id>` or `TV_<id>`.
+    mediaType:
+      type: string
+      enum: [movie, tv]
+      description: Whether this is a movie or TV show.
+    createdAt:
+      type: string
+      format: date-time
+      description: When the profile first started this title.
+    progress:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: How far through the title the profile is, as a percentage. Use it to position a progress bar.
+    updatedAt:
+      type: string
+      format: date-time
+      description: When progress was last recorded. Sort by this to order a Continue Watching row.
+    season:
+      type: integer
+      minimum: 1
+      description: Season number (only for TV shows)
+      example: 2
+    episode:
+      type: integer
+      minimum: 1
+      description: Episode number (only for TV shows)
+      example: 5
+
+SearchResult:
+  type: object
+  description: A single search result — could be a movie, TV show, or person.
+  required:
+    - id
+    - tmdb_id
+    - media_type
+  properties:
+    id:
+      type: string
+      description: |
+        Unique identifier. `TV_<id>` for TV shows, `MV_<id>` for movies, or the raw numeric ID for people.
+      example: "TV_1396"
+    tmdb_id:
+      type: integer
+      description: The numeric ID for this title or person.
+      example: 1396
+    media_type:
+      type: string
+      enum: [movie, tv, person]
+      description: Whether this result is a movie, TV show, or person.
+    ref:
+      type: string
+      description: |
+        This result's `id` with the search it came from attached.
+
+        Prefer it wherever you'd pass this result's `id` onward — opening its detail screen, adding it to a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.
+
+        Absent on people, who have no detail screen to open. A bare `id` always works; `ref` is never required.
+      example: "MV_603@Qf7mT2xLk9ZpR4vN"
+    title:
+      type: string
+      description: Movie title. TV shows use `name`, people use `name` too.
+    name:
+      type: string
+      description: Show or person name. Movies use `title` instead.
+    original_title:
+      type: string
+      description: Movie title in its original language.
+    original_name:
+      type: string
+      description: Show name in its original language.
+    overview:
+      type: string
+      description: Short synopsis. Not present for `person` results.
+    poster_path:
+      type: object
+      description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Absent for `person` results.
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    backdrop_path:
+      type: object
+      description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Absent for `person` results.
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    release_date:
+      type: string
+      format: date
+      description: Release date for `movie` results, as `YYYY-MM-DD`.
+    first_air_date:
+      type: string
+      format: date
+      description: First air date for `tv` results, as `YYYY-MM-DD`.
+    popularity:
+      type: number
+      description: Relative popularity score. Comparable between results, but has no fixed upper bound, so treat it as a sort key rather than something to display.
+    vote_average:
+      type: number
+      description: Average audience rating out of 10. Not present for `person` results.
+    vote_count:
+      type: integer
+      description: How many ratings `vote_average` is based on. Not present for `person` results.
+    profile_path:
+      type: object
+      description: Headshot image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Only present for `person` results.
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    known_for_department:
+      type: string
+      description: The department this person is best known for, e.g. `Acting` or `Directing`.
+      example: "Directing"
+    known_for:
+      type: array
+      description: |
+        A few titles this person is best known for. Only present for `person` results.
+
+        Because a person has no detail view of its own, these are the natural next step after a person result — each carries an `id` you can pass straight to `/media/{mediaId}`.
+      items:
+        $ref: "#/KnownForItem"
+
+KnownForItem:
+  type: object
+  description: A title a person is known for, returned alongside `person` search results.
+  required:
+    - id
+    - tmdb_id
+    - media_type
+  properties:
+    id:
+      type: string
+      description: Unique identifier — `TV_<id>` for TV shows, `MV_<id>` for movies. Ready to pass to `/media/{mediaId}`.
+      example: "MV_872585"
+    ref:
+      type: string
+      description: |
+        This title's `id` with the search it came from attached.
+
+        Prefer it wherever you'd pass this title's `id` onward — opening its detail screen, adding it to a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.
+
+        A bare `id` always works; `ref` is never required.
+      example: "MV_872585@Hd3yW8cBn5JtK1aS"
+    tmdb_id:
+      type: integer
+      description: The numeric ID for this title.
+      example: 872585
+    media_type:
+      type: string
+      enum: [movie, tv]
+      description: Whether this title is a movie or a TV show.
+    title:
+      type: string
+      description: Movie title. TV shows use `name` instead.
+      example: "Oppenheimer"
+    name:
+      type: string
+      description: TV show name. Movies use `title` instead.
+    overview:
+      type: string
+      description: Short synopsis of the title.
+    poster_path:
+      type: object
+      description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      nullable: true
+    backdrop_path:
+      type: object
+      description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      nullable: true
+    release_date:
+      type: string
+      format: date
+      description: Release date, for movies.
+    first_air_date:
+      type: string
+      format: date
+      description: First air date, for TV shows.
+    vote_average:
+      type: number
+      description: Average audience rating out of 10.
+
+SearchResponse:
+  type: object
+  description: |
+    A page of search results.
+
+    There is no total result count — use `has_more` to page instead.
+  required:
+    - page
+    - results
+    - has_more
+  properties:
+    page:
+      type: integer
+      description: The page these results came from, starting at 1.
+      example: 1
+    results:
+      type: array
+      description: Matched results for the current page, ordered by relevance.
+      items:
+        $ref: "#/SearchResult"
+    has_more:
+      type: boolean
+      description: Whether another page is available. Request it by passing `page` + 1.
+      example: true
+
+SimilarResult:
+  type: object
+  description: A title that's similar to the requested media.
+  required:
+    - id
+    - tmdb_id
+    - media_type
+  properties:
+    id:
+      type: string
+      description: Unique identifier. `TV_<id>` for TV shows or `MV_<id>` for movies.
+      example: "TV_1396"
+    ref:
+      type: string
+      description: |
+        This title's `id` with the place it was suggested attached.
+
+        Prefer it wherever you'd pass this title's `id` onward — opening its detail screen, adding it to a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.
+
+        A bare `id` always works; `ref` is never required.
+      example: "TV_1396@Vb6pN0uXe4GqM7zD"
+    tmdb_id:
+      type: integer
+      description: The numeric ID for this title.
+      example: 1396
+    media_type:
+      type: string
+      enum: [movie, tv]
+      description: Whether this result is a movie or TV show.
+    title:
+      type: string
+      description: Title of the movie (only for movies)
+    name:
+      type: string
+      description: Name of the TV show (only for TV shows)
+    original_title:
+      type: string
+      description: Original title of the movie (only for movies)
+    original_name:
+      type: string
+      description: Original name of the TV show (only for TV shows)
+    overview:
+      type: string
+      description: Overview or description
+    poster_path:
+      type: object
+      description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    backdrop_path:
+      type: object
+      description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    release_date:
+      type: string
+      format: date
+      description: Release date (only for movies)
+    first_air_date:
+      type: string
+      format: date
+      description: First air date (only for TV shows)
+    popularity:
+      type: number
+      description: Popularity score
+    vote_average:
+      type: number
+      description: Average vote rating
+    vote_count:
+      type: integer
+      description: Number of votes
+
+SimilarResponse:
+  type: object
+  description: Paginated list of similar titles.
+  required:
+    - results
+  properties:
+    page:
+      type: integer
+      description: Current page number.
+      example: 1
+    results:
+      type: array
+      description: Similar titles for the current page.
+      items:
+        $ref: "#/SimilarResult"
+    total_pages:
+      type: integer
+      description: Total number of pages available.
+      example: 10
+    total_results:
+      type: integer
+      description: Total number of similar titles across all pages.
+      example: 100
+
+MediaAssetsResponse:
+  type: object
+  description: Best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type.
+  properties:
+    poster:
+      type: object
+      nullable: true
+      description: Best poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no poster is available.
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+    backdrop:
+      type: object
+      nullable: true
+      description: Best backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no backdrop is available.
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+    logo:
+      type: object
+      nullable: true
+      description: Best title logo (English preferred) URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no logo is available.
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
+        w500: "https://cdn.example.com/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
+        original: "https://cdn.example.com/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
+    trailer:
+      title: MediaAssetsTrailer
+      type: object
+      nullable: true
+      description: |
+        The best trailer or clip for this title, picked from the available videos — prefers official YouTube trailers, then teasers, then clips, then the first available video. `null` when no videos exist for this title.
+      properties:
+        key:
+          type: string
+          description: YouTube video identifier — append to `https://www.youtube.com/watch?v=` to play.
+          example: "6ZfuNTqbHE8"
+        url:
+          type: string
+          description: Full YouTube watch URL for this trailer.
+          example: "https://www.youtube.com/watch?v=6ZfuNTqbHE8"
+      required:
+        - key
+        - url
+
+SeasonDetailsResponse:
+  type: object
+  description: Detailed information about a TV season, including its episodes.
+  required:
+    - show_id
+    - show_tmdb_id
+    - id
+    - season_number
+    - episodes
+  properties:
+    show_id:
+      type: string
+      description: The TV show identifier (e.g., `TV_1396`).
+      example: "TV_1396"
+    show_tmdb_id:
+      type: integer
+      description: Numeric identifier for the TV show.
+      example: 1396
+    tmdb_internal_id:
+      type: string
+      description: Image asset identifier for the season.
+      example: "57599026c3a368369a000494"
+      nullable: true
+    id:
+      type: integer
+      description: Season identifier.
+      example: 3572
+    season_tmdb_id:
+      type: integer
+      description: Alias for `id`.
+      example: 3572
+    name:
+      type: string
+      description: Name of the season
+      example: "Season 1"
+    overview:
+      type: string
+      description: Overview of the season
+      nullable: true
+    poster_path:
+      type: object
+      description: Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    season_number:
+      type: integer
+      description: The number of the season
+      example: 1
+    air_date:
+      type: string
+      format: date
+      description: Air date of the season
+      example: "2011-04-17"
+      nullable: true
+    episodes:
+      type: array
+      description: List of episodes in the season
+      items:
+        $ref: "#/Episode"
+
+SeasonProfileMeta:
+  type: object
+  description: The current profile's state for a TV season — which episodes it has finished, plus the season's own aggregate completion state.
+  required:
+    - season
+    - completed
+    - episodes
+  properties:
+    season:
+      type: integer
+      description: The season number this meta is for.
+      example: 1
+    completed:
+      type: boolean
+      description: Whether the profile has completed the entire season.
+    episodes:
+      type: array
+      description: Which episodes of this season the profile has finished.
+      items:
+        $ref: "#/SeasonProfileMetaEpisode"
+
+SeasonProfileMetaEpisode:
+  type: object
+  description: Whether the current profile has finished a single episode.
+  required:
+    - episode
+    - completed
+  properties:
+    episode:
+      type: integer
+      description: The episode number within the season.
+      example: 5
+    completed:
+      type: boolean
+      description: Whether the profile has finished this episode (watched at least 80% of it).
+
+Episode:
+  type: object
+  description: Details for a single TV episode.
+  required:
+    - episode_tmdb_id
+    - episode_number
+    - name
+    - season_number
+    - show_id
+  properties:
+    episode_tmdb_id:
+      type: integer
+      description: Numeric identifier for the episode.
+      example: 63056
+    episode_number:
+      type: integer
+      description: Episode number within the season.
+      example: 1
+    name:
+      type: string
+      description: Episode title.
+      example: "Winter Is Coming"
+    overview:
+      type: string
+      description: Episode synopsis.
+      nullable: true
+    still_path:
+      type: object
+      description: Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+        original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+      nullable: true
+    air_date:
+      type: string
+      format: date
+      description: Original air date of the episode.
+      example: "2011-04-17"
+      nullable: true
+    runtime:
+      type: integer
+      description: Episode runtime in minutes.
+      example: 62
+      nullable: true
+    season_number:
+      type: integer
+      description: Season this episode belongs to.
+      example: 1
+    show_id:
+      type: integer
+      description: Numeric identifier for the parent TV show.
+      example: 1396
+    production_code:
+      type: string
+      description: Production code for the episode.
+      nullable: true
+    vote_average:
+      type: number
+      description: Community rating for the episode.
+      example: 9.1
+      nullable: true
+    vote_count:
+      type: integer
+      description: Number of ratings for the episode.
+      example: 123
+      nullable: true
+    crew:
+      type: array
+      description: Crew members for this episode.
+      items:
+        $ref: "../shared/schemas.yaml#/FreeformObject"
+      nullable: true
+    guest_stars:
+      type: array
+      description: Guest cast for this episode.
+      items:
+        $ref: "../shared/schemas.yaml#/FreeformObject"
+      nullable: true
