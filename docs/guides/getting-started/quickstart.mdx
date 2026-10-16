@@ -36,10 +36,21 @@ dependencies {
 // Package.swift
 dependencies: [
     .package(url: "https://github.com/DiscovrDev/discovr", exact: "1.0.0-alpha.1")
+],
+targets: [
+    .target(
+        name: "YourApp",
+        dependencies: [.product(name: "Discovr", package: "discovr")]
+    )
 ]
 ```
 
 </CodeGroup>
+
+<Note>
+**The SDKs are in alpha**, so things can still change between releases. Find the latest version on the [releases page](https://github.com/DiscovrDev/discovr/releases).
+
+</Note>
 
 <Tip>
 **Using a coding agent?** Connect the Discovr MCP server and skill to your tool — your agent can look up SDK methods and examples as you build, without you switching tabs.

@@ -79,6 +79,10 @@ One API across TypeScript, Kotlin, and Swift. The same methods, the same order o
 
 </CodeGroup>
 
+<Note>
+**The SDKs are in alpha**, so things can still change between releases. Find the latest version on the [releases page](https://github.com/DiscovrDev/discovr/releases).
+</Note>
+
 ## Quick start
 
 Sign in, pick a profile, and render a page of recommendations.
