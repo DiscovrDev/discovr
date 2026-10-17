@@ -42,6 +42,7 @@ Sources/Discovr/Models/DemoSessionResponse.swift
 Sources/Discovr/Models/DeviceCodePayload.swift
 Sources/Discovr/Models/DeviceCodePendingResponse.swift
 Sources/Discovr/Models/DeviceCodeResponse.swift
+Sources/Discovr/Models/DevicePollPayload.swift
 Sources/Discovr/Models/EditPlaybackPayload.swift
 Sources/Discovr/Models/Episode.swift
 Sources/Discovr/Models/FilterSpec.swift
@@ -123,6 +124,7 @@ docs/DemoSessionResponse.md
 docs/DeviceCodePayload.md
 docs/DeviceCodePendingResponse.md
 docs/DeviceCodeResponse.md
+docs/DevicePollPayload.md
 docs/DiscovrAPI.md
 docs/EditPlaybackPayload.md
 docs/Episode.md

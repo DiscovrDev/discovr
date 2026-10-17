@@ -232,4 +232,37 @@ WebTokenPayload:
         The random secret you generated when you started the sign-in, whose SHA-256 you sent as `codeChallenge`.
         It never leaves your app until this call. A wrong verifier burns the code.
       example: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+    deviceId:
+      type: string
+      pattern: "^[0-9a-f]{32}$"
+      description: |
+        A random, stable identifier for the device signing in: 128 bits, lowercase hex. The SDKs generate it once,
+        keep it across sign-outs and send it for you.
+
+        Signing in again from the same device with the same `deviceId` replaces the credential that device already
+        held, which stops working, rather than adding a second one beside it. Leave it out and every sign-in is a
+        credential of its own. A value that is not 32 lowercase hex characters is rejected with `invalid-input`,
+        before the code is spent.
+
+        Never copy it to another device: two devices sharing one `deviceId` sign each other out.
+      example: "7f3a91c2d4e85b60a1c97e24f8d03b5a"
+  additionalProperties: false
+
+DevicePollPayload:
+  type: object
+  description: Optional body of a device-code poll.
+  properties:
+    deviceId:
+      type: string
+      pattern: "^[0-9a-f]{32}$"
+      description: |
+        A random, stable identifier for the device signing in: 128 bits, lowercase hex. The SDKs generate it once,
+        keep it across sign-outs and send it for you.
+
+        Signing in again from the same device with the same `deviceId` replaces the credential that device already
+        held, which stops working, rather than adding a second one beside it. Leave it out and every sign-in is a
+        credential of its own. A value that is not 32 lowercase hex characters is rejected with `invalid-input`.
+
+        Never copy it to another device: two devices sharing one `deviceId` sign each other out.
+      example: "7f3a91c2d4e85b60a1c97e24f8d03b5a"
   additionalProperties: false

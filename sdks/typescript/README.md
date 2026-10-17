@@ -158,6 +158,7 @@ All URIs are relative to *https://api.discovr.media*
 - [DeviceCodePayload](docs/DeviceCodePayload.md)
 - [DeviceCodePendingResponse](docs/DeviceCodePendingResponse.md)
 - [DeviceCodeResponse](docs/DeviceCodeResponse.md)
+- [DevicePollPayload](docs/DevicePollPayload.md)
 - [EditPlaybackPayload](docs/EditPlaybackPayload.md)
 - [Episode](docs/Episode.md)
 - [FilterSpec](docs/FilterSpec.md)

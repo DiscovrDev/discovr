@@ -19,9 +19,10 @@ of waiting out the timeout.
 
 ## Parameters
 
-| Name       | Type     | Required | Description                                                    |
-| ---------- | -------- | -------- | -------------------------------------------------------------- |
-| deviceCode | `string` | Yes      | The device code obtained from the request device code endpoint |
+| Name       | Type     | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ---------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| deviceCode | `string` | Yes      | The device code obtained from the request device code endpoint                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| deviceId   | `string` | No       | A random, stable identifier for the device signing in: 128 bits, lowercase hex. The SDKs generate it once, keep it across sign-outs and send it for you. Signing in again from the same device with the same `deviceId` replaces the credential that device already held, which stops working, rather than adding a second one beside it. Leave it out and every sign-in is a credential of its own. A value that is not 32 lowercase hex characters is rejected with `invalid-input`. Never copy it to another device: two devices sharing one `deviceId` sign each other out. |
 
 ## Returns
 
@@ -36,21 +37,24 @@ of waiting out the timeout.
 
 ```typescript TypeScript
 import { DiscovrClient } from "discovr";
-import type { PollDeviceCode200Response } from "discovr";
+import type { DevicePollPayload, PollDeviceCode200Response } from "discovr";
 
 const discovr = new DiscovrClient("your-client-id");
 
-const response: PollDeviceCode200Response = await discovr.pollDeviceCode("dvc_abc123xyz789");
+const response: PollDeviceCode200Response = await discovr.pollDeviceCode("dvc_abc123xyz789", {
+	deviceId: "7f3a91c2d4e85b60a1c97e24f8d03b5a",
+});
 console.log(response);
 ```
 
 ```kotlin Kotlin
 import api.discovr.DiscovrClient
+import api.discovr.models.DevicePollPayload
 import api.discovr.models.PollDeviceCode200Response
 
 // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
 suspend fun example(client: DiscovrClient) {
-    val response: PollDeviceCode200Response = client.pollDeviceCode(deviceCode = "dvc_abc123xyz789")
+    val response: PollDeviceCode200Response = client.pollDeviceCode(deviceCode = "dvc_abc123xyz789", deviceId = "7f3a91c2d4e85b60a1c97e24f8d03b5a")
     println(response)
 }
 ```
@@ -60,8 +64,8 @@ import Discovr
 
 let client = DiscovrClient(clientId: "your-client-id")
 // Response / argument types:
-// PollDeviceCode200Response
-let response: PollDeviceCode200Response = try await client.pollDeviceCode(deviceCode: "dvc_abc123xyz789")
+// DevicePollPayload, PollDeviceCode200Response
+let response: PollDeviceCode200Response = try await client.pollDeviceCode(deviceCode: "dvc_abc123xyz789", deviceId: "7f3a91c2d4e85b60a1c97e24f8d03b5a")
 print(response)
 ```
 

@@ -85,7 +85,7 @@ The last step of a web sign-in. Trade the authorization code Discovr delivered t
 import Discovr
 
 
-let webTokenPayload: WebTokenPayload = WebTokenPayload(clientID: "clientID_example", code: "code_example", codeVerifier: "codeVerifier_example") // 
+let webTokenPayload: WebTokenPayload = WebTokenPayload(clientID: "clientID_example", code: "code_example", codeVerifier: "codeVerifier_example", deviceId: "deviceId_example") // 
 
 AuthenticationAPI.exchangeWebAuthCode(webTokenPayload: webTokenPayload) { response, error in
     if let error = error {
@@ -171,7 +171,7 @@ Name | Type | Description  | Notes
 
 # **pollDeviceCode**
 ```swift
-    open class func pollDeviceCode(deviceCode: String, completion: @escaping (_ data: PollDeviceCode200Response?, _ error: Error?) -> Void)
+    open class func pollDeviceCode(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, completion: @escaping (_ data: PollDeviceCode200Response?, _ error: Error?) -> Void)
 ```
 
 Poll for auth token
@@ -184,8 +184,9 @@ import Discovr
 
 
 let deviceCode: String = "deviceCode_example" // The device code obtained from the request device code endpoint
+let devicePollPayload: DevicePollPayload = DevicePollPayload(deviceId: "deviceId_example") // Send your `deviceId` so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own.  (optional)
 
-AuthenticationAPI.pollDeviceCode(deviceCode: deviceCode) { response, error in
+AuthenticationAPI.pollDeviceCode(deviceCode: deviceCode, devicePollPayload: devicePollPayload) { response, error in
     if let error = error {
         print(error)
         return
@@ -201,6 +202,7 @@ AuthenticationAPI.pollDeviceCode(deviceCode: deviceCode) { response, error in
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **deviceCode** | **String** | The device code obtained from the request device code endpoint | 
+ **devicePollPayload** | [**DevicePollPayload**](DevicePollPayload.md) | Send your &#x60;deviceId&#x60; so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own.  | [optional] 
 
 ### Return type
 
@@ -212,7 +214,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

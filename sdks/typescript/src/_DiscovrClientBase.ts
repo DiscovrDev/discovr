@@ -264,16 +264,16 @@ export abstract class _DiscovrClientBase {
     return this._auth.publicApi().requestDeviceCode({ clientID, demo: options?.demo }, options?.size, options?.format as any);
   }
 
-  pollDeviceCode(deviceCode: string): Promise<PollDeviceCode200Response> {
-    return this._auth.publicApi().pollDeviceCode(deviceCode);
+  pollDeviceCode(deviceCode: string, options?: { deviceId?: string }): Promise<PollDeviceCode200Response> {
+    return this._auth.publicApi().pollDeviceCode(deviceCode, { deviceId: options?.deviceId });
   }
 
   authorizeClientWeb(clientID: string, state: string, codeChallenge: string, codeChallengeMethod: string, options?: { redirectURL?: string; platform?: string }): Promise<void> {
     return this._auth.publicApi().authorizeClientWeb(clientID, state, codeChallenge, codeChallengeMethod as any, options?.redirectURL, options?.platform as any);
   }
 
-  exchangeWebAuthCode(clientID: string, code: string, codeVerifier: string): Promise<RefreshTokenResponse> {
-    return this._auth.publicApi().exchangeWebAuthCode({ clientID, code, codeVerifier });
+  exchangeWebAuthCode(clientID: string, code: string, codeVerifier: string, options?: { deviceId?: string }): Promise<RefreshTokenResponse> {
+    return this._auth.publicApi().exchangeWebAuthCode({ clientID, code, codeVerifier, deviceId: options?.deviceId });
   }
 
   startDemoSession(clientId: string, options?: { ttlMs?: number }): Promise<DemoSessionResponse> {

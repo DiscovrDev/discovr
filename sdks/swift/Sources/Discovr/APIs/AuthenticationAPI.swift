@@ -164,12 +164,13 @@ open class AuthenticationAPI {
      Poll for auth token
      
      - parameter deviceCode: (path) The device code obtained from the request device code endpoint 
+     - parameter devicePollPayload: (body) Send your &#x60;deviceId&#x60; so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own.  (optional)
      - parameter apiConfiguration: The configuration for the http request.
      - returns: PollDeviceCode200Response
      */
     @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func pollDeviceCode(deviceCode: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> PollDeviceCode200Response {
-        return try await pollDeviceCodeWithRequestBuilder(deviceCode: deviceCode, apiConfiguration: apiConfiguration).execute().body
+    open class func pollDeviceCode(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> PollDeviceCode200Response {
+        return try await pollDeviceCodeWithRequestBuilder(deviceCode: deviceCode, devicePollPayload: devicePollPayload, apiConfiguration: apiConfiguration).execute().body
     }
 
     /**
@@ -177,21 +178,22 @@ open class AuthenticationAPI {
      - POST /auth/device-codes/{deviceCode}/poll
      - The second step of the device code flow. Call this repeatedly after showing the user code or QR code.  While the user hasn't confirmed yet, you'll get `{ status: \"pending\", interval }` — wait `interval` seconds and poll again. Once they approve, the response changes to `{ refreshToken, publicId, expiresAt }`. Store the `refreshToken` securely — it's your long-lived credential for all identity-tier calls.  **Polling interval:** the server sets it and repeats it in every pending answer; it grows the longer the code has been waiting, so always use the latest value. The SDKs do this for you. Stop polling when you receive a `refreshToken` or a `401` error.  A person can decline on their phone. Your next poll then returns `401` with `device-code-denied` straight away (and on every poll after, until the code expires), so you can say so on screen instead of waiting out the timeout. 
      - parameter deviceCode: (path) The device code obtained from the request device code endpoint 
+     - parameter devicePollPayload: (body) Send your &#x60;deviceId&#x60; so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own.  (optional)
      - parameter apiConfiguration: The configuration for the http request.
      - returns: RequestBuilder<PollDeviceCode200Response> 
      */
-    open class func pollDeviceCodeWithRequestBuilder(deviceCode: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<PollDeviceCode200Response> {
+    open class func pollDeviceCodeWithRequestBuilder(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<PollDeviceCode200Response> {
         var localVariablePath = "/auth/device-codes/{deviceCode}/poll"
         let deviceCodePreEscape = "\(APIHelper.mapValueToPathItem(deviceCode))"
         let deviceCodePostEscape = deviceCodePreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         localVariablePath = localVariablePath.replacingOccurrences(of: "{deviceCode}", with: deviceCodePostEscape, options: .literal, range: nil)
         let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: devicePollPayload, codableHelper: apiConfiguration.codableHelper)
 
         let localVariableUrlComponents = URLComponents(string: localVariableURLString)
 
         let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
+            "Content-Type": "application/json",
         ]
 
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)

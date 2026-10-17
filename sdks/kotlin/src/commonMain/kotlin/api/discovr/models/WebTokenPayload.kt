@@ -26,6 +26,7 @@ import kotlinx.serialization.encoding.*
  * @param clientID Your client ID — the one the sign-in was started with.
  * @param code The single-use authorization code Discovr delivered to your app (a `postMessage` to the sign-in window's opener, or the `code` query parameter on your redirect URL). It expires after 60 seconds and is useless without `codeVerifier`. 
  * @param codeVerifier The random secret you generated when you started the sign-in, whose SHA-256 you sent as `codeChallenge`. It never leaves your app until this call. A wrong verifier burns the code. 
+ * @param deviceId A random, stable identifier for the device signing in: 128 bits, lowercase hex. The SDKs generate it once, keep it across sign-outs and send it for you.  Signing in again from the same device with the same `deviceId` replaces the credential that device already held, which stops working, rather than adding a second one beside it. Leave it out and every sign-in is a credential of its own. A value that is not 32 lowercase hex characters is rejected with `invalid-input`, before the code is spent.  Never copy it to another device: two devices sharing one `deviceId` sign each other out. 
  */
 @Serializable
 
@@ -38,7 +39,10 @@ data class WebTokenPayload (
     @SerialName(value = "code") @Required val code: kotlin.String,
 
     /* The random secret you generated when you started the sign-in, whose SHA-256 you sent as `codeChallenge`. It never leaves your app until this call. A wrong verifier burns the code.  */
-    @SerialName(value = "codeVerifier") @Required val codeVerifier: kotlin.String
+    @SerialName(value = "codeVerifier") @Required val codeVerifier: kotlin.String,
+
+    /* A random, stable identifier for the device signing in: 128 bits, lowercase hex. The SDKs generate it once, keep it across sign-outs and send it for you.  Signing in again from the same device with the same `deviceId` replaces the credential that device already held, which stops working, rather than adding a second one beside it. Leave it out and every sign-in is a credential of its own. A value that is not 32 lowercase hex characters is rejected with `invalid-input`, before the code is spent.  Never copy it to another device: two devices sharing one `deviceId` sign each other out.  */
+    @SerialName(value = "deviceId") val deviceId: kotlin.String? = null
 
 ) {
 

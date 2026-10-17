@@ -11,23 +11,28 @@ import Foundation
 public struct WebTokenPayload: Sendable, Codable, ParameterConvertible, Hashable {
 
     public static let codeVerifierRule = StringRule(minLength: 43, maxLength: 128, pattern: nil)
+    public static let deviceIdRule = StringRule(minLength: nil, maxLength: nil, pattern: "/^[0-9a-f]{32}$/")
     /** Your client ID — the one the sign-in was started with. */
     public var clientID: String
     /** The single-use authorization code Discovr delivered to your app (a `postMessage` to the sign-in window's opener, or the `code` query parameter on your redirect URL). It expires after 60 seconds and is useless without `codeVerifier`.  */
     public var code: String
     /** The random secret you generated when you started the sign-in, whose SHA-256 you sent as `codeChallenge`. It never leaves your app until this call. A wrong verifier burns the code.  */
     public var codeVerifier: String
+    /** A random, stable identifier for the device signing in: 128 bits, lowercase hex. The SDKs generate it once, keep it across sign-outs and send it for you.  Signing in again from the same device with the same `deviceId` replaces the credential that device already held, which stops working, rather than adding a second one beside it. Leave it out and every sign-in is a credential of its own. A value that is not 32 lowercase hex characters is rejected with `invalid-input`, before the code is spent.  Never copy it to another device: two devices sharing one `deviceId` sign each other out.  */
+    public var deviceId: String?
 
-    public init(clientID: String, code: String, codeVerifier: String) {
+    public init(clientID: String, code: String, codeVerifier: String, deviceId: String? = nil) {
         self.clientID = clientID
         self.code = code
         self.codeVerifier = codeVerifier
+        self.deviceId = deviceId
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case clientID
         case code
         case codeVerifier
+        case deviceId
     }
 
     // Encodable protocol methods
@@ -37,6 +42,7 @@ public struct WebTokenPayload: Sendable, Codable, ParameterConvertible, Hashable
         try container.encode(clientID, forKey: .clientID)
         try container.encode(code, forKey: .code)
         try container.encode(codeVerifier, forKey: .codeVerifier)
+        try container.encodeIfPresent(deviceId, forKey: .deviceId)
     }
 }
 

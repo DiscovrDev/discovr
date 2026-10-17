@@ -170,7 +170,7 @@ Configure BearerAuth:
 
 <a id="pollDeviceCode"></a>
 # **pollDeviceCode**
-> PollDeviceCode200Response pollDeviceCode(deviceCode)
+> PollDeviceCode200Response pollDeviceCode(deviceCode, devicePollPayload)
 
 Poll for auth token
 
@@ -185,8 +185,9 @@ The second step of the device code flow. Call this repeatedly after showing the 
 val discovr = AuthenticationApi()
 
 val deviceCode : kotlin.String = dvc_abc123xyz789 // kotlin.String | The device code obtained from the request device code endpoint
+val devicePollPayload : DevicePollPayload =  // DevicePollPayload | Send your `deviceId` so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own. 
 try {
-    val result : PollDeviceCode200Response = discovr.pollDeviceCode(deviceCode)
+    val result : PollDeviceCode200Response = discovr.pollDeviceCode(deviceCode, devicePollPayload)
     println(result)
 } catch (e: ClientException) {
     println("4xx response calling AuthenticationApi#pollDeviceCode")
@@ -198,9 +199,10 @@ try {
 ```
 
 ### Parameters
+| **deviceCode** | **kotlin.String**| The device code obtained from the request device code endpoint | |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |
-| **deviceCode** | **kotlin.String**| The device code obtained from the request device code endpoint | |
+| **devicePollPayload** | [**DevicePollPayload**](DevicePollPayload.md)| Send your &#x60;deviceId&#x60; so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own.  | [optional] |
 
 ### Return type
 
@@ -212,7 +214,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 <a id="requestDeviceCode"></a>

@@ -486,7 +486,7 @@ internal actor _DiscovrAuth {
         let raw = try await request(
             method: "POST",
             path: "/auth/web/token",
-            body: ["clientID": clientID, "code": code, "codeVerifier": verifier],
+            body: redeemBody(code: code, verifier: verifier),
             bearer: nil
         )
         let json = try JSONSerialization.jsonObject(with: raw) as? [String: Any]
@@ -591,7 +591,7 @@ internal actor _DiscovrAuth {
                         let r = try await self.request(
                             method: "POST",
                             path: "/auth/device-codes/\(deviceCode)/poll",
-                            body: [:],
+                            body: self.pollBody(),
                             bearer: nil
                         )
                         let body = (try? JSONSerialization.jsonObject(with: r) as? [String: Any]) ?? [:]
@@ -1030,6 +1030,41 @@ internal actor _DiscovrAuth {
 
     private func key(_ name: String) -> String { "\(config.storagePrefix)\(name)" }
 
+    /// Stand-in for the stored device id when the Keychain cannot be written; see ``deviceId()``.
+    private var memoryDeviceId: String?
+
+    /// This device's stable id, sent when a sign-in is redeemed so that signing in again here
+    /// replaces the previous credential instead of adding a second one.
+    ///
+    /// Generated on first use and kept under its own Keychain item, which sign-out never
+    /// touches: the point is that it outlives a sign-out. The item is
+    /// `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, so a backup restore or a move to a new
+    /// phone does not carry it along; two devices sharing one id would take turns signing each
+    /// other out. If the Keychain cannot be written the id lives for this object's lifetime only,
+    /// which is the old behaviour (every sign-in is a new device).
+    internal func deviceId() -> String {
+        let name = key("device_id")
+        if let stored = keychainGet(name), Self.isDeviceId(stored) { return stored }
+        let id = memoryDeviceId ?? Self.randomBytes(16).map { String(format: "%02x", $0) }.joined()
+        memoryDeviceId = keychainSetThisDeviceOnly(name, id) ? nil : id
+        return id
+    }
+
+    /// What the server accepts as a device id: 128 random bits, lowercase hex.
+    nonisolated internal static func isDeviceId(_ value: String) -> Bool {
+        value.utf8.count == 32 && value.utf8.allSatisfy { ($0 >= 0x30 && $0 <= 0x39) || ($0 >= 0x61 && $0 <= 0x66) }
+    }
+
+    /// The body that redeems a web sign-in code.
+    internal func redeemBody(code: String, verifier: String) -> [String: String] {
+        ["clientID": clientID, "code": code, "codeVerifier": verifier, "deviceId": deviceId()]
+    }
+
+    /// The body of a device-code poll.
+    internal func pollBody() -> [String: String] {
+        ["deviceId": deviceId()]
+    }
+
     /// 32 random bytes, hex-encoded — the CSRF `state` nonce for the web-auth
     /// redirect flow. `SecRandomCopyBytes` is a real CSPRNG; falls back to
     /// `UInt8.random` only if it's ever unavailable or fails, which should not
@@ -1198,6 +1233,25 @@ internal actor _DiscovrAuth {
         return String(data: data, encoding: .utf8)
         #else
         return nil
+        #endif
+    }
+
+    /// Writes an item that stays on this device: not in backups, not restored onto another phone.
+    /// Returns whether it was stored.
+    internal func keychainSetThisDeviceOnly(_ key: String, _ value: String) -> Bool {
+        #if canImport(Security)
+        let baseQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+        ]
+        SecItemDelete(baseQuery as CFDictionary)
+        guard let data = value.data(using: .utf8) else { return false }
+        var add = baseQuery
+        add[kSecValueData as String] = data
+        add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        return SecItemAdd(add as CFDictionary, nil) == errSecSuccess
+        #else
+        return false
         #endif
     }
 

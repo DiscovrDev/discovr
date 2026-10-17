@@ -30,6 +30,15 @@ post:
       schema:
         type: string
       example: "dvc_abc123xyz789"
+  requestBody:
+    required: false
+    description: |
+      Send your `deviceId` so that signing in again on the same device replaces the credential it already held. The
+      SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own.
+    content:
+      application/json:
+        schema:
+          $ref: "./schemas.yaml#/DevicePollPayload"
   responses:
     "200":
       description: |
@@ -55,7 +64,7 @@ post:
                 status: "pending"
                 interval: 5
     "400":
-      description: Bad request - invalid path structure
+      description: Bad request - invalid path structure, or a `deviceId` that is not 32 lowercase hex characters (`invalid-input`)
       content:
         application/json:
           schema:

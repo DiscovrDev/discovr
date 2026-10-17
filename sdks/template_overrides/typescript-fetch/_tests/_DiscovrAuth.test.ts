@@ -433,7 +433,12 @@ describe("_DiscovrAuth web sign-in (authorization code with PKCE)", () => {
 			expect(result).toEqual({ refreshToken: "rt_redeemed", publicId: "pub-1", expiresAt: 123 });
 			expect(redeemCalls()).toHaveLength(1);
 			const body = JSON.parse(redeemCalls()[0][1].body);
-			expect(body).toEqual({ clientID: "my-client-id", code: "the-code", codeVerifier: verifier });
+			expect(body).toEqual({
+				clientID: "my-client-id",
+				code: "the-code",
+				codeVerifier: verifier,
+				deviceId: expect.stringMatching(/^[0-9a-f]{32}$/),
+			});
 			expect(auth.isSignedIn()).toBe(true);
 			expect(browser.store.has("discovr_auth_request")).toBe(false);
 			// A reload must not try to use the code again; unrelated params stay.
@@ -560,6 +565,86 @@ describe("_DiscovrAuth web sign-in (authorization code with PKCE)", () => {
 			expect(browser.popup.close).toHaveBeenCalled();
 			expect(browser.listenerCount()).toBe(0);
 			expect(auth.isSignedIn()).toBe(true);
+		});
+
+		describe("device id", () => {
+			/** Run one popup sign-in to completion and return the redeem request body. */
+			const signInOnce = async (auth: _DiscovrAuth) => {
+				// One popup object stands in for every window the SDK opens; hand it back blank.
+				browser.popup.location.href = "";
+				browser.popup.closed = false;
+				const pending = auth.signInWithPopup();
+				await popupReady();
+				browser.message({ code: "the-code", state: authorizeUrl().searchParams.get("state") });
+				await pending;
+				const calls = redeemCalls();
+				return JSON.parse(calls[calls.length - 1][1].body) as Record<string, unknown>;
+			};
+
+			it("sends a well-formed id with the code, and keeps it under its own key", async () => {
+				const body = await signInOnce(new _DiscovrAuth("my-client-id"));
+
+				expect(body.deviceId).toMatch(/^[0-9a-f]{32}$/);
+				expect(browser.store.get("discovr_device_id")).toBe(body.deviceId);
+			});
+
+			it("is the same id after signing out and in again, so the server can replace the old credential", async () => {
+				const auth = new _DiscovrAuth("my-client-id");
+				const first = await signInOnce(auth);
+
+				await auth.signOut();
+				const second = await signInOnce(auth);
+
+				expect(second.deviceId).toBe(first.deviceId);
+				// Sign-out cleared the session, not the device's identity.
+				expect(browser.store.get("discovr_device_id")).toBe(first.deviceId);
+			});
+
+			it("is shared by every client on the same storage, and honours the storage prefix", async () => {
+				const a = await signInOnce(new _DiscovrAuth("my-client-id"));
+				const b = await signInOnce(new _DiscovrAuth("my-client-id"));
+				expect(b.deviceId).toBe(a.deviceId);
+
+				const other = new _DiscovrAuth("my-client-id", { storagePrefix: "other_" });
+				const c = await signInOnce(other);
+				expect(c.deviceId).not.toBe(a.deviceId);
+				expect(browser.store.get("other_device_id")).toBe(c.deviceId);
+			});
+
+			it("replaces a stored value that is not a valid id instead of sending it", async () => {
+				browser.store.set("discovr_device_id", "not-an-id");
+
+				const body = await signInOnce(new _DiscovrAuth("my-client-id"));
+
+				expect(body.deviceId).toMatch(/^[0-9a-f]{32}$/);
+				expect(browser.store.get("discovr_device_id")).toBe(body.deviceId);
+			});
+
+			it("holds one id for the client's lifetime when storage is unavailable", async () => {
+				// Only the device id is unreadable and unwritable; the session still persists.
+				const denied = (key: string) => {
+					if (key.endsWith("device_id")) throw new Error("denied");
+				};
+				(globalThis as unknown as Record<string, unknown>).localStorage = {
+					getItem: (k: string) => {
+						denied(k);
+						return browser.store.has(k) ? browser.store.get(k)! : null;
+					},
+					setItem: (k: string, v: string) => {
+						denied(k);
+						browser.store.set(k, v);
+					},
+					removeItem: (k: string) => void browser.store.delete(k),
+				};
+				const auth = new _DiscovrAuth("my-client-id");
+
+				const first = await signInOnce(auth);
+				await auth.signOut();
+				const second = await signInOnce(auth);
+
+				expect(first.deviceId).toMatch(/^[0-9a-f]{32}$/);
+				expect(second.deviceId).toBe(first.deviceId);
+			});
 		});
 
 		it("ignores a message from any window but its own popup, and one with the wrong state", async () => {
@@ -1459,6 +1544,23 @@ describe("_DiscovrAuth device-code sign-in", () => {
 			expect(polls()).toBe(1);
 			await jest.advanceTimersByTimeAsync(1);
 			expect(polls()).toBe(2);
+
+			result.unsubscribe();
+		});
+
+		it("sends the same well-formed device id on every poll", async () => {
+			fetchMock.mockResolvedValue(jsonResponse({ status: "pending", interval: 5 }));
+			const result = await new _DiscovrAuth("my-client-id").signInWithDeviceCode();
+
+			await jest.advanceTimersByTimeAsync(5_000);
+			await jest.advanceTimersByTimeAsync(5_000);
+
+			const bodies = fetchMock.mock.calls
+				.filter(([url]: [string]) => url.endsWith(pollUrl))
+				.map(([, init]: [string, { body: string }]) => JSON.parse(init.body));
+			expect(bodies).toHaveLength(2);
+			expect(bodies[0].deviceId).toMatch(/^[0-9a-f]{32}$/);
+			expect(bodies[1].deviceId).toBe(bodies[0].deviceId);
 
 			result.unsubscribe();
 		});

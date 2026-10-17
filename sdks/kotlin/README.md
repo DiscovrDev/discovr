@@ -177,6 +177,7 @@ All URIs are relative to *https://api.discovr.media*
  - [api.discovr.models.DeviceCodePayload](docs/DeviceCodePayload.md)
  - [api.discovr.models.DeviceCodePendingResponse](docs/DeviceCodePendingResponse.md)
  - [api.discovr.models.DeviceCodeResponse](docs/DeviceCodeResponse.md)
+ - [api.discovr.models.DevicePollPayload](docs/DevicePollPayload.md)
  - [api.discovr.models.EditPlaybackPayload](docs/EditPlaybackPayload.md)
  - [api.discovr.models.Episode](docs/Episode.md)
  - [api.discovr.models.FilterSpec](docs/FilterSpec.md)

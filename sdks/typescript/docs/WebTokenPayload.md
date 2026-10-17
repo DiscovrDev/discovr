@@ -10,6 +10,7 @@ Name | Type
 `clientID` | string
 `code` | string
 `codeVerifier` | string
+`deviceId` | string
 
 ## Example
 
@@ -21,6 +22,7 @@ const example = {
   "clientID": abc123xyz,
   "code": Gh2kd9QpXw3LmN7vRtYa.k3J9xQmPz1VbT6uYhN4oWcE8sA2dF5gLrXiUqZjKvBeM,
   "codeVerifier": dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk,
+  "deviceId": 7f3a91c2d4e85b60a1c97e24f8d03b5a,
 } satisfies WebTokenPayload
 
 console.log(example)

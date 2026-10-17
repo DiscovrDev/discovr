@@ -275,8 +275,8 @@ open class _DiscovrClientBase: @unchecked Sendable {
     }
 
     @discardableResult
-    public func pollDeviceCode(deviceCode: String) async throws -> PollDeviceCode200Response {
-        return try await DiscovrAPI.pollDeviceCode(deviceCode: deviceCode, apiConfiguration: self._publicConfig)
+    public func pollDeviceCode(deviceCode: String, deviceId: String? = nil) async throws -> PollDeviceCode200Response {
+        return try await DiscovrAPI.pollDeviceCode(deviceCode: deviceCode, devicePollPayload: DevicePollPayload(deviceId: deviceId), apiConfiguration: self._publicConfig)
     }
 
     public func authorizeClientWeb(clientID: String, state: String, codeChallenge: String, codeChallengeMethod: DiscovrAPI.CodeChallengeMethod_authorizeClientWeb, redirectURL: String? = nil, platform: DiscovrAPI.Platform_authorizeClientWeb? = nil) async throws -> Void {
@@ -284,8 +284,8 @@ open class _DiscovrClientBase: @unchecked Sendable {
     }
 
     @discardableResult
-    public func exchangeWebAuthCode(clientID: String, code: String, codeVerifier: String) async throws -> RefreshTokenResponse {
-        return try await DiscovrAPI.exchangeWebAuthCode(webTokenPayload: WebTokenPayload(clientID: clientID, code: code, codeVerifier: codeVerifier), apiConfiguration: self._publicConfig)
+    public func exchangeWebAuthCode(clientID: String, code: String, codeVerifier: String, deviceId: String? = nil) async throws -> RefreshTokenResponse {
+        return try await DiscovrAPI.exchangeWebAuthCode(webTokenPayload: WebTokenPayload(clientID: clientID, code: code, codeVerifier: codeVerifier, deviceId: deviceId), apiConfiguration: self._publicConfig)
     }
 
     @discardableResult

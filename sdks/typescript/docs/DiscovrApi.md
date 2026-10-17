@@ -1125,7 +1125,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Code redeemed — your credential. |  -  |
-| **400** | A required field is missing, or the code or verifier is malformed. |  -  |
+| **400** | A required field is missing, or the code, the verifier or the &#x60;deviceId&#x60; is malformed. A malformed &#x60;deviceId&#x60; is refused before the code is spent. |  -  |
 | **401** | The code cannot be redeemed. The &#x60;error&#x60; field is a machine-readable code, and every failed attempt spends the code, so start a new sign-in rather than retrying.  |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -2601,7 +2601,7 @@ example().catch(console.error);
 
 ## pollDeviceCode
 
-> PollDeviceCode200Response pollDeviceCode(deviceCode)
+> PollDeviceCode200Response pollDeviceCode(deviceCode, devicePollPayload)
 
 Poll for auth token
 
@@ -2632,6 +2632,7 @@ example().catch(console.error);
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **deviceCode** | `string` | The device code obtained from the request device code endpoint | [Defaults to `undefined`] |
+| **devicePollPayload** | [DevicePollPayload](DevicePollPayload.md) | Send your &#x60;deviceId&#x60; so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own.  | [Optional] |
 
 ### Return type
 
@@ -2643,7 +2644,7 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
+- **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
 
@@ -2651,7 +2652,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Poll result. Two possible shapes: - **Authorized**: device code was approved — contains &#x60;refreshToken&#x60;, &#x60;publicId&#x60;, &#x60;expiresAt&#x60;. - **Pending**: user has not yet approved — contains &#x60;status: \&quot;pending\&quot;&#x60; and the &#x60;interval&#x60; to wait. Keep polling.  |  -  |
-| **400** | Bad request - invalid path structure |  -  |
+| **400** | Bad request - invalid path structure, or a &#x60;deviceId&#x60; that is not 32 lowercase hex characters (&#x60;invalid-input&#x60;) |  -  |
 | **401** | Device code expired, already consumed, or declined by the person on their phone. The &#x60;error&#x60; field contains a machine-readable code.  |  -  |
 | **403** | The account is on the closed-programme waitlist and may not be issued a credential yet. Deliberately not a &#x60;401&#x60;: the credential presented was valid and re-authenticating will not change the answer, so a client that retries on &#x60;401&#x60; must not retry on this.  |  -  |
 | **404** | Device code does not exist |  -  |

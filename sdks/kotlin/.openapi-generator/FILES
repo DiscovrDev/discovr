@@ -17,6 +17,7 @@ docs/DemoSessionResponse.md
 docs/DeviceCodePayload.md
 docs/DeviceCodePendingResponse.md
 docs/DeviceCodeResponse.md
+docs/DevicePollPayload.md
 docs/DiscovrApi.md
 docs/EditPlaybackPayload.md
 docs/Episode.md
@@ -134,6 +135,7 @@ src/commonMain/kotlin/api/discovr/models/DemoSessionResponse.kt
 src/commonMain/kotlin/api/discovr/models/DeviceCodePayload.kt
 src/commonMain/kotlin/api/discovr/models/DeviceCodePendingResponse.kt
 src/commonMain/kotlin/api/discovr/models/DeviceCodeResponse.kt
+src/commonMain/kotlin/api/discovr/models/DevicePollPayload.kt
 src/commonMain/kotlin/api/discovr/models/EditPlaybackPayload.kt
 src/commonMain/kotlin/api/discovr/models/Episode.kt
 src/commonMain/kotlin/api/discovr/models/FilterSpec.kt

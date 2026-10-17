@@ -1,8 +1,15 @@
 package api.discovr.auth
 
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.TextContent
+import io.ktor.http.headersOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -453,5 +460,121 @@ class DiscovrAuthTest {
     fun anyOtherFailureIsTransientAndKeepsPolling() {
         val step = devicePollStepForError(UnknownApiError("Request failed (HTTP 500)", 500), 5_000)
         assertEquals(DevicePollStep.Wait(intervalMs = 5_000, waitMs = 5_000), step)
+    }
+
+    // ── the device id ──────────────────────────────────────────────────────
+
+    private class Seen(val path: String, val body: String?)
+
+    private val deviceIdShape = Regex("^[0-9a-f]{32}$")
+
+    /** A network that records every request and answers each one as `answer` says. */
+    private fun network(answer: (Seen) -> String): Pair<MockEngine, MutableList<Seen>> {
+        val seen = mutableListOf<Seen>()
+        val engine = MockEngine { request ->
+            val entry = Seen(request.url.encodedPath, (request.body as? TextContent)?.text)
+            seen += entry
+            respond(
+                content = answer(entry),
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json"),
+            )
+        }
+        return engine to seen
+    }
+
+    private fun credential() = """{"refreshToken":"rt_abc","publicId":"p","expiresAt":9}"""
+
+    private fun deviceIdIn(body: String?): String? =
+        body?.let { Json.parseToJsonElement(it).jsonObject["deviceId"]?.jsonPrimitive?.content }
+
+    /** One full redirect sign-in: start it, then return the way the system browser would. */
+    private suspend fun signInByRedirect(auth: _DiscovrAuth, storage: AuthStorage) {
+        auth.signInWithWebAuth("myapp://callback") { }
+        val state = assertNotNull(storage.get("discovr_auth_state"))
+        assertTrue(auth.handleRedirectUri("myapp://callback?code=the-code&state=$state"))
+    }
+
+    @Test
+    fun theCodeIsRedeemedWithAWellFormedDeviceIdKeptUnderItsOwnKey() = runTest {
+        val storage = FakeAuthStorage()
+        val (engine, seen) = network { credential() }
+        val auth = _DiscovrAuth("test-client-id", AuthConfig(storage = storage), engine)
+
+        signInByRedirect(auth, storage)
+
+        val sent = assertNotNull(deviceIdIn(seen.single { it.path == "/auth/web/token" }.body))
+        assertTrue(deviceIdShape.matches(sent))
+        assertEquals(sent, storage.get("discovr_device_id"))
+    }
+
+    @Test
+    fun theDeviceIdOutlivesASignOutSoAReSignInCanReplaceTheOldCredential() = runTest {
+        val storage = FakeAuthStorage()
+        val (engine, seen) = network { credential() }
+        val auth = _DiscovrAuth("test-client-id", AuthConfig(storage = storage), engine)
+
+        signInByRedirect(auth, storage)
+        val first = storage.get("discovr_device_id")
+        auth.signOut()
+        assertEquals(first, storage.get("discovr_device_id"))
+        signInByRedirect(auth, storage)
+
+        val sent = seen.filter { it.path == "/auth/web/token" }.map { deviceIdIn(it.body) }
+        assertEquals(listOf(first, first), sent)
+    }
+
+    @Test
+    fun aStoredValueThatIsNotAValidIdIsReplacedRatherThanSent() = runTest {
+        val storage = FakeAuthStorage().also { it.put("discovr_device_id", "not-an-id") }
+        val (engine, seen) = network { credential() }
+        val auth = _DiscovrAuth("test-client-id", AuthConfig(storage = storage), engine)
+
+        signInByRedirect(auth, storage)
+
+        val sent = assertNotNull(deviceIdIn(seen.single { it.path == "/auth/web/token" }.body))
+        assertTrue(deviceIdShape.matches(sent))
+        assertEquals(sent, storage.get("discovr_device_id"))
+    }
+
+    @Test
+    fun storageThatCannotBeWrittenStillGivesOneIdForTheLifetimeOfTheClient() = runTest {
+        val real = FakeAuthStorage()
+        // Reads and writes of the device id fail; everything else behaves.
+        val storage = object : AuthStorage {
+            override fun get(key: String): String? =
+                if (key.endsWith("device_id")) throw IllegalStateException("denied") else real.get(key)
+            override fun put(key: String, value: String?) {
+                if (key.endsWith("device_id")) throw IllegalStateException("denied") else real.put(key, value)
+            }
+        }
+        val (engine, seen) = network { credential() }
+        val auth = _DiscovrAuth("test-client-id", AuthConfig(storage = storage), engine)
+
+        signInByRedirect(auth, storage)
+        auth.signOut()
+        signInByRedirect(auth, storage)
+
+        val sent = seen.filter { it.path == "/auth/web/token" }.map { deviceIdIn(it.body) }
+        assertEquals(2, sent.size)
+        assertTrue(deviceIdShape.matches(assertNotNull(sent[0])))
+        assertEquals(sent[0], sent[1])
+    }
+
+    @Test
+    fun theDevicePollCarriesTheSameDeviceId() = runTest {
+        val storage = FakeAuthStorage()
+        val (engine, seen) = network { entry ->
+            if (entry.path.endsWith("/poll")) credential()
+            else """{"deviceCode":"dvc_1","userCode":"1234","authQRCode":"","verificationUrl":"","expiresIn":600000,"interval":1}"""
+        }
+        val auth = _DiscovrAuth("test-client-id", AuthConfig(storage = storage), engine)
+
+        val flow = auth.signInWithDeviceCode()
+        flow.completion.await()
+
+        val sent = assertNotNull(deviceIdIn(seen.first { it.path.endsWith("/poll") }.body))
+        assertTrue(deviceIdShape.matches(sent))
+        assertEquals(sent, storage.get("discovr_device_id"))
     }
 }

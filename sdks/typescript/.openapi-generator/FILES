@@ -18,6 +18,7 @@ docs/DemoSessionResponse.md
 docs/DeviceCodePayload.md
 docs/DeviceCodePendingResponse.md
 docs/DeviceCodeResponse.md
+docs/DevicePollPayload.md
 docs/DiscovrApi.md
 docs/EditPlaybackPayload.md
 docs/Episode.md
@@ -120,6 +121,7 @@ src/models/DemoSessionResponse.ts
 src/models/DeviceCodePayload.ts
 src/models/DeviceCodePendingResponse.ts
 src/models/DeviceCodeResponse.ts
+src/models/DevicePollPayload.ts
 src/models/EditPlaybackPayload.ts
 src/models/Episode.ts
 src/models/FilterSpec.ts

@@ -15,6 +15,7 @@ export * from './DemoSessionResponse';
 export * from './DeviceCodePayload';
 export * from './DeviceCodePendingResponse';
 export * from './DeviceCodeResponse';
+export * from './DevicePollPayload';
 export * from './EditPlaybackPayload';
 export * from './Episode';
 export * from './FilterSpec';

@@ -22,6 +22,7 @@ import api.discovr.models.DemoSessionRequest
 import api.discovr.models.DemoSessionResponse
 import api.discovr.models.DeviceCodePayload
 import api.discovr.models.DeviceCodeResponse
+import api.discovr.models.DevicePollPayload
 import api.discovr.models.EditPlaybackPayload
 import api.discovr.models.FilterSpec
 import api.discovr.models.GetProfilesResponse
@@ -239,14 +240,14 @@ abstract class _DiscovrClientBase {
     suspend fun requestDeviceCode(clientID: String, demo: Boolean? = false, size: Int? = null, format: DiscovrApi.FormatRequestDeviceCode? = null): DeviceCodeResponse =
         _auth.publicApi().requestDeviceCode(DeviceCodePayload(clientID = clientID, demo = demo), size = size, format = format).body()
 
-    suspend fun pollDeviceCode(deviceCode: String): PollDeviceCode200Response =
-        _auth.publicApi().pollDeviceCode(deviceCode).body()
+    suspend fun pollDeviceCode(deviceCode: String, deviceId: String? = null): PollDeviceCode200Response =
+        _auth.publicApi().pollDeviceCode(deviceCode, DevicePollPayload(deviceId = deviceId)).body()
 
     suspend fun authorizeClientWeb(clientID: String, state: String, codeChallenge: String, codeChallengeMethod: DiscovrApi.CodeChallengeMethodAuthorizeClientWeb, redirectURL: String? = null, platform: DiscovrApi.PlatformAuthorizeClientWeb? = null): Unit =
         _auth.publicApi().authorizeClientWeb(clientID, state, codeChallenge, codeChallengeMethod, redirectURL = redirectURL, platform = platform).body()
 
-    suspend fun exchangeWebAuthCode(clientID: String, code: String, codeVerifier: String): RefreshTokenResponse =
-        _auth.publicApi().exchangeWebAuthCode(WebTokenPayload(clientID = clientID, code = code, codeVerifier = codeVerifier)).body()
+    suspend fun exchangeWebAuthCode(clientID: String, code: String, codeVerifier: String, deviceId: String? = null): RefreshTokenResponse =
+        _auth.publicApi().exchangeWebAuthCode(WebTokenPayload(clientID = clientID, code = code, codeVerifier = codeVerifier, deviceId = deviceId)).body()
 
     suspend fun startDemoSession(clientId: String, ttlMs: Int? = null): DemoSessionResponse =
         _auth.publicApi().startDemoSession(DemoSessionRequest(clientId = clientId, ttlMs = ttlMs)).body()

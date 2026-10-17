@@ -20,6 +20,7 @@ import type {
   DemoSessionResponse,
   DeviceCodePayload,
   DeviceCodeResponse,
+  DevicePollPayload,
   MintSessionTokenPayload,
   PollDeviceCode200Response,
   RateLimitedError,
@@ -39,6 +40,8 @@ import {
     DeviceCodePayloadToJSON,
     DeviceCodeResponseFromJSON,
     DeviceCodeResponseToJSON,
+    DevicePollPayloadFromJSON,
+    DevicePollPayloadToJSON,
     MintSessionTokenPayloadFromJSON,
     MintSessionTokenPayloadToJSON,
     PollDeviceCode200ResponseFromJSON,
@@ -74,6 +77,7 @@ interface MintSessionTokenRequest {
 
 interface PollDeviceCodeRequest {
     deviceCode: string;
+    devicePollPayload?: DevicePollPayload;
 }
 
 interface RequestDeviceCodeRequest {
@@ -279,6 +283,8 @@ export class AuthenticationApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        headerParameters['Content-Type'] = 'application/json';
+
 
         let urlPath = `/auth/device-codes/{deviceCode}/poll`;
         urlPath = urlPath.replace(`{${"deviceCode"}}`, encodeURIComponent(String(requestParameters['deviceCode'])));
@@ -288,6 +294,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
+            body: DevicePollPayloadToJSON(requestParameters['devicePollPayload']),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PollDeviceCode200ResponseFromJSON(jsonValue));
@@ -297,8 +304,8 @@ export class AuthenticationApi extends runtime.BaseAPI {
      * The second step of the device code flow. Call this repeatedly after showing the user code or QR code.  While the user hasn\'t confirmed yet, you\'ll get `{ status: \"pending\", interval }` — wait `interval` seconds and poll again. Once they approve, the response changes to `{ refreshToken, publicId, expiresAt }`. Store the `refreshToken` securely — it\'s your long-lived credential for all identity-tier calls.  **Polling interval:** the server sets it and repeats it in every pending answer; it grows the longer the code has been waiting, so always use the latest value. The SDKs do this for you. Stop polling when you receive a `refreshToken` or a `401` error.  A person can decline on their phone. Your next poll then returns `401` with `device-code-denied` straight away (and on every poll after, until the code expires), so you can say so on screen instead of waiting out the timeout. 
      * Poll for auth token
      */
-    async pollDeviceCode(deviceCode: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PollDeviceCode200Response> {
-        const response = await this.pollDeviceCodeRaw({ deviceCode: deviceCode }, initOverrides);
+    async pollDeviceCode(deviceCode: string, devicePollPayload?: DevicePollPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PollDeviceCode200Response> {
+        const response = await this.pollDeviceCodeRaw({ deviceCode: deviceCode, devicePollPayload: devicePollPayload }, initOverrides);
         return await response.value();
     }
 

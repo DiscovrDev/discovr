@@ -33,7 +33,7 @@ post:
             publicId: "MqXYz12abc"
             expiresAt: 1733088000
     "400":
-      description: A required field is missing, or the code or verifier is malformed.
+      description: A required field is missing, or the code, the verifier or the `deviceId` is malformed. A malformed `deviceId` is refused before the code is spent.
       content:
         application/json:
           schema:

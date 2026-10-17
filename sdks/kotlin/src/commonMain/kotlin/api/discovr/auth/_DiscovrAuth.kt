@@ -20,6 +20,8 @@
 package api.discovr.auth
 
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.header
 import io.ktor.client.request.request
@@ -48,7 +50,16 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 
-/** Persistent storage for refresh / session tokens. Use EncryptedSharedPreferences on Android. */
+/**
+ * Persistent storage for refresh / session tokens. Use EncryptedSharedPreferences on Android.
+ *
+ * It also holds this device's id (the `device_id` key, see [AuthConfig.storagePrefix]), which
+ * identifies the install to the server so that signing in again replaces the previous credential.
+ * That id must never reach another device: two devices sharing one take turns signing each other
+ * out. Keep the storage out of backup and device transfer (on Android, exclude it with
+ * `android:fullBackupContent` / `dataExtractionRules`, or store it under `noBackupFilesDir`), and
+ * do not clear the `device_id` key on sign-out; the SDK never does.
+ */
 interface AuthStorage {
     fun get(key: String): String?
     fun put(key: String, value: String?)
@@ -393,17 +404,22 @@ const val DEFAULT_DEMO_SESSION_TTL_MS = 15 * 60 * 1000L
 internal class _DiscovrAuth(
     private val clientID: String,
     private val config: AuthConfig,
+    /** Only for tests: a stand-in network. Left null, the platform's own engine is used. */
+    httpEngine: HttpClientEngine? = null,
 ) {
     // Dispatchers.Default, not .IO: .IO doesn't exist on Kotlin/JS (it's a
     // JVM/Native-only blocking-thread-pool dispatcher), and none of this
     // scope's work — polling, Ktor calls — is actually blocking I/O anyway.
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val httpClient = HttpClient {
-        install(HttpTimeout) {
-            requestTimeoutMillis = REQUEST_TIMEOUT_MS
-            connectTimeoutMillis = REQUEST_TIMEOUT_MS
-            socketTimeoutMillis = REQUEST_TIMEOUT_MS
+    private val httpClient: HttpClient = run {
+        val configure: HttpClientConfig<*>.() -> Unit = {
+            install(HttpTimeout) {
+                requestTimeoutMillis = REQUEST_TIMEOUT_MS
+                connectTimeoutMillis = REQUEST_TIMEOUT_MS
+                socketTimeoutMillis = REQUEST_TIMEOUT_MS
+            }
         }
+        if (httpEngine != null) HttpClient(httpEngine, configure) else HttpClient(configure)
     }
 
     private var refreshToken: String? = null
@@ -630,6 +646,7 @@ internal class _DiscovrAuth(
                 put("clientID", clientID)
                 put("code", code)
                 put("codeVerifier", verifier)
+                put("deviceId", deviceId())
             },
             null,
         )
@@ -759,7 +776,12 @@ internal class _DiscovrAuth(
                     break
                 }
                 val step = try {
-                    val r = request("POST", "/auth/device-codes/${deviceCode}/poll", buildJsonObject {}, null)
+                    val r = request(
+                        "POST",
+                        "/auth/device-codes/${deviceCode}/poll",
+                        buildJsonObject { put("deviceId", deviceId()) },
+                        null,
+                    )
                     devicePollStepFor(json.parseToJsonElement(r).jsonObject, intervalMs)
                 } catch (e: CancellationException) {
                     throw e
@@ -1041,6 +1063,27 @@ internal class _DiscovrAuth(
 
     private fun key(name: String) = "${config.storagePrefix}$name"
 
+    /** Stand-in for the stored device id when storage cannot be written; see [deviceId]. */
+    private var memoryDeviceId: String? = null
+
+    /**
+     * This device's stable id, sent when a sign-in is redeemed so that signing in again here
+     * replaces the previous credential instead of adding a second one.
+     *
+     * Generated on first use and kept under its own key, which sign-out never touches: the point
+     * is that it outlives a sign-out. If the storage cannot be written the id lives for this
+     * object's lifetime only, which is the old behaviour (every sign-in is a new device).
+     */
+    private fun deviceId(): String {
+        val storageKey = key("device_id")
+        val stored = runCatching { config.storage.get(storageKey) }.getOrNull()
+        if (stored != null && DEVICE_ID.matches(stored)) return stored
+        val id = memoryDeviceId ?: hex(secureRandomBytes(16))
+        val persisted = runCatching { config.storage.put(storageKey, id) }.isSuccess
+        memoryDeviceId = if (persisted) null else id
+        return id
+    }
+
     /**
      * 32 random bytes, hex-encoded — the CSRF `state` nonce for the web-auth
      * redirect flow. Backed by [secureRandomBytes], a real per-platform CSPRNG
@@ -1048,8 +1091,9 @@ internal class _DiscovrAuth(
      * — `kotlin.random.Random.Default` is not one on every target (it wraps
      * `java.util.Random`, an invertible LCG, on the JVM).
      */
-    private fun generateState(): String {
-        val bytes = secureRandomBytes(32)
+    private fun generateState(): String = hex(secureRandomBytes(32))
+
+    private fun hex(bytes: ByteArray): String {
         val sb = StringBuilder(bytes.size * 2)
         for (b in bytes) {
             val i = b.toInt() and 0xFF
@@ -1074,8 +1118,11 @@ internal class _DiscovrAuth(
 
     private companion object {
 
-        /** Lowercase hex alphabet used by [generateState]. */
+        /** Lowercase hex alphabet used by [hex]. */
         const val HEX_CHARS = "0123456789abcdef"
+
+        /** What the server accepts as a device id: 128 random bits, lowercase hex. */
+        val DEVICE_ID = Regex("^[0-9a-f]{32}$")
 
         /**
          * Re-mint a session token this many seconds before it actually expires. A

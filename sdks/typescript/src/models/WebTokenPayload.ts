@@ -42,6 +42,21 @@ export interface WebTokenPayload {
      * @memberof WebTokenPayload
      */
     codeVerifier: string;
+    /**
+     * A random, stable identifier for the device signing in: 128 bits, lowercase hex. The SDKs generate it once,
+     * keep it across sign-outs and send it for you.
+     * 
+     * Signing in again from the same device with the same `deviceId` replaces the credential that device already
+     * held, which stops working, rather than adding a second one beside it. Leave it out and every sign-in is a
+     * credential of its own. A value that is not 32 lowercase hex characters is rejected with `invalid-input`,
+     * before the code is spent.
+     * 
+     * Never copy it to another device: two devices sharing one `deviceId` sign each other out.
+     * 
+     * @type {string}
+     * @memberof WebTokenPayload
+     */
+    deviceId?: string;
 }
 
 /**
@@ -67,6 +82,7 @@ export function WebTokenPayloadFromJSONTyped(json: any, ignoreDiscriminator: boo
         'clientID': json['clientID'],
         'code': json['code'],
         'codeVerifier': json['codeVerifier'],
+        'deviceId': json['deviceId'] == null ? undefined : json['deviceId'],
     };
 }
 
@@ -84,6 +100,7 @@ export function WebTokenPayloadToJSONTyped(value?: WebTokenPayload | null, ignor
         'clientID': value['clientID'],
         'code': value['code'],
         'codeVerifier': value['codeVerifier'],
+        'deviceId': value['deviceId'],
     };
 }
 

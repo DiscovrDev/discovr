@@ -318,6 +318,8 @@ export class _DiscovrAuth {
 	private storageListener?: (event: StorageEvent) => void;
 	private mintInFlight: Promise<string> | null = null;
 	private activeDeviceCodePoll: (() => void) | null = null;
+	/** Stand-in for the stored device id when storage is unavailable; see {@link deviceIdField}. */
+	private memoryDeviceId: string | null = null;
 
 	constructor(clientID: string, config: AuthConfig = {}) {
 		this.clientID = clientID;
@@ -743,7 +745,7 @@ export class _DiscovrAuth {
 		const res = (await this.fetch(
 			"POST",
 			"/auth/web/token",
-			{ clientID: this.clientID, code, codeVerifier: verifier },
+			{ clientID: this.clientID, code, codeVerifier: verifier, ...this.deviceIdField() },
 			null,
 		)) as Record<string, unknown>;
 		if (typeof res.refreshToken !== "string" || res.refreshToken === "") {
@@ -759,6 +761,36 @@ export class _DiscovrAuth {
 
 	private get authRequestKey(): string {
 		return `${this.storagePrefix}auth_request`;
+	}
+
+	/**
+	 * This device's stable id, sent when a sign-in is redeemed so that signing in
+	 * again here replaces the previous credential instead of adding a second one.
+	 *
+	 * Generated on first use and kept under its own key, which sign-out never
+	 * touches: the point is that it outlives a sign-out. If storage is unavailable
+	 * (private browsing, a non-browser runtime) the id lives for this client's
+	 * lifetime only, which is the old behaviour: every sign-in is a new device.
+	 * Returned as a body fragment so a runtime with no secure random simply omits it.
+	 */
+	private deviceIdField(): { deviceId?: string } {
+		const key = `${this.storagePrefix}device_id`;
+		try {
+			const stored = localStorage.getItem(key);
+			if (stored && DEVICE_ID.test(stored)) return { deviceId: stored };
+			const created = generateDeviceId();
+			localStorage.setItem(key, created);
+			return { deviceId: created };
+		} catch {
+			try {
+				this.memoryDeviceId ??= generateDeviceId();
+				return { deviceId: this.memoryDeviceId };
+			} catch {
+				// No secure random either: sign in without an id. The only cost is
+				// that this sign-in cannot replace an earlier one from this device.
+				return {};
+			}
+		}
 	}
 
 	private storeAuthRequest(request: { state: string; verifier: string }): void {
@@ -945,7 +977,7 @@ export class _DiscovrAuth {
 				const r = (await this.fetch(
 					"POST",
 					`/auth/device-codes/${encodeURIComponent(result.deviceCode)}/poll`,
-					{},
+					this.deviceIdField(),
 					null,
 				)) as Record<string, unknown>;
 				// Stopped while the request was in flight: do not accept a token the
@@ -1485,6 +1517,18 @@ function generateState(): string {
 		throw new Error("[DiscovrAuth] Secure random is unavailable in this environment.");
 	}
 	const bytes = new Uint8Array(32);
+	crypto.getRandomValues(bytes);
+	return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** What the server accepts as a device id: 128 random bits, lowercase hex. */
+const DEVICE_ID = /^[0-9a-f]{32}$/;
+
+function generateDeviceId(): string {
+	if (typeof crypto === "undefined" || !crypto.getRandomValues) {
+		throw new Error("[DiscovrAuth] Secure random is unavailable in this environment.");
+	}
+	const bytes = new Uint8Array(16);
 	crypto.getRandomValues(bytes);
 	return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }

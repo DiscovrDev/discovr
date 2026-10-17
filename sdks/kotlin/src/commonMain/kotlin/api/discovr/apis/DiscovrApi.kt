@@ -28,6 +28,7 @@ import api.discovr.models.DemoSessionRequest
 import api.discovr.models.DemoSessionResponse
 import api.discovr.models.DeviceCodePayload
 import api.discovr.models.DeviceCodeResponse
+import api.discovr.models.DevicePollPayload
 import api.discovr.models.EditPlaybackPayload
 import api.discovr.models.GetProfilesResponse
 import api.discovr.models.GetRowItemsResponse
@@ -1512,15 +1513,15 @@ open class DiscovrApi : ApiClient {
      * Poll for auth token
      * The second step of the device code flow. Call this repeatedly after showing the user code or QR code.  While the user hasn&#39;t confirmed yet, you&#39;ll get &#x60;{ status: \&quot;pending\&quot;, interval }&#x60; — wait &#x60;interval&#x60; seconds and poll again. Once they approve, the response changes to &#x60;{ refreshToken, publicId, expiresAt }&#x60;. Store the &#x60;refreshToken&#x60; securely — it&#39;s your long-lived credential for all identity-tier calls.  **Polling interval:** the server sets it and repeats it in every pending answer; it grows the longer the code has been waiting, so always use the latest value. The SDKs do this for you. Stop polling when you receive a &#x60;refreshToken&#x60; or a &#x60;401&#x60; error.  A person can decline on their phone. Your next poll then returns &#x60;401&#x60; with &#x60;device-code-denied&#x60; straight away (and on every poll after, until the code expires), so you can say so on screen instead of waiting out the timeout. 
      * @param deviceCode The device code obtained from the request device code endpoint
+     * @param devicePollPayload Send your &#x60;deviceId&#x60; so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own.  (optional)
      * @return PollDeviceCode200Response
      */
     @Suppress("UNCHECKED_CAST")
-    open suspend fun pollDeviceCode(deviceCode: kotlin.String): HttpResponse<PollDeviceCode200Response> {
+    open suspend fun pollDeviceCode(deviceCode: kotlin.String, devicePollPayload: DevicePollPayload? = null): HttpResponse<PollDeviceCode200Response> {
 
         val localVariableAuthNames = listOf<String>()
 
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
+        val localVariableBody = devicePollPayload
 
         val localVariableQuery = mutableMapOf<String, List<String>>()
         val localVariableHeaders = mutableMapOf<String, String>()
@@ -1533,12 +1534,13 @@ open class DiscovrApi : ApiClient {
             requiresAuthentication = false,
         )
 
-        return request(
+        return jsonRequest(
             localVariableConfig,
             localVariableBody,
             localVariableAuthNames
         ).wrap()
     }
+
 
 
 

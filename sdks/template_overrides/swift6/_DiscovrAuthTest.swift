@@ -509,4 +509,93 @@ final class DiscovrAuthTest: XCTestCase {
         XCTAssertNil(session)
         await cleanUp(a, prefix: prefix)
     }
+
+    // MARK: - The device id
+    //
+    // It identifies the install so that signing in again replaces the previous credential. It must
+    // outlive a sign-out, and must be exactly what the server accepts (32 lowercase hex characters).
+
+    private func freshAuth(prefix: String) -> _DiscovrAuth {
+        _DiscovrAuth(clientID: "test-client-id", config: AuthConfig(storagePrefix: prefix))
+    }
+
+    func testTheDeviceIdIsWellFormedAndStable() async {
+        let prefix = "test_\(UUID().uuidString)_"
+        let a = freshAuth(prefix: prefix)
+
+        let first = await a.deviceId()
+        let second = await a.deviceId()
+
+        XCTAssertTrue(_DiscovrAuth.isDeviceId(first), first)
+        XCTAssertEqual(first, second)
+        await a.keychainSet("\(prefix)device_id", nil)
+    }
+
+    func testTheDeviceIdSurvivesARelaunchAndASignOut() async {
+        let prefix = "test_\(UUID().uuidString)_"
+        let a = freshAuth(prefix: prefix)
+        let first = await a.deviceId()
+
+        await a.acceptRefreshToken("rt_one")
+        await a.signOut()
+        let afterSignOut = await a.deviceId()
+        let relaunched = await freshAuth(prefix: prefix).deviceId()
+
+        XCTAssertEqual(afterSignOut, first)
+        XCTAssertEqual(relaunched, first)
+        await a.keychainSet("\(prefix)device_id", nil)
+    }
+
+    func testTheStoragePrefixSeparatesDeviceIds() async {
+        let one = "test_\(UUID().uuidString)_"
+        let other = "test_\(UUID().uuidString)_"
+        let a = freshAuth(prefix: one)
+        let b = freshAuth(prefix: other)
+
+        let idOne = await a.deviceId()
+        let idOther = await b.deviceId()
+
+        XCTAssertNotEqual(idOne, idOther)
+        await a.keychainSet("\(one)device_id", nil)
+        await b.keychainSet("\(other)device_id", nil)
+    }
+
+    func testAStoredValueThatIsNotAValidIdIsReplacedRatherThanSent() async {
+        let prefix = "test_\(UUID().uuidString)_"
+        let a = freshAuth(prefix: prefix)
+        await a.keychainSet("\(prefix)device_id", "not-an-id")
+
+        let id = await a.deviceId()
+
+        XCTAssertTrue(_DiscovrAuth.isDeviceId(id), id)
+        let stored = await a.keychainGet("\(prefix)device_id")
+        XCTAssertEqual(stored, id)
+        await a.keychainSet("\(prefix)device_id", nil)
+    }
+
+    func testOnlyLowercaseHexOfTheRightLengthIsADeviceId() {
+        XCTAssertTrue(_DiscovrAuth.isDeviceId(String(repeating: "a", count: 32)))
+        XCTAssertTrue(_DiscovrAuth.isDeviceId("0123456789abcdef0123456789abcdef"))
+        XCTAssertFalse(_DiscovrAuth.isDeviceId(String(repeating: "A", count: 32)))
+        XCTAssertFalse(_DiscovrAuth.isDeviceId(String(repeating: "a", count: 31)))
+        XCTAssertFalse(_DiscovrAuth.isDeviceId(String(repeating: "a", count: 33)))
+        XCTAssertFalse(_DiscovrAuth.isDeviceId(String(repeating: "g", count: 32)))
+        XCTAssertFalse(_DiscovrAuth.isDeviceId(""))
+    }
+
+    func testTheCodeIsRedeemedAndEachPollSentWithTheSameDeviceId() async {
+        let prefix = "test_\(UUID().uuidString)_"
+        let a = freshAuth(prefix: prefix)
+
+        let redeem = await a.redeemBody(code: "the-code", verifier: "the-verifier")
+        let poll = await a.pollBody()
+        let stored = await a.deviceId()
+
+        XCTAssertEqual(redeem["deviceId"], stored)
+        XCTAssertEqual(poll["deviceId"], stored)
+        XCTAssertEqual(redeem["clientID"], "test-client-id")
+        XCTAssertEqual(redeem["code"], "the-code")
+        XCTAssertEqual(redeem["codeVerifier"], "the-verifier")
+        await a.keychainSet("\(prefix)device_id", nil)
+    }
 }
