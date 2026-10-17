@@ -76,12 +76,10 @@ jobs:
         working-directory: sdks/typescript
         run: npm install --no-audit --no-fund
 
-      # NPM_TOKEN is only used for the very first publish, before a trusted publisher
-      # can be configured for the package. Delete the secret afterwards.
+      # No token: npm trusts this workflow (a trusted publisher on the package, matching
+      # DiscovrDev/discovr and release.yml) and signs the provenance statement itself.
       - name: Publish
         working-directory: sdks/typescript
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --provenance --access public --tag "${{ needs.verify.outputs.npm_tag }}"
 
   maven:
