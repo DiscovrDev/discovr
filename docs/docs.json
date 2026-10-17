@@ -99,7 +99,8 @@
 						"pages": [
 							"guides/reference/error-handling",
 							"guides/reference/security",
-							"guides/reference/branding"
+							"guides/reference/branding",
+							"guides/reference/data-attribution"
 						]
 					}
 				]
