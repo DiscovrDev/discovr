@@ -1023,7 +1023,7 @@ paths:
 
         Row IDs are opaque references — pass them straight back to `GET /pages/{pageId}/rows/{rowId}/items`. They keep working even if recommendations refresh while the user is scrolling, so a rail they've already opened stays readable to the end.
 
-        Pagination continues in the set of results it started with. Very occasionally that set is no longer available and you'll get `409 CURSOR_EXPIRED`; restart pagination on the same page ID.
+        Pagination continues in the set of results it started with, and only for as long as the user's recommendations haven't turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with `409 CURSOR_EXPIRED`: call `getPage` and `getRows` with no token on the same page ID and replace what you're showing with the result. Rows you already hold are not affected: `GET /pages/{pageId}/rows/{rowId}/items` keeps working for them.
 
         **Auth tier:** session.
       operationId: getRows
@@ -7220,7 +7220,7 @@ components:
                 error: SERVICE_UNAVAILABLE
     CursorExpired:
       description: |
-        Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid — start its pagination again from the beginning.
+        Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid. For rows this is what a recommendation turnover looks like: call `getPage` and `getRows` with no token and replace what you're showing, rather than merging the result into the old list. For a row's items it means the set was cleaned up; start that row's pagination again from the beginning.
       content:
         application/json:
           schema:

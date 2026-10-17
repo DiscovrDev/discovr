@@ -16,7 +16,9 @@ func handleAPICallErrors() async {
         // The user is signed out. Nothing else produces a 401 any more.
         showSignInUI()
     } catch ErrorResponse.error(409, _, _, _) {
-        // A pagination token outlived its results; the page id is still good.
+        // A pagination token is no longer usable, typically because the
+        // recommendations turned over. The page id is still good: reload the
+        // page (getPage + getRows, no token) and replace what you're showing.
         restartPagination()
     } catch ErrorResponse.error(429, _, _, _) {
         // Swift only: TypeScript and Kotlin throw a typed RateLimitedError.

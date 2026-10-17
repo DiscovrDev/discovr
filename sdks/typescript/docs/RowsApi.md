@@ -67,7 +67,7 @@ example().catch(console.error);
 | **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
-| **409** | Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid — start its pagination again from the beginning.  |  -  |
+| **409** | Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid. For rows this is what a recommendation turnover looks like: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token and replace what you\&#39;re showing, rather than merging the result into the old list. For a row\&#39;s items it means the set was cleaned up; start that row\&#39;s pagination again from the beginning.  |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
 | **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
@@ -134,7 +134,7 @@ example().catch(console.error);
 | **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
-| **409** | Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid — start its pagination again from the beginning.  |  -  |
+| **409** | Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid. For rows this is what a recommendation turnover looks like: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token and replace what you\&#39;re showing, rather than merging the result into the old list. For a row\&#39;s items it means the set was cleaned up; start that row\&#39;s pagination again from the beginning.  |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
 | **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
@@ -148,7 +148,7 @@ example().catch(console.error);
 
 List rows
 
-Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60;. They keep working even if recommendations refresh while the user is scrolling, so a rail they\&#39;ve already opened stays readable to the end.  Pagination continues in the set of results it started with. Very occasionally that set is no longer available and you\&#39;ll get &#x60;409 CURSOR_EXPIRED&#x60;; restart pagination on the same page ID.  **Auth tier:** session. 
+Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60;. They keep working even if recommendations refresh while the user is scrolling, so a rail they\&#39;ve already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user\&#39;s recommendations haven\&#39;t turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with &#x60;409 CURSOR_EXPIRED&#x60;: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token on the same page ID and replace what you\&#39;re showing with the result. Rows you already hold are not affected: &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60; keeps working for them.  **Auth tier:** session. 
 
 ### Example
 
@@ -200,7 +200,7 @@ example().catch(console.error);
 | **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
-| **409** | Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid — start its pagination again from the beginning.  |  -  |
+| **409** | Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid. For rows this is what a recommendation turnover looks like: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token and replace what you\&#39;re showing, rather than merging the result into the old list. For a row\&#39;s items it means the set was cleaned up; start that row\&#39;s pagination again from the beginning.  |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
 | **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |

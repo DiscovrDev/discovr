@@ -37,11 +37,11 @@ Check `row.type` to choose a layout; check each item’s `type` to render the ri
 
 <Tip>
 	Page IDs are permanent — a page/rows call never fails because the page "expired". If the rows
-	behind a page have turned over, [`getRows()`](/sdk-reference/rows/get-rows) just returns the new
-	ranking. The one thing that can go stale is a **pagination cursor** you've held a long time (`409
-	CURSOR_EXPIRED`) — re-call `getRows(pageId)` with no token to start over. Paging **row items** for
-	rows you already hold stays usable while you finish scrolling a rail. See
-	[Recommendations](/guides/recommendations).
+	behind a page have turned over, [`getRows()`](/sdk-reference/rows/get-rows) with no token just
+	returns the new ranking. What goes stale is a **rows pagination token**: after a turnover it's
+	refused with `409 CURSOR_EXPIRED`. Reload with `getPage(pageId)` and `getRows(pageId)`, replace
+	what you're showing, and drop the old row IDs. Paging **row items** for rows you already hold
+	stays usable while you finish scrolling a rail. See [Recommendations](/guides/recommendations).
 </Tip>
 
 ## `media` rows

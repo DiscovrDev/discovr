@@ -3,7 +3,7 @@ title: "onRecommendationsChanged()"
 description: "Subscribe to recommendation turnovers"
 ---
 
-Fires when the user's recommendations actually move, roughly every 30 minutes. Routine credential renewals don't fire it, so every call here means the rows behind your page IDs changed. Page IDs don't change, so refetch the page you're showing (getPage + getRows) rather than recreating it. Don't swap the rows out the instant it fires, though — a reader mid-scroll doesn't want the screen to jump. Flag the page stale and reload it on the user's next navigation. Unlike onSessionRefreshed() this doesn't fire on subscribe: it reports an event, not a state, so a new subscriber won't immediately refetch data it just loaded.
+Fires when the user's recommendations actually move, roughly every 30 minutes. Routine credential renewals don't fire it, so every call here means the rows behind your page IDs changed. Page IDs don't change, so refetch the page you're showing (getPage + getRows) rather than recreating it. Don't swap the rows out the instant it fires, though — a reader mid-scroll doesn't want the screen to jump. Flag the page stale and reload it on the user's next navigation. Stop requesting more rows with a token from before the turnover: getRows refuses it with 409 CURSOR_EXPIRED. Row items you already hold keep paging. Unlike onSessionRefreshed() this doesn't fire on subscribe: it reports an event, not a state, so a new subscriber won't immediately refetch data it just loaded.
 
 ## Signature
 

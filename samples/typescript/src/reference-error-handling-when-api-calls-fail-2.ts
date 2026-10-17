@@ -18,8 +18,9 @@ export async function sample(client: DiscovrClient) {
 				await showSignInUI();
 				break;
 			case 409:
-				// A pagination token outlived the results it pointed at. The page id is
-				// still good — start its pagination again.
+				// A pagination token is no longer usable, typically because the
+				// recommendations turned over. The page id is still good: reload the
+				// page (getPage + getRows, no token) and replace what you're showing.
 				await restartPagination();
 				break;
 			case 403:

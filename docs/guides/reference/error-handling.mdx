@@ -12,7 +12,7 @@ flowchart TD
     E[Error caught] --> C1{Error type}
     C1 -->|ClientNotFoundError| A1["Check your Client ID\nin DiscovrClient()"]
     C1 -->|TokenInvalidError| A2["Prompt: sign in again"]
-    C1 -->|409 CURSOR_EXPIRED| A3["Restart pagination\non the same page id"]
+    C1 -->|409 CURSOR_EXPIRED| A3["Reload the page: getPage +\ngetRows, same page id"]
     C1 -->|Network error| A4["Show retry button\nCheck connectivity"]
     C1 -->|Other DiscovrError| A5["Log err.code + message\nShow generic 'try again'"]
 ```
@@ -173,8 +173,9 @@ try {
 			await showSignInUI();
 			break;
 		case 409:
-			// A pagination token outlived the results it pointed at. The page id is
-			// still good — start its pagination again.
+			// A pagination token is no longer usable, typically because the
+			// recommendations turned over. The page id is still good: reload the
+			// page (getPage + getRows, no token) and replace what you're showing.
 			await restartPagination();
 			break;
 		case 403:
@@ -223,7 +224,9 @@ func handleAPICallErrors() async {
         // The user is signed out. Nothing else produces a 401 any more.
         showSignInUI()
     } catch ErrorResponse.error(409, _, _, _) {
-        // A pagination token outlived its results; the page id is still good.
+        // A pagination token is no longer usable, typically because the
+        // recommendations turned over. The page id is still good: reload the
+        // page (getPage + getRows, no token) and replace what you're showing.
         restartPagination()
     } catch ErrorResponse.error(429, _, _, _) {
         // Swift only: TypeScript and Kotlin throw a typed RateLimitedError.
@@ -268,15 +271,15 @@ Sign-in failures arrive as **typed error classes** you can catch by type. Data-c
 
 **Data calls — branch on status:**
 
-| Status        | What it means                                                                         | What to do                                                                      |
-| ------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `401`         | The user is signed out. Nothing else produces one.                                    | Show the sign-in UI.                                                            |
-| `403`         | The wrong kind of credential was sent — an SDK bug.                                   | "Internal error." [Report it](https://discoverapi.userjot.com/) if it persists. |
-| `404`         | The page or row doesn't exist.                                                        | Go back to a known-good page.                                                   |
-| `409`         | Your pagination cursor outlived the results it pointed at. The page ID is still fine. | Start that page's pagination again from the beginning.                          |
-| `429`         | Rate limited. **TypeScript and Kotlin throw `RateLimitedError` instead of this.**     | Back off by `retryInSeconds`, then retry.                                       |
-| `500` / `503` | Discovr had a problem.                                                                | "Something went wrong. Try again."                                              |
-| No status     | The request never left the device.                                                    | "Check your connection and try again."                                          |
+| Status        | What it means                                                                       | What to do                                                                      |
+| ------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `401`         | The user is signed out. Nothing else produces one.                                  | Show the sign-in UI.                                                            |
+| `403`         | The wrong kind of credential was sent — an SDK bug.                                 | "Internal error." [Report it](https://discoverapi.userjot.com/) if it persists. |
+| `404`         | The page or row doesn't exist.                                                      | Go back to a known-good page.                                                   |
+| `409`         | Your pagination token is no longer usable, usually after a recommendation turnover. | Call `getPage` and `getRows` with no token, and replace what you're showing.    |
+| `429`         | Rate limited. **TypeScript and Kotlin throw `RateLimitedError` instead of this.**   | Back off by `retryInSeconds`, then retry.                                       |
+| `500` / `503` | Discovr had a problem.                                                              | "Something went wrong. Try again."                                              |
+| No status     | The request never left the device.                                                  | "Check your connection and try again."                                          |
 
 ## SDK error recovery
 
@@ -285,9 +288,9 @@ SDK automatically handles:
 - **Token refresh:** Before token expires, SDK mints a fresh one. Transparent to your code.
 - **Retry logic:** If token expires mid-request, SDK refreshes and retries. You see no errors.
 
-A `409 CURSOR_EXPIRED` is the one data-call failure the SDK doesn't recover from for you — restart
-that page's pagination from the beginning (see the table above and
-[Recommendations](/guides/recommendations)).
+A `409 CURSOR_EXPIRED` is the one data-call failure the SDK doesn't recover from for you — reload
+that page with `getPage` and `getRows` (no token) and replace what you're showing (see the table
+above and [Recommendations](/guides/recommendations)).
 
 You mainly need to catch:
 

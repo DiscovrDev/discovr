@@ -93,9 +93,7 @@ fires: a user reading row 12 doesn't want the screen to jump. Instead:
 
 ## Pagination across a refresh
 
-Pagination continues in the set of results it started with, so a user scrolling when their recommendations turn over doesn't get a differently-ordered list spliced in underneath them. Their next fresh page load picks up the new ordering.
-
-Very occasionally a token outlives the results it points at — after a day, say, or an app left open overnight. That returns `409 CURSOR_EXPIRED`:
+A `nextPageToken` from [`getRows()`](/sdk-reference/rows/get-rows) only continues inside the recommendations it came from. Once they turn over, the token is refused with `409 CURSOR_EXPIRED` — the same error you'd get if the token had simply gone stale after a day. Either way the fix is the same: reload the page, with the same page ID.
 
 {/* sample: recommendations-pagination-across-a-refresh */}
 
@@ -106,8 +104,11 @@ try {
 	return await client.getRows(pageId, { nextPageToken: token });
 } catch (err) {
 	if (err instanceof ResponseError && err.response.status === 409) {
-		// The page is fine — only our position in it expired.
-		return await client.getRows(pageId);
+		// The recommendations turned over, so this token is done. The page ID is
+		// still good: reload the hero and the first rows, and replace what you
+		// were showing. Don't append them to the old list.
+		const [page, rows] = await Promise.all([client.getPage(pageId), client.getRows(pageId)]);
+		return { page, rows };
 	}
 	throw err;
 }
@@ -118,20 +119,41 @@ try {
     client.getRows(pageId, nextPageToken = token)
 } catch (err: DiscovrException) {
     if (err.statusCode != 409) throw err
-    client.getRows(pageId)
+    // The recommendations turned over, so this token is done. The page ID is
+    // still good: reload the hero and the first rows, and replace what you
+    // were showing. Don't append them to the old list.
+    val page = client.getPage(pageId)
+    val rows = client.getRows(pageId)
 }
 ```
 
 ```swift Swift
 do {
-    return try await client.getRows(pageId: pageId, nextPageToken: token)
+    _ = try await client.getRows(pageId: pageId, nextPageToken: token)
 } catch ErrorResponse.error(409, _, _, _) {
-    // The page is fine — only our position in it expired.
-    return try await client.getRows(pageId: pageId)
+    // The recommendations turned over, so this token is done. The page ID is
+    // still good: reload the hero and the first rows, and replace what you
+    // were showing. Don't append them to the old list.
+    let page = try await client.getPage(pageId: pageId)
+    let rows = try await client.getRows(pageId: pageId)
 }
 ```
 
 </CodeGroup>
+
+On a `409`, or when you apply a turnover:
+
+1. Call [`getPage(pageId)`](/sdk-reference/pages/get-page) for the hero and [`getRows(pageId)`](/sdk-reference/rows/get-rows) with no token for the first rows.
+2. **Replace** what you're showing with the result. Don't append it to the old list.
+3. Drop the old row IDs, and any row items you cached against them. New rows have new IDs.
+
+<Note>
+	Paging **row items** is unaffected. A rail the user already has open stays readable to the end
+	after a turnover, so don't tear it down mid-scroll. Only
+	[`getRows()`](/sdk-reference/rows/get-rows) needs the reload.
+</Note>
+
+You'll usually know before the `409`: [`onRecommendationsChanged`](/sdk-reference/authentication/on-recommendations-changed) has already fired. Once you've flagged the page stale, stop requesting more rows and end the list with a refresh button. Tapping it reloads the page as above and takes the user back to the top.
 
 ## Profile switching
 

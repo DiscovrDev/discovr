@@ -35,7 +35,7 @@ NotFound:
 
 CursorExpired:
   description: |
-    Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid — start its pagination again from the beginning.
+    Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid. For rows this is what a recommendation turnover looks like: call `getPage` and `getRows` with no token and replace what you're showing, rather than merging the result into the old list. For a row's items it means the set was cleaned up; start that row's pagination again from the beginning.
   content:
     application/json:
       schema:
