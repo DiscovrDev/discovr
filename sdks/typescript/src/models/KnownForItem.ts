@@ -65,7 +65,7 @@ export interface KnownForItem {
      * @type {string}
      * @memberof KnownForItem
      */
-    overview?: string;
+    overview?: string | null;
     /**
      * Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
      * @type {{ [key: string]: string; }}
@@ -83,13 +83,13 @@ export interface KnownForItem {
      * @type {Date}
      * @memberof KnownForItem
      */
-    releaseDate?: Date;
+    releaseDate?: Date | null;
     /**
      * First air date, for TV shows, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof KnownForItem
      */
-    firstAirDate?: Date;
+    firstAirDate?: Date | null;
     /**
      * Average audience rating out of 10.
      * @type {number}

@@ -48,25 +48,25 @@ export interface FilterSpec {
      * @type {number}
      * @memberof FilterSpec
      */
-    withRuntimeGte?: number;
+    withRuntimeGte?: number | null;
     /**
      * Maximum runtime in minutes
      * @type {number}
      * @memberof FilterSpec
      */
-    withRuntimeLte?: number;
+    withRuntimeLte?: number | null;
     /**
      * Earliest release date (YYYY-MM-DD)
      * @type {Date}
      * @memberof FilterSpec
      */
-    withReleaseDateGte?: Date;
+    withReleaseDateGte?: Date | null;
     /**
      * Latest release date (YYYY-MM-DD)
      * @type {Date}
      * @memberof FilterSpec
      */
-    withReleaseDateLte?: Date;
+    withReleaseDateLte?: Date | null;
     /**
      * Streaming provider IDs
      * @type {Array<string>}

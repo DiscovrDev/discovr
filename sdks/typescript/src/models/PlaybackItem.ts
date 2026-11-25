@@ -69,7 +69,7 @@ export interface PlaybackItem {
      * @type {string}
      * @memberof PlaybackItem
      */
-    episodeTitle?: string;
+    episodeTitle?: string | null;
     /**
      * Playback progress percentage (0–100).
      * @type {number}

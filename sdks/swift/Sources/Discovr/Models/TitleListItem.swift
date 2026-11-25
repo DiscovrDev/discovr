@@ -29,7 +29,6 @@ public struct TitleListItem: Sendable, Codable, ParameterConvertible, Hashable {
     public var posterPath: [String: String]
     /** Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     public var backdropPath: [String: String]
-    /** The profile's rating for this title, or `null` if unrated. */
     public var rating: Rating?
     /** Whether this title is on the profile's watchlist. */
     public var watchlist: Bool

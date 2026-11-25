@@ -45,6 +45,8 @@ public final class DiscovrClient: _DiscovrClientBase, @unchecked Sendable {
     /// Clears cached page data when the recommendations turn over — not on
     /// every session token. Held so it can be cancelled from `deinit`.
     private var cacheClearTask: Task<Void, Never>?
+    /// Wipes cached data without retrying if a forced sign-out occurs.
+    private var authSignOutCacheTask: Task<Void, Never>?
 
     /// Create a fully-initialized client.
     ///
@@ -84,7 +86,7 @@ public final class DiscovrClient: _DiscovrClientBase, @unchecked Sendable {
         /// on the profile they last used. See ``AuthConfig/rememberProfile``.
         rememberProfile: Bool = false
     ) async {
-        _internalAuth = _DiscovrAuth(
+        let auth = _DiscovrAuth(
             clientID: clientId,
             config: AuthConfig(
                 basePath: basePath,
@@ -96,26 +98,53 @@ public final class DiscovrClient: _DiscovrClientBase, @unchecked Sendable {
                 rememberProfile: rememberProfile
             )
         )
-        _internalCache = _DiscovrCache(enabled: cache)
+        _internalAuth = auth
+        _internalCache = _DiscovrCache(
+            enabled: cache,
+            retryScope: { [weak auth] in
+                await auth?.activeRetryScope
+            }
+        )
         super.init()
         // Restore persisted tokens now that the actor is fully constructed.
         // Must happen after super.init() so self is fully initialized.
         await _internalAuth.restore()
 
         // Clear cached page data when the *recommendations* turn over, not on
-        // every session mint. Clearing per-mint threw away page data that was
-        // still perfectly valid every time a credential was renewed.
+        // every session mint. `clearForSnapshot` skips any buffered event for a
+        // snapshot already cleared synchronously by `selectProfile`/`switchProfile`.
         let sessionStream = await _internalAuth.snapshotChangeStream()
+        let initialProfileId = await _internalAuth.getActiveProfileId()
         let cache = _internalCache
         cacheClearTask = Task {
+            var lastProfileId = initialProfileId
             for await _ in sessionStream {
-                await cache.clear()
+                let currentProfileId = await auth.getActiveProfileId()
+                let sameProfile = currentProfileId != nil && currentProfileId == lastProfileId
+                lastProfileId = currentProfileId
+                let snapshotId = await auth.currentSnapshotId
+                await cache.clearForSnapshot(snapshotId, retryable: sameProfile)
+            }
+        }
+
+        // Wipe cached data without retrying if a forced sign-out occurs (e.g.
+        // expired/revoked refresh token during 401 recovery).
+        let authStream = await _internalAuth.authStateStream()
+        let initialSignedIn = await _internalAuth.isSignedIn
+        authSignOutCacheTask = Task {
+            var wasSignedIn = initialSignedIn
+            for await state in authStream {
+                if wasSignedIn && !state.signedIn {
+                    await cache.clear(retryable: false)
+                }
+                wasSignedIn = state.signedIn
             }
         }
     }
 
     deinit {
         cacheClearTask?.cancel()
+        authSignOutCacheTask?.cancel()
     }
 
     // ── Auth pass-throughs ────────────────────────────────────────────────────
@@ -227,12 +256,10 @@ public final class DiscovrClient: _DiscovrClientBase, @unchecked Sendable {
      */
     public func selectProfile(profileId: String) async throws {
         try await _auth.selectProfile(profileId)
-        // Clear synchronously here too, don't rely solely on cacheClearTask —
-        // it consumes sessionStateStream on its own Task, so there's no
-        // guarantee it has run by the time this call returns. This closes
-        // that window for the common explicit-switch case; cacheClearTask
-        // remains the backstop for turnovers that don't go through here.
-        await _internalCache.clear()
+        // Clear synchronously (non-retryable) and record the snapshot ID so
+        // `cacheClearTask` does not fire a duplicate delayed clear right after
+        // this call returns, and in-flight calls from a prior profile never retry.
+        await _internalCache.clearAndMarkSnapshot(await _internalAuth.currentSnapshotId, retryable: false)
     }
 
     /**
@@ -241,16 +268,15 @@ public final class DiscovrClient: _DiscovrClientBase, @unchecked Sendable {
      */
     public func switchProfile(profileId: String) async throws {
         try await _auth.switchProfile(profileId)
-        await _internalCache.clear()
+        await _internalCache.clearAndMarkSnapshot(await _internalAuth.currentSnapshotId, retryable: false)
     }
 
     /** Revoke the current device's refresh token and clear Keychain state. */
     public func signOut() async {
-        // Clear first: local auth state is wiped synchronously inside
-        // _auth.signOut() before it awaits the server-side revocation call, so
-        // a slow/hanging revocation would otherwise leave stale cache entries
-        // around for longer than necessary even though nothing can serve them.
-        await _cache.clear()
+        // Clear first with retryable: false: local auth state is wiped inside
+        // _auth.signOut() before it awaits the server-side revocation call, and
+        // in-flight fetches must not retry into a signed-out session.
+        await _cache.clear(retryable: false)
         await _auth.signOut()
     }
 
@@ -289,6 +315,203 @@ public final class DiscovrClient: _DiscovrClientBase, @unchecked Sendable {
     public func getHistory(nextPageToken: String? = nil, limit: Int? = nil) async throws -> TitleListResponse {
         try await getTitles(watched: true, nextPageToken: nextPageToken, limit: limit)
     }
+
+    // ── Playback tracker (A18) ────────────────────────────────────────────────
+
+    /**
+     Create a percentage-first ``PlaybackTracker`` for a movie or TV episode
+     identified by raw media ID or `ref`.
+     */
+    public func trackPlayback(
+        _ mediaId: String,
+        tv: EpisodeRef? = nil,
+        after previous: PlaybackTracker? = nil,
+        onError: (@Sendable (Error) -> Void)? = nil,
+        onCompleted: (@Sendable (ScrobbleResponse) -> Void)? = nil,
+        heartbeatInterval: TimeInterval = PlaybackTracker.defaultHeartbeatInterval
+    ) -> PlaybackTracker {
+        PlaybackTracker(
+            mediaRefOrId: mediaId,
+            tv: tv,
+            after: previous,
+            onError: onError,
+            onCompleted: onCompleted,
+            heartbeatInterval: heartbeatInterval,
+            send: { [self] id, progress, episodeRef in
+                try await self.scrobble(mediaId: id, progress: progress, tv: episodeRef)
+            }
+        )
+    }
+
+    /**
+     Create a percentage-first ``PlaybackTracker`` from any title item
+     (`MediaItem`, `TitleListItem`, `PlaybackItem`, `SearchResult`,
+     `SimilarResult`, `KnownForItem`), preserving its `ref`.
+
+     When passed a ``PlaybackItem`` with `season` and `episode` and `tv` is
+     omitted, `tv` automatically defaults to `EpisodeRef(season:episode:)`.
+     */
+    public func trackPlayback(
+        _ item: any DiscovrTitleRef,
+        tv: EpisodeRef? = nil,
+        after previous: PlaybackTracker? = nil,
+        onError: (@Sendable (Error) -> Void)? = nil,
+        onCompleted: (@Sendable (ScrobbleResponse) -> Void)? = nil,
+        heartbeatInterval: TimeInterval = PlaybackTracker.defaultHeartbeatInterval
+    ) -> PlaybackTracker {
+        let resolvedTv: EpisodeRef?
+        if let tv {
+            resolvedTv = tv
+        } else if let playback = item as? PlaybackItem,
+                  let season = playback.season,
+                  let episode = playback.episode {
+            resolvedTv = EpisodeRef(season: season, episode: episode)
+        } else {
+            resolvedTv = nil
+        }
+        return trackPlayback(
+            item.refOrId,
+            tv: resolvedTv,
+            after: previous,
+            onError: onError,
+            onCompleted: onCompleted,
+            heartbeatInterval: heartbeatInterval
+        )
+    }
+
+    // ── Item-taking overloads (A16) ───────────────────────────────────────────
+    // Accept item/tile models directly so attribution via `refOrId` is
+    // automatic while keeping every labeled String signature intact for deep links.
+
+    public func getMedia(_ item: any DiscovrTitleRef, bypassCache: Bool = false) async throws -> MediaResponse {
+        try await getMedia(mediaId: item.refOrId, bypassCache: bypassCache)
+    }
+
+    public func getMediaAssets(_ item: any DiscovrTitleRef, bypassCache: Bool = false) async throws -> MediaAssetsResponse {
+        try await getMediaAssets(mediaId: item.refOrId, bypassCache: bypassCache)
+    }
+
+    public func getSimilarRecommendations(
+        _ item: any DiscovrTitleRef,
+        language: String? = nil,
+        page: Int? = nil,
+        bypassCache: Bool = false
+    ) async throws -> SimilarResponse {
+        try await getSimilarRecommendations(mediaId: item.refOrId, language: language, page: page, bypassCache: bypassCache)
+    }
+
+    public func getSeasonDetails(
+        _ item: any DiscovrTitleRef,
+        seasonNumber: Int,
+        language: String? = nil,
+        bypassCache: Bool = false
+    ) async throws -> SeasonDetailsResponse {
+        try await getSeasonDetails(mediaId: item.refOrId, seasonNumber: seasonNumber, language: language, bypassCache: bypassCache)
+    }
+
+    public func getTitleState(_ item: any DiscovrTitleRef, providers: Bool? = false) async throws -> TitleState {
+        try await getTitleState(mediaId: item.refOrId, providers: providers)
+    }
+
+    public func getSeasonState(_ item: any DiscovrTitleRef, seasonNumber: Int) async throws -> SeasonState {
+        try await getSeasonState(mediaId: item.refOrId, seasonNumber: seasonNumber)
+    }
+
+    @discardableResult
+    public func setRating(_ item: any DiscovrTitleRef, value: Rating) async throws -> TitleState {
+        try await setRating(mediaId: item.refOrId, value: value)
+    }
+
+    @discardableResult
+    public func clearRating(_ item: any DiscovrTitleRef) async throws -> TitleState {
+        try await clearRating(mediaId: item.refOrId)
+    }
+
+    @discardableResult
+    public func addToWatchlist(_ item: any DiscovrTitleRef) async throws -> TitleState {
+        try await addToWatchlist(mediaId: item.refOrId)
+    }
+
+    @discardableResult
+    public func removeFromWatchlist(_ item: any DiscovrTitleRef) async throws -> TitleState {
+        try await removeFromWatchlist(mediaId: item.refOrId)
+    }
+
+    @discardableResult
+    public func markWatched(
+        _ item: any DiscovrTitleRef,
+        season: Int? = nil,
+        episode: Int? = nil
+    ) async throws -> TitleState {
+        try await markWatched(mediaId: item.refOrId, season: season, episode: episode)
+    }
+
+    @discardableResult
+    public func markUnwatched(
+        _ item: any DiscovrTitleRef,
+        season: Int? = nil,
+        episode: Int? = nil
+    ) async throws -> TitleState {
+        try await markUnwatched(mediaId: item.refOrId, season: season, episode: episode)
+    }
+
+    @discardableResult
+    public func deletePlaybackItem(_ item: any DiscovrTitleRef) async throws -> SuccessMessage {
+        try await deletePlaybackItem(mediaId: item.refOrId)
+    }
+
+    @discardableResult
+    public func scrobble(
+        _ item: any DiscovrTitleRef,
+        progress: Double,
+        tv: EpisodeRef? = nil
+    ) async throws -> ScrobbleResponse {
+        try await scrobble(mediaId: item.refOrId, progress: progress, tv: tv)
+    }
+
+    public func getPage(_ tile: any DiscovrPageRef, bypassCache: Bool = false) async throws -> Page {
+        try await getPage(pageId: tile.refOrId, bypassCache: bypassCache)
+    }
+
+    public func getRows(
+        _ tile: any DiscovrPageRef,
+        nextPageToken: String? = nil,
+        limit: Int? = nil,
+        bypassCache: Bool = false
+    ) async throws -> GetRowsResponse {
+        try await getRows(pageId: tile.refOrId, nextPageToken: nextPageToken, limit: limit, bypassCache: bypassCache)
+    }
+
+    public func getRow(
+        _ tile: any DiscovrPageRef,
+        rowId: String,
+        bypassCache: Bool = false
+    ) async throws -> Row {
+        try await getRow(pageId: tile.refOrId, rowId: rowId, bypassCache: bypassCache)
+    }
+
+    public func getRowItems(
+        _ tile: any DiscovrPageRef,
+        rowId: String,
+        nextPageToken: String? = nil,
+        limit: Int? = nil,
+        bypassCache: Bool = false
+    ) async throws -> GetRowItemsResponse {
+        try await getRowItems(pageId: tile.refOrId, rowId: rowId, nextPageToken: nextPageToken, limit: limit, bypassCache: bypassCache)
+    }
+}
+
+/// Any Discovr title model carrying an `id` and optional `ref`
+/// (`MediaItem`, `TitleListItem`, `PlaybackItem`, `SearchResult`,
+/// `SimilarResult`, `KnownForItem`).
+public protocol DiscovrTitleRef: Sendable {
+    var refOrId: String { get }
+}
+
+/// Any Discovr navigation or provider tile linking to a page
+/// (`NavigationItem`, `ProviderItem`).
+public protocol DiscovrPageRef: Sendable {
+    var refOrId: String { get }
 }
 
 
@@ -315,40 +538,56 @@ public extension MediaItem {
     var refOrId: String { ref ?? id }
 }
 
+extension MediaItem: DiscovrTitleRef {}
+
 public extension SearchResult {
     /// See ``MediaItem/refOrId``.
     var refOrId: String { ref ?? id }
 }
+
+extension SearchResult: DiscovrTitleRef {}
 
 public extension NavigationItem {
     /// See ``MediaItem/refOrId``.
     var refOrId: String { ref ?? pageId }
 }
 
+extension NavigationItem: DiscovrPageRef {}
+
 public extension ProviderItem {
     /// See ``MediaItem/refOrId``.
     var refOrId: String { ref ?? pageId }
 }
+
+extension ProviderItem: DiscovrPageRef {}
 
 public extension SimilarResult {
     /// See ``MediaItem/refOrId``.
     var refOrId: String { ref ?? id }
 }
 
+extension SimilarResult: DiscovrTitleRef {}
+
 public extension KnownForItem {
     /// See ``MediaItem/refOrId``.
     var refOrId: String { ref ?? id }
 }
+
+extension KnownForItem: DiscovrTitleRef {}
 
 public extension TitleListItem {
     /// See ``MediaItem/refOrId``.
     var refOrId: String { ref ?? id }
 }
 
+extension TitleListItem: DiscovrTitleRef {}
+
 public extension PlaybackItem {
     /// See ``MediaItem/refOrId``.
     var refOrId: String { ref ?? id }
 }
+
+extension PlaybackItem: DiscovrTitleRef {}
 
 /**
  The plain id behind a `ref`, or the id itself if that's what you were given.

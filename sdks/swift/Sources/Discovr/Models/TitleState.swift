@@ -19,7 +19,6 @@ public struct TitleState: Sendable, Codable, ParameterConvertible, Hashable {
     public var mediaId: String
     /** Whether this title is a movie or a TV show. */
     public var mediaType: MediaType
-    /** The profile's rating (`liked`, `disliked`, `super_liked`), or `null` if unrated. */
     public var rating: Rating?
     /** Whether the title is on the profile's watchlist. */
     public var watchlist: Bool
@@ -33,7 +32,6 @@ public struct TitleState: Sendable, Codable, ParameterConvertible, Hashable {
     public var episodes: [String: [Int]]?
     /** Number of completed plays (of the movie or of episodes). */
     public var plays: Int
-    /** Live resume position if the viewer is currently mid-watch, or `null` otherwise. */
     public var playback: TitlePlayback?
     /** Streaming services where this title is available, filtered to the account's selected providers. Present only when `providers=true` is passed to `getTitleState`. */
     public var providers: [ProviderInfo]?

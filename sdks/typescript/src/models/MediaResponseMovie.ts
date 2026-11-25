@@ -56,7 +56,7 @@ export interface MediaResponseMovie {
      * @type {string}
      * @memberof MediaResponseMovie
      */
-    overview?: string;
+    overview?: string | null;
     /**
      * Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
      * @type {{ [key: string]: string; }}
@@ -74,13 +74,13 @@ export interface MediaResponseMovie {
      * @type {Date}
      * @memberof MediaResponseMovie
      */
-    releaseDate?: Date;
+    releaseDate?: Date | null;
     /**
      * Length in whole minutes, or `null` when unknown.
      * @type {number}
      * @memberof MediaResponseMovie
      */
-    runtime?: number;
+    runtime?: number | null;
     /**
      * Average audience rating out of 10.
      * @type {number}
@@ -110,7 +110,7 @@ export interface MediaResponseMovie {
      * @type {string}
      * @memberof MediaResponseMovie
      */
-    tagline?: string;
+    tagline?: string | null;
     /**
      * Release status, such as `Released`, `In Production`, or `Post Production`.
      * @type {string}
@@ -134,13 +134,13 @@ export interface MediaResponseMovie {
      * @type {string}
      * @memberof MediaResponseMovie
      */
-    homepage?: string;
+    homepage?: string | null;
     /**
      * IMDb identifier, for linking out to IMDb.
      * @type {string}
      * @memberof MediaResponseMovie
      */
-    imdbId?: string;
+    imdbId?: string | null;
 }
 
 /**

@@ -530,6 +530,14 @@ export class _DiscovrAuth {
 	}
 
 	/**
+	 * Internal: current recommendation snapshot ID, used by `DiscovrClient`
+	 * to avoid duplicate cache clears after `selectProfile`/`switchProfile`.
+	 */
+	public _getSnapshotId(): string | null {
+		return this.snapshotId;
+	}
+
+	/**
 	 * Revoke this device's refresh token server-side and clear local state.
 	 * Best-effort — local state is always cleared even if the network call
 	 * fails.

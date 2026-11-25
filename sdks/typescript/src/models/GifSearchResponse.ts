@@ -38,7 +38,7 @@ export interface GifSearchResponse {
      * @type {string}
      * @memberof GifSearchResponse
      */
-    next?: string;
+    next?: string | null;
 }
 
 /**

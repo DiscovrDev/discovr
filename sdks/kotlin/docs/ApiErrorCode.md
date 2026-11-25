@@ -4,75 +4,75 @@
 ## Enum
 
 
-    * `notMinusFound` (value: `"not-found"`)
+    * `notFound` (value: `"not-found"`)
 
     * `duplicate` (value: `"duplicate"`)
 
-    * `invalidMinusInput` (value: `"invalid-input"`)
+    * `invalidInput` (value: `"invalid-input"`)
 
-    * `permissionMinusDenied` (value: `"permission-denied"`)
+    * `permissionDenied` (value: `"permission-denied"`)
 
-    * `methodMinusNotMinusAllowed` (value: `"method-not-allowed"`)
+    * `methodNotAllowed` (value: `"method-not-allowed"`)
 
-    * `internalMinusError` (value: `"internal-error"`)
+    * `internalError` (value: `"internal-error"`)
 
-    * `dataMinusIntegrity` (value: `"data-integrity"`)
+    * `dataIntegrity` (value: `"data-integrity"`)
 
-    * `upstreamMinusUnavailable` (value: `"upstream-unavailable"`)
+    * `upstreamUnavailable` (value: `"upstream-unavailable"`)
 
-    * `serviceMinusUnavailable` (value: `"service-unavailable"`)
+    * `serviceUnavailable` (value: `"service-unavailable"`)
 
-    * `demoMinusUnavailable` (value: `"demo-unavailable"`)
+    * `demoUnavailable` (value: `"demo-unavailable"`)
 
-    * `directMinusAccessMinusDenied` (value: `"direct-access-denied"`)
+    * `directAccessDenied` (value: `"direct-access-denied"`)
 
-    * `rateMinusLimited` (value: `"rate-limited"`)
+    * `rateLimited` (value: `"rate-limited"`)
 
-    * `profileMinusNotMinusFound` (value: `"profile-not-found"`)
+    * `profileNotFound` (value: `"profile-not-found"`)
 
-    * `cursorMinusExpired` (value: `"cursor-expired"`)
+    * `cursorExpired` (value: `"cursor-expired"`)
 
-    * `sessionMinusExpired` (value: `"session-expired"`)
+    * `sessionExpired` (value: `"session-expired"`)
 
-    * `sessionMinusAlreadyMinusConsumed` (value: `"session-already-consumed"`)
+    * `sessionAlreadyConsumed` (value: `"session-already-consumed"`)
 
-    * `sessionMinusNotMinusFound` (value: `"session-not-found"`)
+    * `sessionNotFound` (value: `"session-not-found"`)
 
-    * `deviceMinusCodeMinusExpired` (value: `"device-code-expired"`)
+    * `deviceCodeExpired` (value: `"device-code-expired"`)
 
-    * `deviceMinusCodeMinusAlreadyMinusConsumed` (value: `"device-code-already-consumed"`)
+    * `deviceCodeAlreadyConsumed` (value: `"device-code-already-consumed"`)
 
-    * `deviceMinusCodeMinusDenied` (value: `"device-code-denied"`)
+    * `deviceCodeDenied` (value: `"device-code-denied"`)
 
-    * `deviceMinusCodeMinusBusy` (value: `"device-code-busy"`)
+    * `deviceCodeBusy` (value: `"device-code-busy"`)
 
-    * `deviceMinusCodeMinusNotMinusFound` (value: `"device-code-not-found"`)
+    * `deviceCodeNotFound` (value: `"device-code-not-found"`)
 
-    * `tokenMinusInvalid` (value: `"token-invalid"`)
+    * `tokenInvalid` (value: `"token-invalid"`)
 
-    * `tokenMinusExpired` (value: `"token-expired"`)
+    * `tokenExpired` (value: `"token-expired"`)
 
-    * `wrongMinusTokenMinusKind` (value: `"wrong-token-kind"`)
+    * `wrongTokenKind` (value: `"wrong-token-kind"`)
 
-    * `clientMinusNotMinusFound` (value: `"client-not-found"`)
+    * `clientNotFound` (value: `"client-not-found"`)
 
-    * `clientMinusMismatch` (value: `"client-mismatch"`)
+    * `clientMismatch` (value: `"client-mismatch"`)
 
-    * `redirectMinusUriMinusNotMinusRegistered` (value: `"redirect-uri-not-registered"`)
+    * `redirectUriNotRegistered` (value: `"redirect-uri-not-registered"`)
 
-    * `redirectMinusUriMinusInvalid` (value: `"redirect-uri-invalid"`)
+    * `redirectUriInvalid` (value: `"redirect-uri-invalid"`)
 
-    * `openerMinusOriginMinusNotMinusAllowed` (value: `"opener-origin-not-allowed"`)
+    * `openerOriginNotAllowed` (value: `"opener-origin-not-allowed"`)
 
-    * `codeMinusChallengeMinusRequired` (value: `"code-challenge-required"`)
+    * `codeChallengeRequired` (value: `"code-challenge-required"`)
 
-    * `codeMinusChallengeMinusInvalid` (value: `"code-challenge-invalid"`)
+    * `codeChallengeInvalid` (value: `"code-challenge-invalid"`)
 
-    * `codeMinusVerifierMinusInvalid` (value: `"code-verifier-invalid"`)
+    * `codeVerifierInvalid` (value: `"code-verifier-invalid"`)
 
-    * `accessMinusNotMinusGranted` (value: `"access-not-granted"`)
+    * `accessNotGranted` (value: `"access-not-granted"`)
 
-    * `legalMinusAcceptanceMinusRequired` (value: `"legal-acceptance-required"`)
+    * `legalAcceptanceRequired` (value: `"legal-acceptance-required"`)
 
 
 

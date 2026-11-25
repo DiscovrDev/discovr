@@ -34,7 +34,7 @@ TitleListItem:
       description: The title of the media.
       example: "Fight Club"
     poster_path:
-      type: object
+      type: [object, "null"]
       description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -43,9 +43,8 @@ TitleListItem:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     backdrop_path:
-      type: object
+      type: [object, "null"]
       description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -54,10 +53,10 @@ TitleListItem:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     rating:
-      $ref: "../schemas.yaml#/Rating"
-      nullable: true
+      anyOf:
+        - $ref: "../schemas.yaml#/Rating"
+        - type: "null"
       description: The profile's rating for this title, or `null` if unrated.
     watchlist:
       type: boolean
@@ -148,7 +147,7 @@ PlaybackItem:
       description: The title of the media.
       example: "Fight Club"
     poster_path:
-      type: object
+      type: [object, "null"]
       description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -157,9 +156,8 @@ PlaybackItem:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     backdrop_path:
-      type: object
+      type: [object, "null"]
       description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -168,9 +166,8 @@ PlaybackItem:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     episode_image:
-      type: object
+      type: [object, "null"]
       description: Episode still image URLs keyed by width bucket. Only present for episode-level playback items.
       additionalProperties:
         type: string
@@ -179,11 +176,9 @@ PlaybackItem:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     episode_title:
-      type: string
+      type: [string, "null"]
       description: The title of the episode (only present for episode-level playback items).
-      nullable: true
       example: "Winter Is Coming"
     progress:
       type: number

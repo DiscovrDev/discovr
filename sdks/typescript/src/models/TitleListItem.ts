@@ -67,11 +67,11 @@ export interface TitleListItem {
      */
     backdropPath: { [key: string]: string; };
     /**
-     * The profile's rating for this title, or `null` if unrated.
+     * 
      * @type {Rating}
      * @memberof TitleListItem
      */
-    rating?: Rating;
+    rating?: Rating | null;
     /**
      * Whether this title is on the profile's watchlist.
      * @type {boolean}

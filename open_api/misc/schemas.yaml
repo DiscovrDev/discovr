@@ -121,8 +121,7 @@ GifSearchResponse:
       items:
         $ref: "#/GifItem"
     next:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Pagination cursor — pass as `pos` in your next request to load more results. `null` when there are no more results.
       example: "1:20"
   additionalProperties: false

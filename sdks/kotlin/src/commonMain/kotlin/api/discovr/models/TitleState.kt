@@ -32,10 +32,10 @@ import kotlinx.serialization.encoding.*
  * @param watched Whether the profile has played any of this title, even briefly. Use `completed` for a \"Watched\" checkmark.
  * @param completed Whether the profile has finished the title (≥ 80% for a movie; every aired episode of every regular season for a TV show; specials excluded).
  * @param plays Number of completed plays (of the movie or of episodes).
- * @param rating The profile's rating (`liked`, `disliked`, `super_liked`), or `null` if unrated.
+ * @param rating 
  * @param completedSeasons TV shows only — regular season numbers (1 and up) whose aired episodes are all watched.
  * @param episodes TV shows only — map from season number (as string) to sorted watched episode numbers.
- * @param playback Live resume position if the viewer is currently mid-watch, or `null` otherwise.
+ * @param playback 
  * @param providers Streaming services where this title is available, filtered to the account's selected providers. Present only when `providers=true` is passed to `getTitleState`.
  */
 @Serializable
@@ -60,7 +60,6 @@ data class TitleState (
     /* Number of completed plays (of the movie or of episodes). */
     @SerialName(value = "plays") @Required val plays: kotlin.Int,
 
-    /* The profile's rating (`liked`, `disliked`, `super_liked`), or `null` if unrated. */
     @SerialName(value = "rating") val rating: Rating? = null,
 
     /* TV shows only — regular season numbers (1 and up) whose aired episodes are all watched. */
@@ -69,7 +68,6 @@ data class TitleState (
     /* TV shows only — map from season number (as string) to sorted watched episode numbers. */
     @SerialName(value = "episodes") val episodes: kotlin.collections.Map<kotlin.String, kotlin.collections.List<kotlin.Int>>? = null,
 
-    /* Live resume position if the viewer is currently mid-watch, or `null` otherwise. */
     @SerialName(value = "playback") val playback: TitlePlayback? = null,
 
     /* Streaming services where this title is available, filtered to the account's selected providers. Present only when `providers=true` is passed to `getTitleState`. */

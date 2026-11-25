@@ -54,11 +54,11 @@ export interface TitleState {
      */
     mediaType: TitleStateMediaTypeEnum;
     /**
-     * The profile's rating (`liked`, `disliked`, `super_liked`), or `null` if unrated.
+     * 
      * @type {Rating}
      * @memberof TitleState
      */
-    rating?: Rating;
+    rating?: Rating | null;
     /**
      * Whether the title is on the profile's watchlist.
      * @type {boolean}
@@ -96,11 +96,11 @@ export interface TitleState {
      */
     plays: number;
     /**
-     * Live resume position if the viewer is currently mid-watch, or `null` otherwise.
+     * 
      * @type {TitlePlayback}
      * @memberof TitleState
      */
-    playback?: TitlePlayback;
+    playback?: TitlePlayback | null;
     /**
      * Streaming services where this title is available, filtered to the account's selected providers. Present only when `providers=true` is passed to `getTitleState`.
      * @type {Array<ProviderInfo>}

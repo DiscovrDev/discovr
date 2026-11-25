@@ -48,7 +48,7 @@ export interface MediaResponseTvSeason {
      * @type {Date}
      * @memberof MediaResponseTvSeason
      */
-    airDate?: Date;
+    airDate?: Date | null;
     /**
      * Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
      * @type {{ [key: string]: string; }}

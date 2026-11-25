@@ -1,9 +1,10 @@
-import { dereferenceSchema } from "../facade/schema-utils";
+import { dereferenceSchema, primarySchemaType, unwrapNullableBranch } from "../facade/schema-utils";
 import type { OpenAPISpec } from "../facade/types";
 import { SCHEMA_JSON_EXAMPLE_MAX_DEPTH, SCHEMA_JSON_EXAMPLE_MAX_PROPS } from "./config";
 
 function peekRefName(schema: any): string | undefined {
-	const tail = schema?.$ref as string | undefined;
+	const unwrapped = unwrapNullableBranch(schema) ?? schema;
+	const tail = unwrapped?.$ref as string | undefined;
 	return tail?.split("/").pop();
 }
 
@@ -76,7 +77,8 @@ function schemaToJsonExample(
 			.join("\n// — OR —\n");
 	}
 
-	if (resolved.type === "object" || resolved.properties) {
+	const resolvedType = primarySchemaType(resolved.type);
+	if (resolvedType === "object" || resolved.properties) {
 		const properties = resolved.properties ?? {};
 		const keys = Object.keys(properties);
 		if (keys.length === 0) {
@@ -96,13 +98,14 @@ function schemaToJsonExample(
 			const additionalProperties = resolved.additionalProperties;
 			if (additionalProperties && typeof additionalProperties === "object") {
 				const apResolved = dereferenceSchema(schemas, additionalProperties) ?? additionalProperties;
+				const apType = primarySchemaType(apResolved.type);
 				const valueType =
-					apResolved.type === "string"
+					apType === "string"
 						? apResolved.format
 							? `"string" /* ${apResolved.format} */`
 							: `"string"`
-						: apResolved.type
-							? `"${apResolved.type}"`
+						: apType
+							? `"${apType}"`
 							: "any";
 				return `{\n  "<key>": ${valueType} /* dynamic keys, shape not fixed in OpenAPI */\n}`;
 			}
@@ -127,15 +130,16 @@ function schemaToJsonExample(
 			}
 
 			const propResolved = dereferenceSchema(schemas, propSchema) ?? propSchema;
+			const propResolvedType = primarySchemaType(propResolved.type);
 			let propType = "any";
 
-			if (propResolved.type === "string") {
+			if (propResolvedType === "string") {
 				const enumLabel = propRefName;
 				propType = propResolved.enum?.length
 					? formatJsonEnumLiteral(propResolved.enum, "string", enumLabel)
 					: `"string"`;
 				if (propResolved.format) propType += ` /* ${propResolved.format} */`;
-			} else if (propResolved.type === "number" || propResolved.type === "integer") {
+			} else if (propResolvedType === "number" || propResolvedType === "integer") {
 				if (propResolved.enum?.length) {
 					propType = formatJsonEnumLiteral(propResolved.enum, "number", propRefName);
 				} else {
@@ -144,13 +148,13 @@ function schemaToJsonExample(
 					propType =
 						typeof propResolved.example === "number"
 							? String(propResolved.example)
-							: propResolved.type === "integer"
+							: propResolvedType === "integer"
 								? "0"
 								: "0.0";
 				}
-			} else if (propResolved.type === "boolean") {
+			} else if (propResolvedType === "boolean") {
 				propType = "false";
-			} else if (propResolved.type === "array") {
+			} else if (propResolvedType === "array") {
 				const rawItem = propResolved.items as any;
 				const itemRef = peekRefName(rawItem);
 				let itemVisited = childVisited;
@@ -162,8 +166,9 @@ function schemaToJsonExample(
 					itemVisited = new Set(childVisited).add(itemRef);
 				}
 				const itemResolved = dereferenceSchema(schemas, rawItem) ?? rawItem;
+				const itemResolvedType = primarySchemaType(itemResolved?.type);
 				if (
-					itemResolved?.type === "object" ||
+					itemResolvedType === "object" ||
 					itemResolved?.oneOf ||
 					itemResolved?.anyOf ||
 					itemResolved?.properties
@@ -176,17 +181,17 @@ function schemaToJsonExample(
 						itemVisited,
 					);
 					propType = `[\n${inner}\n]`;
-				} else if (itemResolved?.type === "string" && itemResolved.enum?.length) {
+				} else if (itemResolvedType === "string" && itemResolved.enum?.length) {
 					propType = `[${formatJsonEnumLiteral(itemResolved.enum, "string", itemRef)}]`;
 				} else if (
-					(itemResolved?.type === "number" || itemResolved?.type === "integer") &&
+					(itemResolvedType === "number" || itemResolvedType === "integer") &&
 					itemResolved.enum?.length
 				) {
 					propType = `[${formatJsonEnumLiteral(itemResolved.enum, "number", itemRef)}]`;
 				} else {
-					propType = `["${itemResolved?.type || "any"}"]`;
+					propType = `["${itemResolvedType || "any"}"]`;
 				}
-			} else if (propResolved.type === "object" || propResolved.properties) {
+			} else if (propResolvedType === "object" || propResolved.properties) {
 				propType = schemaToJsonExample(
 					propResolved,
 					schemas,
@@ -228,7 +233,7 @@ function schemaToJsonExample(
 		return `{\n${lines.join(",\n")}${dots}\n}`;
 	}
 
-	if (resolved.type === "array") {
+	if (resolvedType === "array") {
 		const rawItem = resolved.items as any;
 		const itemRef = peekRefName(rawItem);
 		let itemVisited = visitedHere;
@@ -239,29 +244,30 @@ function schemaToJsonExample(
 			itemVisited = new Set(visitedHere).add(itemRef);
 		}
 		const itemResolved = dereferenceSchema(schemas, rawItem) ?? rawItem;
-		if (itemResolved?.type === "object" || itemResolved?.oneOf || itemResolved?.anyOf) {
+		const itemResolvedType = primarySchemaType(itemResolved?.type);
+		if (itemResolvedType === "object" || itemResolved?.oneOf || itemResolved?.anyOf) {
 			return `[\n${schemaToJsonExample(itemResolved, schemas, maxDepth, currentDepth + 1, itemVisited)}\n]`;
 		}
-		if (itemResolved?.type === "string" && itemResolved.enum?.length) {
+		if (itemResolvedType === "string" && itemResolved.enum?.length) {
 			return `[${formatJsonEnumLiteral(itemResolved.enum, "string", itemRef)}]`;
 		}
 		if (
-			(itemResolved?.type === "number" || itemResolved?.type === "integer") &&
+			(itemResolvedType === "number" || itemResolvedType === "integer") &&
 			itemResolved.enum?.length
 		) {
 			return `[${formatJsonEnumLiteral(itemResolved.enum, "number", itemRef)}]`;
 		}
-		return `["${itemResolved?.type || "any"}"]`;
+		return `["${itemResolvedType || "any"}"]`;
 	}
 
-	if (resolved.type === "string" && resolved.enum?.length) {
+	if (resolvedType === "string" && resolved.enum?.length) {
 		return formatJsonEnumLiteral(resolved.enum, "string", peekRefName(schema));
 	}
-	if ((resolved.type === "number" || resolved.type === "integer") && resolved.enum?.length) {
+	if ((resolvedType === "number" || resolvedType === "integer") && resolved.enum?.length) {
 		return formatJsonEnumLiteral(resolved.enum, "number", peekRefName(schema));
 	}
 
-	return `"${resolved.type || "any"}"`;
+	return `"${resolvedType || "any"}"`;
 }
 
 export function generateInlineTypeFromSchema(typeName: string, spec: OpenAPISpec): string | null {

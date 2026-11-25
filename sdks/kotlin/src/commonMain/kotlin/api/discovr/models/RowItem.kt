@@ -41,7 +41,7 @@ import kotlinx.serialization.json.JsonClassDiscriminator
  * @param rating Average viewer rating out of 10, to one decimal. Absent until a title has votes.
  * @param genres Genre names, most relevant first. Absent when none are known.
  * @param logoPath Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). `null` when the title has no logo. Always present on `hero` items. On row items it is added when the items are served, and is absent only if the catalogue couldn't be reached for that title; fetch the row's items again to fill it in. 
- * @param trailer The best trailer for the title, picked the same way as `getMediaAssets`. `null` when it has none. Added to row items when they are served; absent under the same conditions as `logo_path`.
+ * @param trailer 
  * @param runtime Running time in minutes. Movies only, and absent when the catalogue has none. Added to row items when they are served.
  * @param numberOfSeasons How many seasons the show has. TV only, and absent when the catalogue has none. Added to row items when they are served.
  * @param ref This tile's `page_id` with the place it was shown attached.  Prefer it over `page_id` when opening the page this tile links to. It resolves to the same page and sharpens the user's recommendations. Use it for the profile it was returned to.  A bare `page_id` always works; `ref` is never required. 
@@ -79,7 +79,6 @@ sealed class RowItem {
     @SerialName(value = "genres") abstract val genres: kotlin.collections.List<kotlin.String>?
     /* Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). `null` when the title has no logo. Always present on `hero` items. On row items it is added when the items are served, and is absent only if the catalogue couldn't be reached for that title; fetch the row's items again to fill it in.  */
     @SerialName(value = "logo_path") abstract val logoPath: kotlin.collections.Map<kotlin.String, kotlin.String>?
-    /* The best trailer for the title, picked the same way as `getMediaAssets`. `null` when it has none. Added to row items when they are served; absent under the same conditions as `logo_path`. */
     @SerialName(value = "trailer") abstract val trailer: MediaItemTrailer?
     /* Running time in minutes. Movies only, and absent when the catalogue has none. Added to row items when they are served. */
     @SerialName(value = "runtime") abstract val runtime: kotlin.Int?

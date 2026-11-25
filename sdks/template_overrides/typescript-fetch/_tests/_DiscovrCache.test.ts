@@ -311,4 +311,184 @@ describe("_DiscovrCache", () => {
 		await cache.wrap("getMedia", { mediaId: "MV_0" }, undefined, undefined, afterEviction.fetcher);
 		expect(afterEviction.calls()).toBe(1); // no longer cached, had to refetch
 	});
+
+	describe("transparent retry on mid-flight snapshot turnover (A5)", () => {
+		it("retries once transparently when clear() lands mid-flight on the same profile", async () => {
+			let calls = 0;
+			let resolveFirst: (value: { snap: string }) => void;
+			const cache = new _DiscovrCache({ retryScope: () => "profileA" });
+
+			const fetcher = () => {
+				calls++;
+				if (calls === 1) {
+					return new Promise<{ snap: string }>((resolve) => {
+						resolveFirst = resolve;
+					});
+				}
+				return Promise.resolve({ snap: "snap2" });
+			};
+
+			const pending = cache.wrap("getPage", { pageId: "home" }, undefined, undefined, fetcher);
+			cache.clearForSnapshot("snap2", true); // same-profile snapshot turnover while fetch is in flight
+			resolveFirst!({ snap: "snap1" });
+
+			const result = await pending;
+			expect(result).toEqual({ snap: "snap2" });
+			expect(calls).toBe(2);
+
+			// Subsequent call hits the fresh snap2 entry (snap1 was never cached).
+			const cached = await cache.wrap("getPage", { pageId: "home" }, undefined, undefined, fetcher);
+			expect(cached).toEqual({ snap: "snap2" });
+			expect(calls).toBe(2);
+		});
+
+		it("dedupes leader and follower onto a single retry fetch after mid-flight clear()", async () => {
+			let calls = 0;
+			let resolveFirst: (value: { snap: string }) => void;
+			let resolveSecond: (value: { snap: string }) => void;
+			const cache = new _DiscovrCache({ retryScope: () => "profileA" });
+
+			const fetcher = () => {
+				calls++;
+				if (calls === 1) {
+					return new Promise<{ snap: string }>((resolve) => {
+						resolveFirst = resolve;
+					});
+				}
+				return new Promise<{ snap: string }>((resolve) => {
+					resolveSecond = resolve;
+				});
+			};
+
+			const leader = cache.wrap("getPage", { pageId: "home" }, undefined, undefined, fetcher);
+			const follower = cache.wrap("getPage", { pageId: "home" }, undefined, undefined, fetcher);
+
+			cache.clear();
+			resolveFirst!({ snap: "stale" });
+			// Allow async retry to enter the second fetch before resolving it
+			await new Promise((resolve) => setImmediate(resolve));
+			resolveSecond!({ snap: "fresh" });
+
+			const [r1, r2] = await Promise.all([leader, follower]);
+			expect(r1).toEqual({ snap: "fresh" });
+			expect(r2).toEqual({ snap: "fresh" });
+			expect(calls).toBe(2); // 1 stale + 1 deduped retry
+		});
+
+		it("does not retry across a profile switch, even if a snapshot turnover follows", async () => {
+			let activeProfile: string | null = "profileA";
+			let calls = 0;
+			let resolveFirst: (value: { profile: string }) => void;
+			const cache = new _DiscovrCache({ retryScope: () => activeProfile });
+
+			const pending = cache.wrap("getPage", { pageId: "home" }, undefined, undefined, () => {
+				calls++;
+				if (calls === 1) {
+					return new Promise<{ profile: string }>((resolve) => {
+						resolveFirst = resolve;
+					});
+				}
+				return Promise.resolve({ profile: "profileB" });
+			});
+
+			// Switch to Profile B (non-retryable clear), then a later retryable
+			// snapshot turnover lands before Profile A's slow fetch finishes.
+			activeProfile = "profileB";
+			cache.clearAndMarkSnapshot("snapB1", false);
+			cache.clearForSnapshot("snapB2", true);
+			resolveFirst!({ profile: "profileA" });
+
+			await expect(pending).rejects.toThrow(DiscovrCacheStaleGenerationError);
+			expect(calls).toBe(1);
+		});
+
+		it("does not retry when clear(false) signals sign-out or explicit profile re-select", async () => {
+			let calls = 0;
+			let resolveFirst: (value: { snap: string }) => void;
+			const cache = new _DiscovrCache({ retryScope: () => "profileA" });
+
+			const pending = cache.wrap("getPage", { pageId: "home" }, undefined, undefined, () => {
+				calls++;
+				return new Promise<{ snap: string }>((resolve) => {
+					resolveFirst = resolve;
+				});
+			});
+			cache.clear(false);
+			// Even if a retryable clear follows before the slow fetch returns,
+			// monotonic nonRetryableGeneration keeps retry disabled.
+			cache.clear(true);
+			resolveFirst!({ snap: "stale" });
+
+			await expect(pending).rejects.toThrow(DiscovrCacheStaleGenerationError);
+			expect(calls).toBe(1);
+		});
+
+		it("does not retry when retryScope becomes null (signed out)", async () => {
+			let scope: string | null = "profileA";
+			let calls = 0;
+			let resolveFirst: (value: { snap: string }) => void;
+			const cache = new _DiscovrCache({ retryScope: () => scope });
+
+			const pending = cache.wrap("getPage", { pageId: "home" }, undefined, undefined, () => {
+				calls++;
+				return new Promise<{ snap: string }>((resolve) => {
+					resolveFirst = resolve;
+				});
+			});
+			scope = null;
+			cache.clear();
+			resolveFirst!({ snap: "stale" });
+
+			await expect(pending).rejects.toThrow(DiscovrCacheStaleGenerationError);
+			expect(calls).toBe(1);
+		});
+
+		it("throws on a second consecutive generation bump instead of retrying forever", async () => {
+			let calls = 0;
+			const resolvers: Array<(value: { n: number }) => void> = [];
+			const cache = new _DiscovrCache({ retryScope: () => "profileA" });
+
+			const pending = cache.wrap("getPage", { pageId: "home" }, undefined, undefined, () => {
+				calls++;
+				return new Promise<{ n: number }>((resolve) => {
+					resolvers.push(resolve);
+				});
+			});
+
+			cache.clear();
+			resolvers[0]({ n: 1 });
+			await new Promise((resolve) => setImmediate(resolve));
+
+			cache.clear();
+			resolvers[1]({ n: 2 });
+
+			await expect(pending).rejects.toThrow(DiscovrCacheStaleGenerationError);
+			expect(calls).toBe(2);
+		});
+
+		it("clearForSnapshot skips duplicate clear for an already-marked snapshot", async () => {
+			const cache = new _DiscovrCache();
+			let calls = 0;
+			const fetcher = async () => `v${++calls}`;
+
+			cache.clearAndMarkSnapshot("snap1", false);
+			expect(await cache.wrap("getPage", { pageId: "home" }, undefined, undefined, fetcher)).toBe(
+				"v1",
+			);
+
+			// Redundant clear for snap1 is a no-op; cached entry survives.
+			cache.clearForSnapshot("snap1", false);
+			expect(await cache.wrap("getPage", { pageId: "home" }, undefined, undefined, fetcher)).toBe(
+				"v1",
+			);
+			expect(calls).toBe(1);
+
+			// Moving to snap2 clears the cache.
+			cache.clearForSnapshot("snap2", true);
+			expect(await cache.wrap("getPage", { pageId: "home" }, undefined, undefined, fetcher)).toBe(
+				"v2",
+			);
+			expect(calls).toBe(2);
+		});
+	});
 });

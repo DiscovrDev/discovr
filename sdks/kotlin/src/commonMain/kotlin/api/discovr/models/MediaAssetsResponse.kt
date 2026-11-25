@@ -27,7 +27,7 @@ import kotlinx.serialization.encoding.*
  * @param poster Best poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no poster is available.
  * @param backdrop Best backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no backdrop is available.
  * @param logo Best title logo (English preferred) URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no logo is available.
- * @param trailer The best trailer or clip for this title, or `null` when no videos exist for this title. 
+ * @param trailer 
  */
 @Serializable
 
@@ -42,7 +42,6 @@ data class MediaAssetsResponse (
     /* Best title logo (English preferred) URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no logo is available. */
     @SerialName(value = "logo") val logo: kotlin.collections.Map<kotlin.String, kotlin.String>? = null,
 
-    /* The best trailer or clip for this title, or `null` when no videos exist for this title.  */
     @SerialName(value = "trailer") val trailer: MediaAssetsTrailer? = null
 
 ) {

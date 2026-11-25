@@ -62,7 +62,7 @@ export interface SeasonDetailsResponse {
      * @type {string}
      * @memberof SeasonDetailsResponse
      */
-    overview?: string;
+    overview?: string | null;
     /**
      * Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
      * @type {{ [key: string]: string; }}
@@ -80,7 +80,7 @@ export interface SeasonDetailsResponse {
      * @type {Date}
      * @memberof SeasonDetailsResponse
      */
-    airDate?: Date;
+    airDate?: Date | null;
     /**
      * List of episodes in the season
      * @type {Array<Episode>}

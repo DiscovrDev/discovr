@@ -37,6 +37,23 @@
 import { _DiscovrClientBase } from "./_DiscovrClientBase";
 import { _DiscovrCache } from "./_DiscovrCache";
 import { DiscovrApi } from "./apis/DiscovrApi";
+import type {
+	EpisodeRef,
+	GetRowItemsResponse,
+	GetRowsResponse,
+	MediaAssetsResponse,
+	MediaResponse,
+	Page,
+	Rating,
+	Row,
+	ScrobbleResponse,
+	SeasonDetailsResponse,
+	SeasonState,
+	SimilarResponse,
+	SuccessMessage,
+	TitleState,
+} from "./models/index";
+import { PlaybackTracker, type TrackPlaybackOptions } from "./PlaybackTracker";
 import _DiscovrAuth, {
 	type AuthConfig,
 	type AuthState,
@@ -51,6 +68,46 @@ import _DiscovrAuth, {
 } from "./auth";
 
 export type { AuthState, DeviceCodeOptions, DeviceCodeResult, SessionState, SignOutReason };
+export type { PlaybackProgressInput, PlaybackTime, TrackPlaybackOptions } from "./PlaybackTracker";
+export { PlaybackTracker } from "./PlaybackTracker";
+
+/**
+ * Any Discovr title item carrying an `id` and optional `ref` (e.g. `MediaItem`,
+ * `TitleListItem`, `PlaybackItem`, `SearchResult`, `SimilarResult`, `KnownForItem`).
+ *
+ * `pageId?: never` prevents accidentally passing a navigation/provider tile to
+ * a title-taking method at compile time.
+ */
+export interface DiscovrTitleRef {
+	readonly id: string;
+	readonly ref?: string | null;
+	readonly pageId?: never;
+	readonly season?: number | null;
+	readonly episode?: number | null;
+}
+
+/**
+ * Any Discovr navigation or provider tile opening a page (`NavigationItem`, `ProviderItem`).
+ */
+export interface DiscovrPageRef {
+	readonly id: string;
+	readonly pageId: string;
+	readonly ref?: string | null;
+}
+
+/** Accepts either a Discovr title model (extracting `refOrId` automatically) or a raw ID / `ref` string. */
+export type MediaIdOrItem = string | DiscovrTitleRef;
+
+/** Accepts either a navigation/provider tile (extracting `refOrId` automatically) or a raw page ID / `ref` string. */
+export type PageIdOrTile = string | DiscovrPageRef;
+
+function resolveTitleRef(media: MediaIdOrItem): string {
+	return typeof media === "string" ? media : (media.ref ?? media.id);
+}
+
+function resolvePageRef(tile: PageIdOrTile): string {
+	return typeof tile === "string" ? tile : (tile.ref ?? tile.pageId ?? tile.id);
+}
 
 export interface DiscovrClientConfig extends AuthConfig {
 	/**
@@ -66,24 +123,40 @@ export class DiscovrClient extends _DiscovrClientBase {
 	protected override readonly _auth: _DiscovrAuth;
 	/** @internal */
 	protected override readonly _cache: _DiscovrCache;
+	private selectingProfileDepth = 0;
 
 	constructor(clientId: string, config: DiscovrClientConfig = {}) {
 		super();
 		this._auth = new _DiscovrAuth(clientId, config);
-		this._cache = new _DiscovrCache({ enabled: config.cache ?? true });
+		this._cache = new _DiscovrCache({
+			enabled: config.cache ?? true,
+			retryScope: () => (this._auth.isSignedIn() ? this._auth.getActiveProfileId() : null),
+		});
 
 		// Clear cached page data when the *recommendations* turn over, not on
-		// every session mint.
-		//
-		// This used to fire on every mint, which was wrong twice over: a routine
-		// credential renewal threw away page data that was still perfectly
-		// valid, and — worse — the mint happens *inside* the fetch that
-		// triggered it, so the cache's generation check saw the clear land
-		// mid-flight and rejected the call's own successful result. Any cached
-		// session-tier call that happened to cross a token refresh failed with a
-		// stale-generation error instead of returning its data.
+		// every session mint. Same-profile turnovers are retryable so in-flight
+		// fetches transparently retry once; profile changes or explicit
+		// selectProfile/switchProfile calls clear non-retryably before user
+		// auth/session listeners fire so Profile A calls never retry under Profile B.
+		let lastProfileId = this._auth.getActiveProfileId();
 		this._auth._onSnapshotChange((changed) => {
-			if (changed) this._cache.clear();
+			const currentProfileId = this._auth.getActiveProfileId();
+			const profileChanged = currentProfileId !== lastProfileId;
+			lastProfileId = currentProfileId;
+			if (!changed && !profileChanged) return;
+			const retryable = this.selectingProfileDepth === 0 && !profileChanged;
+			this._cache.clearForSnapshot(this._auth._getSnapshotId(), retryable);
+		});
+
+		// Ensure forced sign-outs (e.g. expired/revoked refresh token during 401
+		// recovery) also wipe cached data without retrying in-flight fetches.
+		let wasSignedIn = this._auth.isSignedIn();
+		this._auth.onAuthStateChanged((state) => {
+			if (wasSignedIn && !state.signedIn) {
+				lastProfileId = null;
+				this._cache.clear(false);
+			}
+			wasSignedIn = state.signedIn;
 		});
 	}
 
@@ -146,12 +219,17 @@ export class DiscovrClient extends _DiscovrClientBase {
 	 * after sign-in before any session-tier API calls.
 	 */
 	async selectProfile(profileId: string): Promise<void> {
-		await this._auth.selectProfile(profileId);
-		// Selecting a profile always starts a new snapshot, so the constructor's
-		// subscription clears the cache too. Doing it here as well keeps the
-		// explicit path self-contained, and matches the Kotlin/Swift facades
-		// where the reactive subscription isn't a synchronous guarantee.
-		this._cache.clear();
+		this.selectingProfileDepth++;
+		try {
+			await this._auth.selectProfile(profileId);
+			// `_onSnapshotChange` already cleared non-retryably before user
+			// auth/session listeners fired; `clearForSnapshot` is a no-op for
+			// the same snapshot so brand-new fetches started by listeners stay
+			// intact, while still clearing if snapshotId is null/reused.
+			this._cache.clearForSnapshot(this._auth._getSnapshotId(), false);
+		} finally {
+			this.selectingProfileDepth--;
+		}
 	}
 
 	/**
@@ -159,17 +237,21 @@ export class DiscovrClient extends _DiscovrClientBase {
 	 * since the previous profile's would be the wrong ones to keep.
 	 */
 	async switchProfile(profileId: string): Promise<void> {
-		await this._auth.switchProfile(profileId);
-		this._cache.clear();
+		this.selectingProfileDepth++;
+		try {
+			await this._auth.switchProfile(profileId);
+			this._cache.clearForSnapshot(this._auth._getSnapshotId(), false);
+		} finally {
+			this.selectingProfileDepth--;
+		}
 	}
 
 	/** Revoke the current device's refresh token and clear local state. */
 	async signOut(): Promise<void> {
-		// Clear first: local auth state is wiped synchronously inside
-		// _auth.signOut() before it awaits the server-side revocation call, so
-		// a slow/hanging revocation would otherwise leave stale cache entries
-		// around for longer than necessary even though nothing can serve them.
-		this._cache.clear();
+		// Clear first with retryable=false: local auth state is wiped synchronously
+		// inside _auth.signOut() before it awaits the server-side revocation call,
+		// and in-flight fetches must not retry into a signed-out session.
+		this._cache.clear(false);
 		await this._auth.signOut();
 	}
 
@@ -268,7 +350,153 @@ export class DiscovrClient extends _DiscovrClientBase {
 	 */
 	close(): void {
 		this._auth.close();
-		this._cache.clear();
+		this._cache.clear(false);
+	}
+
+	// ── Playback tracker (A18) ────────────────────────────────────────────────
+
+	/**
+	 * Create a percentage-first {@link PlaybackTracker} for a movie or TV episode.
+	 *
+	 * Accepts any title item (`MediaItem`, `TitleListItem`, `PlaybackItem`, etc.)
+	 * — automatically extracting `refOrId` (and `EpisodeRef(season, episode)` for
+	 * TV `PlaybackItem`s unless `options.tv` is explicitly provided) — or a raw
+	 * media ID / `ref` string.
+	 */
+	trackPlayback(item: MediaIdOrItem, options: TrackPlaybackOptions = {}): PlaybackTracker {
+		const mediaRefOrId = resolveTitleRef(item);
+		let tv = options.tv;
+		if (
+			tv === undefined &&
+			typeof item !== "string" &&
+			!("watchlist" in item) &&
+			typeof item.season === "number" &&
+			typeof item.episode === "number"
+		) {
+			tv = { season: item.season, episode: item.episode };
+		}
+		return new PlaybackTracker(
+			mediaRefOrId,
+			{ ...options, tv },
+			{
+				send: (id, progress, episodeRef) =>
+					super.scrobble(id, progress, episodeRef ? { tv: episodeRef } : undefined),
+			},
+		);
+	}
+
+	// ── Item-taking overloads (A16) ───────────────────────────────────────────
+	// Widen the generated string methods so callers can pass item/tile models
+	// directly and get automatic `refOrId` attribution, while still accepting
+	// raw ID / `ref` strings for deep links and stored IDs.
+
+	override getMedia(
+		media: MediaIdOrItem,
+		options?: { bypassCache?: boolean },
+	): Promise<MediaResponse> {
+		return super.getMedia(resolveTitleRef(media), options);
+	}
+
+	override getMediaAssets(
+		media: MediaIdOrItem,
+		options?: { bypassCache?: boolean },
+	): Promise<MediaAssetsResponse> {
+		return super.getMediaAssets(resolveTitleRef(media), options);
+	}
+
+	override getSimilarRecommendations(
+		media: MediaIdOrItem,
+		options?: { language?: string; page?: number; bypassCache?: boolean },
+	): Promise<SimilarResponse> {
+		return super.getSimilarRecommendations(resolveTitleRef(media), options);
+	}
+
+	override getSeasonDetails(
+		media: MediaIdOrItem,
+		seasonNumber: number,
+		options?: { language?: string; bypassCache?: boolean },
+	): Promise<SeasonDetailsResponse> {
+		return super.getSeasonDetails(resolveTitleRef(media), seasonNumber, options);
+	}
+
+	override getTitleState(
+		media: MediaIdOrItem,
+		options?: { providers?: boolean },
+	): Promise<TitleState> {
+		return super.getTitleState(resolveTitleRef(media), options);
+	}
+
+	override getSeasonState(media: MediaIdOrItem, seasonNumber: number): Promise<SeasonState> {
+		return super.getSeasonState(resolveTitleRef(media), seasonNumber);
+	}
+
+	override setRating(media: MediaIdOrItem, value: Rating): Promise<TitleState> {
+		return super.setRating(resolveTitleRef(media), value);
+	}
+
+	override clearRating(media: MediaIdOrItem): Promise<TitleState> {
+		return super.clearRating(resolveTitleRef(media));
+	}
+
+	override addToWatchlist(media: MediaIdOrItem): Promise<TitleState> {
+		return super.addToWatchlist(resolveTitleRef(media));
+	}
+
+	override removeFromWatchlist(media: MediaIdOrItem): Promise<TitleState> {
+		return super.removeFromWatchlist(resolveTitleRef(media));
+	}
+
+	override markWatched(
+		media: MediaIdOrItem,
+		options?: { season?: number; episode?: number },
+	): Promise<TitleState> {
+		return super.markWatched(resolveTitleRef(media), options);
+	}
+
+	override markUnwatched(
+		media: MediaIdOrItem,
+		options?: { season?: number; episode?: number },
+	): Promise<TitleState> {
+		return super.markUnwatched(resolveTitleRef(media), options);
+	}
+
+	override deletePlaybackItem(media: MediaIdOrItem): Promise<SuccessMessage> {
+		return super.deletePlaybackItem(resolveTitleRef(media));
+	}
+
+	override scrobble(
+		media: MediaIdOrItem,
+		progress: number,
+		options?: { tv?: EpisodeRef },
+	): Promise<ScrobbleResponse> {
+		return super.scrobble(resolveTitleRef(media), progress, options);
+	}
+
+	override getPage(tile: PageIdOrTile, options?: { bypassCache?: boolean }): Promise<Page> {
+		return super.getPage(resolvePageRef(tile), options);
+	}
+
+	override getRows(
+		tile: PageIdOrTile,
+		options?: { nextPageToken?: string; limit?: number; bypassCache?: boolean },
+	): Promise<GetRowsResponse> {
+		return super.getRows(resolvePageRef(tile), options);
+	}
+
+	override getRow(
+		tile: PageIdOrTile,
+		rowId: string,
+		options?: { bypassCache?: boolean },
+	): Promise<Row> {
+		return super.getRow(resolvePageRef(tile), rowId, options);
+	}
+
+	override getRowItems(
+		tile: PageIdOrTile,
+		rowId: string,
+		options?: { nextPageToken?: string; limit?: number; bypassCache?: boolean },
+	): Promise<GetRowItemsResponse> {
+		return super.getRowItems(resolvePageRef(tile), rowId, options);
 	}
 
 	// ── Convenience title-list wrappers ───────────────────────────────────────

@@ -199,8 +199,9 @@ TitleState:
       description: Whether this title is a movie or a TV show.
       example: "tv"
     rating:
-      $ref: "#/Rating"
-      nullable: true
+      anyOf:
+        - $ref: "#/Rating"
+        - type: "null"
       description: The profile's rating (`liked`, `disliked`, `super_liked`), or `null` if unrated.
     watchlist:
       type: boolean
@@ -235,8 +236,9 @@ TitleState:
       description: Number of completed plays (of the movie or of episodes).
       example: 7
     playback:
-      $ref: "#/TitlePlayback"
-      nullable: true
+      anyOf:
+        - $ref: "#/TitlePlayback"
+        - type: "null"
       description: Live resume position if the viewer is currently mid-watch, or `null` otherwise.
     providers:
       type: array

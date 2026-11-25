@@ -41,11 +41,11 @@ data class RateLimitedError (
     /**
      * Machine-readable error code. Always `rate-limited` for a `429`.
      *
-     * Values: rateMinusLimited
+     * Values: rateLimited
      */
     @Serializable
     enum class Error(val value: kotlin.String) {
-        @SerialName(value = "rate-limited") rateMinusLimited("rate-limited");
+        @SerialName(value = "rate-limited") rateLimited("rate-limited");
     }
 
 }

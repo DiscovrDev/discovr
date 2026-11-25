@@ -53,6 +53,13 @@ public actor _DiscovrCache {
     private let enabled: Bool
     /// Fetches that hang longer than this are treated as failed, freeing the key for retry.
     private let timeoutSeconds: Double
+    /// Optional scope resolver returning the active profile scope eligible for
+    /// transparent stale-generation retry (e.g. active profile ID when signed in,
+    /// `nil` when signed out or before a profile is selected). `wrap` only
+    /// retries a mid-flight cache clear when the scope is non-nil, unchanged
+    /// across the fetch, and no non-retryable clear (`signOut`, `selectProfile`,
+    /// `switchProfile`) occurred in between.
+    private let retryScope: (@Sendable () async -> String?)?
     private var entries: [String: CacheEntry] = [:]
     /// Insertion order, for FIFO eviction once `maxEntries` is exceeded.
     private var insertionOrder: [String] = []
@@ -62,27 +69,46 @@ public actor _DiscovrCache {
     /// — see the identity check in `wrap()`'s cleanup path.
     private var inFlightToken: UInt64 = 0
 
-    /// Bumped on every ``clear()``. A fetch started before a clear() (profile
-    /// switch, sign-out, session refresh) must not write its result into the
-    /// cache after the clear lands — that would resurrect stale, wrong-session
-    /// data. Each in-flight fetch captures the generation it started under and
-    /// only commits to `entries` if the generation hasn't moved on. Reading a
-    /// suspended `await` can interleave with `clear()` even inside an actor,
-    /// since actor isolation only serializes work *between* suspension points.
+    /// Bumped on every ``clear(retryable:)``. A fetch started before a clear()
+    /// (profile switch, sign-out, session refresh) must not write its result
+    /// into the cache after the clear lands — that would resurrect stale,
+    /// wrong-session data. Each in-flight fetch captures the generation it
+    /// started under and only commits to `entries` if the generation hasn't
+    /// moved on. Reading a suspended `await` can interleave with `clear()`
+    /// even inside an actor, since actor isolation only serializes work
+    /// *between* suspension points.
     private var generation = 0
+    /// Monotonically bumped on every non-retryable clear (sign-out, profile
+    /// switch/re-select). Unlike a single boolean, a later retryable snapshot
+    /// turnover can never re-enable retry for a slow fetch that straddled a
+    /// non-retryable clear.
+    private var nonRetryableGeneration = 0
+    /// Last snapshot id already cleared for, preventing duplicate delayed async clears after selectProfile.
+    private var lastClearedSnapshotId: String?
 
-    public init(enabled: Bool = true, timeoutSeconds: Double = 30) {
+    public init(
+        enabled: Bool = true,
+        timeoutSeconds: Double = 30,
+        retryScope: (@Sendable () async -> String?)? = nil
+    ) {
         self.enabled = enabled
         self.timeoutSeconds = timeoutSeconds
+        self.retryScope = retryScope
     }
 
     /// Cache-or-fetch a single operation call, deduping concurrent identical
     /// in-flight requests along the way (so a tight accidental loop over the
     /// same params costs one network call, not N).
     ///
+    /// If a retryable ``clear(retryable:)`` (e.g. same-profile snapshot
+    /// turnover) lands mid-flight while `retryScope` returns the same non-nil
+    /// scope and no non-retryable clear intervened, the stale result is
+    /// discarded and the call is retried once transparently under the new
+    /// generation.
+    ///
     /// - Parameters:
     ///   - ttlSeconds: `nil` means cache for the life of the session (until
-    ///     invalidated or ``clear()``ed); a value caches for that many seconds.
+    ///     invalidated or ``clear(retryable:)``ed); a value caches for that many seconds.
     ///   - bypass: Skip the cache read (and any in-flight dedup) for this
     ///     call, but still refresh the stored entry with the result — a
     ///     "force refresh" that also warms the cache for the next normal call.
@@ -96,6 +122,26 @@ public actor _DiscovrCache {
         guard enabled else { return try await fetcher() }
 
         let key = buildKey(operationId: operationId, keyParams: keyParams)
+        let startScope = await retryScope?()
+        let startNonRetryableGen = nonRetryableGeneration
+        do {
+            return try await wrapAttempt(key: key, ttlSeconds: ttlSeconds, bypass: bypass, fetcher: fetcher)
+        } catch is DiscovrCacheStaleGenerationError {
+            let sameNonRetryableGen = nonRetryableGeneration == startNonRetryableGen
+            let currentScope = await retryScope?()
+            if sameNonRetryableGen, let startScope, currentScope == startScope {
+                return try await wrapAttempt(key: key, ttlSeconds: ttlSeconds, bypass: bypass, fetcher: fetcher)
+            }
+            throw DiscovrCacheStaleGenerationError()
+        }
+    }
+
+    private func wrapAttempt<T: Sendable>(
+        key: String,
+        ttlSeconds: Double?,
+        bypass: Bool,
+        fetcher: @Sendable @escaping () async throws -> T
+    ) async throws -> T {
         let now = Date().timeIntervalSince1970
         let startGeneration = generation
 
@@ -162,8 +208,30 @@ public actor _DiscovrCache {
     }
 
     /// Full wipe — called on profile switch, sign-out, and session rotation.
-    public func clear() {
+    /// Pass `retryable: false` on sign-out or profile switch so in-flight
+    /// calls do not retry across profiles or into a signed-out session.
+    public func clear(retryable: Bool = true) {
+        resetLocked(retryable: retryable, snapshotId: nil)
+    }
+
+    /// Always clears the cache and records `snapshotId` as already handled so
+    /// the background snapshot-change task does not fire a duplicate delayed
+    /// clear right after `selectProfile`/`switchProfile` returns.
+    internal func clearAndMarkSnapshot(_ snapshotId: String?, retryable: Bool = false) {
+        resetLocked(retryable: retryable, snapshotId: snapshotId)
+    }
+
+    /// Clears the cache only if `snapshotId` differs from the snapshot most
+    /// recently cleared via ``clearAndMarkSnapshot(_:retryable:)`` / ``clearForSnapshot(_:retryable:)``.
+    internal func clearForSnapshot(_ snapshotId: String?, retryable: Bool = true) {
+        if let snapshotId, snapshotId == lastClearedSnapshotId { return }
+        resetLocked(retryable: retryable, snapshotId: snapshotId)
+    }
+
+    private func resetLocked(retryable: Bool, snapshotId: String?) {
         generation += 1
+        if !retryable { nonRetryableGeneration += 1 }
+        lastClearedSnapshotId = snapshotId
         entries.removeAll()
         insertionOrder.removeAll()
         inFlight.removeAll()

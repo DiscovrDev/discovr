@@ -36,7 +36,7 @@ export interface CastMember {
      * @type {string}
      * @memberof CastMember
      */
-    character?: string;
+    character?: string | null;
     /**
      * Portrait URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or `null` when there is no photo.
      * @type {{ [key: string]: string; }}

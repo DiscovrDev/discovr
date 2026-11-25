@@ -57,7 +57,7 @@ export interface Episode {
      * @type {string}
      * @memberof Episode
      */
-    overview?: string;
+    overview?: string | null;
     /**
      * Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
      * @type {{ [key: string]: string; }}
@@ -69,13 +69,13 @@ export interface Episode {
      * @type {Date}
      * @memberof Episode
      */
-    airDate?: Date;
+    airDate?: Date | null;
     /**
      * Episode runtime in minutes.
      * @type {number}
      * @memberof Episode
      */
-    runtime?: number;
+    runtime?: number | null;
     /**
      * Season this episode belongs to.
      * @type {number}
@@ -93,19 +93,19 @@ export interface Episode {
      * @type {string}
      * @memberof Episode
      */
-    productionCode?: string;
+    productionCode?: string | null;
     /**
      * Community rating for the episode.
      * @type {number}
      * @memberof Episode
      */
-    voteAverage?: number;
+    voteAverage?: number | null;
     /**
      * Number of ratings for the episode.
      * @type {number}
      * @memberof Episode
      */
-    voteCount?: number;
+    voteCount?: number | null;
     /**
      * Crew members for this episode.
      * @type {Array<EpisodeCrewMember>}

@@ -5,12 +5,22 @@
 export { DiscovrClient } from './DiscovrClient{{importFileExtension}}';
 export type {
   DiscovrClientConfig,
+  DiscovrTitleRef,
+  DiscovrPageRef,
+  MediaIdOrItem,
+  PageIdOrTile,
   AuthState,
   DeviceCodeOptions,
   DeviceCodeResult,
   SessionState,
   SignOutReason,
 } from './DiscovrClient{{importFileExtension}}';
+export { PlaybackTracker } from './PlaybackTracker{{importFileExtension}}';
+export type {
+  PlaybackTime,
+  PlaybackProgressInput,
+  TrackPlaybackOptions,
+} from './PlaybackTracker{{importFileExtension}}';
 // The value to pass onward for an item Discovr returned -- see its doc comment.
 export { idOf, refOrId } from './DiscovrClient{{importFileExtension}}';
 export {

@@ -67,6 +67,10 @@ export const HAND_MAINTAINED_COPIES: readonly CopyPair[] = [
 		dst: "public/sdks/typescript/src/DiscovrClient.ts",
 	},
 	{
+		src: "public/sdks/template_overrides/typescript-fetch/PlaybackTracker.ts",
+		dst: "public/sdks/typescript/src/PlaybackTracker.ts",
+	},
+	{
 		src: "public/sdks/template_overrides/typescript-fetch/_DiscovrCache.ts",
 		dst: "public/sdks/typescript/src/_DiscovrCache.ts",
 	},
@@ -89,6 +93,14 @@ export const HAND_MAINTAINED_COPIES: readonly CopyPair[] = [
 	{
 		src: "public/sdks/template_overrides/typescript-fetch/_tests/refOrId.test.ts",
 		dst: "public/sdks/typescript/src/_tests/refOrId.test.ts",
+	},
+	{
+		src: "public/sdks/template_overrides/typescript-fetch/_tests/PlaybackTracker.test.ts",
+		dst: "public/sdks/typescript/src/_tests/PlaybackTracker.test.ts",
+	},
+	{
+		src: "public/sdks/template_overrides/typescript-fetch/_tests/ItemOverloads.test.ts",
+		dst: "public/sdks/typescript/src/_tests/ItemOverloads.test.ts",
 	},
 	{
 		src: "public/sdks/template_overrides/kotlin/_DiscovrAuth.kt",
@@ -123,6 +135,10 @@ export const HAND_MAINTAINED_COPIES: readonly CopyPair[] = [
 		dst: "public/sdks/kotlin/src/commonMain/kotlin/api/discovr/DiscovrClient.kt",
 	},
 	{
+		src: "public/sdks/template_overrides/kotlin/PlaybackTracker.kt",
+		dst: "public/sdks/kotlin/src/commonMain/kotlin/api/discovr/PlaybackTracker.kt",
+	},
+	{
 		src: "public/sdks/template_overrides/kotlin/_DiscovrCache.kt",
 		dst: "public/sdks/kotlin/src/commonMain/kotlin/api/discovr/_DiscovrCache.kt",
 	},
@@ -151,6 +167,14 @@ export const HAND_MAINTAINED_COPIES: readonly CopyPair[] = [
 		dst: "public/sdks/kotlin/src/commonTest/kotlin/api/discovr/_MediaResponseDecodeTest.kt",
 	},
 	{
+		src: "public/sdks/template_overrides/kotlin/_PlaybackTrackerTest.kt",
+		dst: "public/sdks/kotlin/src/commonTest/kotlin/api/discovr/_PlaybackTrackerTest.kt",
+	},
+	{
+		src: "public/sdks/template_overrides/kotlin/_ItemOverloadsTest.kt",
+		dst: "public/sdks/kotlin/src/commonTest/kotlin/api/discovr/_ItemOverloadsTest.kt",
+	},
+	{
 		src: "public/sdks/template_overrides/swift6/_DiscovrAuth.swift",
 		dst: "public/sdks/swift/Sources/Discovr/_DiscovrAuth.swift",
 	},
@@ -163,8 +187,16 @@ export const HAND_MAINTAINED_COPIES: readonly CopyPair[] = [
 		dst: "public/sdks/swift/Sources/Discovr/DiscovrClient.swift",
 	},
 	{
+		src: "public/sdks/template_overrides/swift6/PlaybackTracker.swift",
+		dst: "public/sdks/swift/Sources/Discovr/PlaybackTracker.swift",
+	},
+	{
 		src: "public/sdks/template_overrides/swift6/_DiscovrCache.swift",
 		dst: "public/sdks/swift/Sources/Discovr/_DiscovrCache.swift",
+	},
+	{
+		src: "public/sdks/template_overrides/swift6/_DiscovrCacheTest.swift",
+		dst: "public/sdks/swift/Tests/DiscovrTests/_DiscovrCacheTest.swift",
 	},
 	{
 		src: "public/sdks/template_overrides/swift6/_RequestLoopGuardTest.swift",
@@ -185,6 +217,14 @@ export const HAND_MAINTAINED_COPIES: readonly CopyPair[] = [
 	{
 		src: "public/sdks/template_overrides/swift6/_MediaResponseDecodeTest.swift",
 		dst: "public/sdks/swift/Tests/DiscovrTests/_MediaResponseDecodeTest.swift",
+	},
+	{
+		src: "public/sdks/template_overrides/swift6/_PlaybackTrackerTest.swift",
+		dst: "public/sdks/swift/Tests/DiscovrTests/_PlaybackTrackerTest.swift",
+	},
+	{
+		src: "public/sdks/template_overrides/swift6/_ItemOverloadsTest.swift",
+		dst: "public/sdks/swift/Tests/DiscovrTests/_ItemOverloadsTest.swift",
 	},
 ];
 

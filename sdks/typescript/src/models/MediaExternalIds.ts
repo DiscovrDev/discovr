@@ -24,13 +24,13 @@ export interface MediaExternalIds {
      * @type {string}
      * @memberof MediaExternalIds
      */
-    imdbId?: string;
+    imdbId?: string | null;
     /**
      * TheTVDB identifier. TV only; `null` for movies and for shows with none.
      * @type {number}
      * @memberof MediaExternalIds
      */
-    tvdbId?: number;
+    tvdbId?: number | null;
 }
 
 /**

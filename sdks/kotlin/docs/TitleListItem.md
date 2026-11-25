@@ -12,7 +12,7 @@
 | **watchlist** | **kotlin.Boolean** | Whether this title is on the profile&#39;s watchlist. |  |
 | **updatedAt** | [**kotlin.time.Instant**](kotlin.time.Instant.md) | ISO 8601 timestamp for the active sort dimension (rated time, watchlisted time, or last watched time). |  |
 | **ref** | **kotlin.String** | This item&#39;s &#x60;id&#x60; with the list it came from attached.  Prefer it wherever you&#39;d pass this item&#39;s &#x60;id&#x60; onward — opening its detail screen, rating it, or removing it from a list. A bare &#x60;id&#x60; always works; &#x60;ref&#x60; is never required.  |  [optional] |
-| **rating** | [**Rating**](Rating.md) | The profile&#39;s rating for this title, or &#x60;null&#x60; if unrated. |  [optional] |
+| **rating** | [**Rating**](Rating.md) |  |  [optional] |
 | **completed** | **kotlin.Boolean** | Present on &#x60;watched&#x3D;true&#x60; results — whether the title is fully finished. |  [optional] |
 | **plays** | **kotlin.Int** | Present on &#x60;watched&#x3D;true&#x60; results — total completed plays. |  [optional] |
 | **season** | **kotlin.Int** | Present on &#x60;watched&#x3D;true&#x60; TV results — most recently watched season number. |  [optional] |

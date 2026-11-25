@@ -48,11 +48,21 @@ export interface DiscovrCacheConfig {
 	enabled?: boolean;
 	/** Max time to wait on a fetcher before treating it as failed. Defaults to 30s. */
 	timeoutMs?: number;
+	/**
+	 * Optional scope resolver returning the active profile scope eligible for
+	 * transparent stale-generation retry (e.g. active profile ID when signed in,
+	 * `null` when signed out or before a profile is selected). `wrap` only
+	 * retries a mid-flight cache clear when the scope is non-null, unchanged
+	 * across the fetch, and no non-retryable clear (`signOut`, `close`,
+	 * `selectProfile`, `switchProfile`) occurred in between.
+	 */
+	retryScope?: () => string | null;
 }
 
 export class _DiscovrCache {
 	private readonly enabled: boolean;
 	private readonly timeoutMs: number;
+	private readonly retryScope?: () => string | null;
 	private readonly entries = new Map<string, CacheEntry>();
 	private readonly inFlight = new Map<string, { promise: Promise<unknown>; token: number }>();
 	/**
@@ -69,16 +79,32 @@ export class _DiscovrCache {
 	 * only commits to `entries` if the generation hasn't moved on.
 	 */
 	private generation = 0;
+	/**
+	 * Monotonically bumped on every non-retryable clear (sign-out, close,
+	 * profile switch/re-select). Unlike a single boolean, a later retryable
+	 * snapshot turnover can never re-enable retry for a slow fetch that
+	 * straddled a non-retryable clear.
+	 */
+	private nonRetryableGeneration = 0;
+	/** Last snapshot id already cleared for, preventing duplicate clears after selectProfile. */
+	private lastClearedSnapshotId: string | null = null;
 
 	constructor(config: DiscovrCacheConfig = {}) {
 		this.enabled = config.enabled ?? true;
 		this.timeoutMs = config.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
+		this.retryScope = config.retryScope;
 	}
 
 	/**
 	 * Cache-or-fetch a single operation call, deduping concurrent identical
 	 * in-flight requests along the way (so a tight accidental loop over the
 	 * same params costs one network call, not N).
+	 *
+	 * If a retryable {@link clear} (e.g. same-profile snapshot turnover) lands
+	 * mid-flight while {@link DiscovrCacheConfig.retryScope} returns the same
+	 * non-null scope and no non-retryable clear intervened, the stale result is
+	 * discarded and the call is retried once transparently under the new
+	 * generation.
 	 *
 	 * @param ttlMs `undefined` means cache for the life of the session (until
 	 *   invalidated or {@link clear}ed); a number caches for that many ms.
@@ -96,6 +122,30 @@ export class _DiscovrCache {
 		if (!this.enabled) return fetcher();
 
 		const key = buildKey(operationId, keyParams);
+		const startScope = this.retryScope?.() ?? null;
+		const startNonRetryableGen = this.nonRetryableGeneration;
+		try {
+			return await this.wrapAttempt(key, ttlMs, bypass, fetcher);
+		} catch (err) {
+			const currentScope = this.retryScope?.() ?? null;
+			if (
+				err instanceof DiscovrCacheStaleGenerationError &&
+				this.nonRetryableGeneration === startNonRetryableGen &&
+				startScope !== null &&
+				currentScope === startScope
+			) {
+				return this.wrapAttempt(key, ttlMs, bypass, fetcher);
+			}
+			throw err;
+		}
+	}
+
+	private async wrapAttempt<T>(
+		key: string,
+		ttlMs: number | undefined,
+		bypass: boolean | undefined,
+		fetcher: () => Promise<T>,
+	): Promise<T> {
 		const now = Date.now();
 
 		if (!bypass) {
@@ -116,8 +166,8 @@ export class _DiscovrCache {
 				// while this fetch was in flight, this result belongs to a
 				// superseded generation — possibly the wrong profile's data.
 				// Reject rather than resolve so any follower deduped onto this
-				// same promise doesn't get handed stale data; it'll fall through
-				// to a fresh fetch under the new generation on its next call.
+				// same promise doesn't get handed stale data; callers eligible for
+				// retry fall through to a fresh fetch under the new generation.
 				if (this.generation !== generation) {
 					throw new DiscovrCacheStaleGenerationError();
 				}
@@ -146,9 +196,39 @@ export class _DiscovrCache {
 		}
 	}
 
-	/** Full wipe — called on profile switch, sign-out, and session rotation. */
-	clear(): void {
+	/**
+	 * Full wipe — called on profile switch, sign-out, and session rotation.
+	 * Pass `retryable = false` on sign-out, close, or profile switch so
+	 * in-flight calls do not retry across profiles or into a signed-out session.
+	 */
+	clear(retryable = true): void {
+		this.reset(retryable, null);
+	}
+
+	/**
+	 * Always clears the cache and marks `snapshotId` as already handled so a
+	 * redundant snapshot-change callback does not fire a second clear for the
+	 * same snapshot.
+	 * @internal
+	 */
+	clearAndMarkSnapshot(snapshotId: string | null, retryable = false): void {
+		this.reset(retryable, snapshotId);
+	}
+
+	/**
+	 * Clears the cache only if `snapshotId` differs from the snapshot most
+	 * recently cleared via {@link clearAndMarkSnapshot} / {@link clearForSnapshot}.
+	 * @internal
+	 */
+	clearForSnapshot(snapshotId: string | null, retryable = true): void {
+		if (snapshotId !== null && snapshotId === this.lastClearedSnapshotId) return;
+		this.reset(retryable, snapshotId);
+	}
+
+	private reset(retryable: boolean, snapshotId: string | null): void {
 		this.generation++;
+		if (!retryable) this.nonRetryableGeneration++;
+		this.lastClearedSnapshotId = snapshotId;
 		this.entries.clear();
 		this.inFlight.clear();
 	}

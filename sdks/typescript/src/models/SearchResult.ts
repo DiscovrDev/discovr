@@ -86,7 +86,7 @@ export interface SearchResult {
      * @type {string}
      * @memberof SearchResult
      */
-    overview?: string;
+    overview?: string | null;
     /**
      * Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Absent for `person` results.
      * @type {{ [key: string]: string; }}
@@ -104,13 +104,13 @@ export interface SearchResult {
      * @type {Date}
      * @memberof SearchResult
      */
-    releaseDate?: Date;
+    releaseDate?: Date | null;
     /**
      * First air date for `tv` results, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof SearchResult
      */
-    firstAirDate?: Date;
+    firstAirDate?: Date | null;
     /**
      * Relative popularity score. Comparable between results, but has no fixed upper bound, so treat it as a sort key rather than something to display.
      * @type {number}
@@ -140,7 +140,7 @@ export interface SearchResult {
      * @type {string}
      * @memberof SearchResult
      */
-    knownForDepartment?: string;
+    knownForDepartment?: string | null;
     /**
      * A few titles this person is best known for. Only present for `person` results.
      * 

@@ -31,16 +31,29 @@
 package api.discovr
 
 import api.discovr.apis.DiscovrApi
+import api.discovr.models.EpisodeRef
+import api.discovr.models.GetRowItemsResponse
+import api.discovr.models.GetRowsResponse
 import api.discovr.models.KnownForItem
+import api.discovr.models.MediaAssetsResponse
 import api.discovr.models.MediaItem
+import api.discovr.models.MediaResponse
 import api.discovr.models.NavigationItem
+import api.discovr.models.Page
 import api.discovr.models.PlaybackItem
 import api.discovr.models.ProviderItem
 import api.discovr.models.Rating
+import api.discovr.models.Row
+import api.discovr.models.ScrobbleResponse
 import api.discovr.models.SearchResult
+import api.discovr.models.SeasonDetailsResponse
+import api.discovr.models.SeasonState
+import api.discovr.models.SimilarResponse
 import api.discovr.models.SimilarResult
+import api.discovr.models.SuccessMessage
 import api.discovr.models.TitleListItem
 import api.discovr.models.TitleListResponse
+import api.discovr.models.TitleState
 import api.discovr.auth.AuthConfig
 import api.discovr.auth.AuthState
 import api.discovr.auth.AuthStorage
@@ -112,11 +125,14 @@ class DiscovrClient(
         ),
     )
 
-    override val _cache = _DiscovrCache(enabled = cache)
+    override val _cache = _DiscovrCache(
+        enabled = cache,
+        retryScope = { if (_auth.isSignedIn) _auth.getActiveProfileId() else null },
+    )
 
     // Wire the session API: bearerTokenProvider fetches a fresh session token
     // on every request; auto-recovery is handled by sessionApiCall in the base.
-    override val _sessionApi: DiscovrApi = DiscovrApi(baseUrl = basePath).apply {
+    override var _sessionApi: DiscovrApi = DiscovrApi(baseUrl = basePath).apply {
         bearerTokenProvider = { _auth.sessionBearer() }
         requestGuard = { _auth.checkRequestLoop(it) }
     }
@@ -131,10 +147,27 @@ class DiscovrClient(
 
     init {
         // Clear cached page data when the *recommendations* turn over, not on
-        // every session mint. Clearing per-mint threw away page data that was
-        // still perfectly valid every time a credential was renewed.
+        // every session mint. `clearForSnapshot` skips any buffered event for a
+        // snapshot already cleared synchronously by `selectProfile`/`switchProfile`.
         cacheScope.launch {
-            _auth.snapshotChanges.collect { _cache.clear() }
+            var lastProfileId = _auth.getActiveProfileId()
+            _auth.snapshotChanges.collect {
+                val currentProfileId = _auth.getActiveProfileId()
+                val sameProfile = currentProfileId != null && currentProfileId == lastProfileId
+                lastProfileId = currentProfileId
+                _cache.clearForSnapshot(_auth.sessionState.value.snapshotId, retryable = sameProfile)
+            }
+        }
+        // Wipe cached data without retrying if a forced sign-out occurs (e.g.
+        // expired/revoked refresh token during 401 recovery).
+        cacheScope.launch {
+            var wasSignedIn = _auth.isSignedIn
+            _auth.state.collect { state ->
+                if (wasSignedIn && !state.signedIn) {
+                    _cache.clear(retryable = false)
+                }
+                wasSignedIn = state.signedIn
+            }
         }
     }
 
@@ -230,12 +263,10 @@ class DiscovrClient(
      */
     suspend fun selectProfile(profileId: String) {
         _auth.selectProfile(profileId)
-        // Clear synchronously here too, don't rely solely on the sessionState
-        // collector below — it delivers on cacheScope's own dispatcher, so
-        // there's no guarantee it has run by the time this call returns. This
-        // closes that window for the common explicit-switch case; the collector
-        // remains the backstop for turnovers that don't go through here.
-        _cache.clear()
+        // Clear synchronously (non-retryable) and record the snapshot ID so the
+        // async collector does not fire a duplicate delayed clear right after
+        // this call returns, and in-flight calls from a prior profile never retry.
+        _cache.clearAndMarkSnapshot(_auth.sessionState.value.snapshotId, retryable = false)
     }
 
     /**
@@ -244,16 +275,15 @@ class DiscovrClient(
      */
     suspend fun switchProfile(profileId: String) {
         _auth.switchProfile(profileId)
-        _cache.clear()
+        _cache.clearAndMarkSnapshot(_auth.sessionState.value.snapshotId, retryable = false)
     }
 
     /** Revoke the current device's refresh token and clear local state. */
     suspend fun signOut() {
-        // Clear first: local auth state is wiped synchronously inside
-        // _auth.signOut() before it awaits the server-side revocation call, so
-        // a slow/hanging revocation would otherwise leave stale cache entries
-        // around for longer than necessary even though nothing can serve them.
-        _cache.clear()
+        // Clear first with retryable = false: local auth state is wiped inside
+        // _auth.signOut() before it awaits the server-side revocation call, and
+        // in-flight fetches must not retry into a signed-out session.
+        _cache.clear(retryable = false)
         _auth.signOut()
     }
 
@@ -298,6 +328,215 @@ class DiscovrClient(
     /** List the active profile's watch history (one entry per title), most recently watched first. */
     suspend fun getHistory(nextPageToken: String? = null, limit: Int? = null): TitleListResponse =
         getTitles(watched = true, nextPageToken = nextPageToken, limit = limit)
+
+    // ── Playback tracker (A18) ────────────────────────────────────────────────
+
+    /**
+     * Create a percentage-first [PlaybackTracker] for a movie or TV episode
+     * identified by raw media ID or `ref`.
+     */
+    fun trackPlayback(
+        mediaId: String,
+        tv: EpisodeRef? = null,
+        after: PlaybackTracker? = null,
+        onError: ((Throwable) -> Unit)? = null,
+        onCompleted: ((ScrobbleResponse) -> Unit)? = null,
+        heartbeatIntervalMs: Long = PlaybackTracker.DEFAULT_HEARTBEAT_INTERVAL_MS,
+    ): PlaybackTracker = PlaybackTracker(
+        mediaRefOrId = mediaId,
+        tv = tv,
+        after = after,
+        onError = onError,
+        onCompleted = onCompleted,
+        heartbeatIntervalMs = heartbeatIntervalMs,
+        send = { id, progress, episodeRef -> scrobble(id, progress, tv = episodeRef) },
+        scope = cacheScope,
+    )
+
+    /** Create a [PlaybackTracker] from a [MediaItem], preserving its `ref`. */
+    fun trackPlayback(
+        item: MediaItem,
+        tv: EpisodeRef? = null,
+        after: PlaybackTracker? = null,
+        onError: ((Throwable) -> Unit)? = null,
+        onCompleted: ((ScrobbleResponse) -> Unit)? = null,
+        heartbeatIntervalMs: Long = PlaybackTracker.DEFAULT_HEARTBEAT_INTERVAL_MS,
+    ): PlaybackTracker = trackPlayback(item.refOrId(), tv, after, onError, onCompleted, heartbeatIntervalMs)
+
+    /** Create a [PlaybackTracker] from a [TitleListItem], preserving its `ref`. */
+    fun trackPlayback(
+        item: TitleListItem,
+        tv: EpisodeRef? = null,
+        after: PlaybackTracker? = null,
+        onError: ((Throwable) -> Unit)? = null,
+        onCompleted: ((ScrobbleResponse) -> Unit)? = null,
+        heartbeatIntervalMs: Long = PlaybackTracker.DEFAULT_HEARTBEAT_INTERVAL_MS,
+    ): PlaybackTracker = trackPlayback(item.refOrId(), tv, after, onError, onCompleted, heartbeatIntervalMs)
+
+    /**
+     * Create a [PlaybackTracker] from a [PlaybackItem], preserving its `ref` and
+     * automatically defaulting [tv] to `EpisodeRef(item.season, item.episode)`
+     * when both are present and [tv] is omitted.
+     */
+    fun trackPlayback(
+        item: PlaybackItem,
+        tv: EpisodeRef? = null,
+        after: PlaybackTracker? = null,
+        onError: ((Throwable) -> Unit)? = null,
+        onCompleted: ((ScrobbleResponse) -> Unit)? = null,
+        heartbeatIntervalMs: Long = PlaybackTracker.DEFAULT_HEARTBEAT_INTERVAL_MS,
+    ): PlaybackTracker {
+        val resolvedTv = tv ?: if (item.season != null && item.episode != null) {
+            EpisodeRef(season = item.season, episode = item.episode)
+        } else {
+            null
+        }
+        return trackPlayback(item.refOrId(), resolvedTv, after, onError, onCompleted, heartbeatIntervalMs)
+    }
+
+    /** Create a [PlaybackTracker] from a [SearchResult], preserving its `ref`. */
+    fun trackPlayback(
+        item: SearchResult,
+        tv: EpisodeRef? = null,
+        after: PlaybackTracker? = null,
+        onError: ((Throwable) -> Unit)? = null,
+        onCompleted: ((ScrobbleResponse) -> Unit)? = null,
+        heartbeatIntervalMs: Long = PlaybackTracker.DEFAULT_HEARTBEAT_INTERVAL_MS,
+    ): PlaybackTracker = trackPlayback(item.refOrId(), tv, after, onError, onCompleted, heartbeatIntervalMs)
+
+    /** Create a [PlaybackTracker] from a [SimilarResult], preserving its `ref`. */
+    fun trackPlayback(
+        item: SimilarResult,
+        tv: EpisodeRef? = null,
+        after: PlaybackTracker? = null,
+        onError: ((Throwable) -> Unit)? = null,
+        onCompleted: ((ScrobbleResponse) -> Unit)? = null,
+        heartbeatIntervalMs: Long = PlaybackTracker.DEFAULT_HEARTBEAT_INTERVAL_MS,
+    ): PlaybackTracker = trackPlayback(item.refOrId(), tv, after, onError, onCompleted, heartbeatIntervalMs)
+
+    /** Create a [PlaybackTracker] from a [KnownForItem], preserving its `ref`. */
+    fun trackPlayback(
+        item: KnownForItem,
+        tv: EpisodeRef? = null,
+        after: PlaybackTracker? = null,
+        onError: ((Throwable) -> Unit)? = null,
+        onCompleted: ((ScrobbleResponse) -> Unit)? = null,
+        heartbeatIntervalMs: Long = PlaybackTracker.DEFAULT_HEARTBEAT_INTERVAL_MS,
+    ): PlaybackTracker = trackPlayback(item.refOrId(), tv, after, onError, onCompleted, heartbeatIntervalMs)
+
+    // ── Item-taking overloads (A16) ───────────────────────────────────────────
+    // Accept item/tile models directly so attribution via `refOrId()` is
+    // automatic while keeping every String signature intact for deep links.
+
+    suspend fun getMedia(item: MediaItem, bypassCache: Boolean = false): MediaResponse = getMedia(item.refOrId(), bypassCache)
+    suspend fun getMedia(item: TitleListItem, bypassCache: Boolean = false): MediaResponse = getMedia(item.refOrId(), bypassCache)
+    suspend fun getMedia(item: PlaybackItem, bypassCache: Boolean = false): MediaResponse = getMedia(item.refOrId(), bypassCache)
+    suspend fun getMedia(item: SearchResult, bypassCache: Boolean = false): MediaResponse = getMedia(item.refOrId(), bypassCache)
+    suspend fun getMedia(item: SimilarResult, bypassCache: Boolean = false): MediaResponse = getMedia(item.refOrId(), bypassCache)
+    suspend fun getMedia(item: KnownForItem, bypassCache: Boolean = false): MediaResponse = getMedia(item.refOrId(), bypassCache)
+
+    suspend fun getMediaAssets(item: MediaItem, bypassCache: Boolean = false): MediaAssetsResponse = getMediaAssets(item.refOrId(), bypassCache)
+    suspend fun getMediaAssets(item: TitleListItem, bypassCache: Boolean = false): MediaAssetsResponse = getMediaAssets(item.refOrId(), bypassCache)
+    suspend fun getMediaAssets(item: PlaybackItem, bypassCache: Boolean = false): MediaAssetsResponse = getMediaAssets(item.refOrId(), bypassCache)
+    suspend fun getMediaAssets(item: SearchResult, bypassCache: Boolean = false): MediaAssetsResponse = getMediaAssets(item.refOrId(), bypassCache)
+    suspend fun getMediaAssets(item: SimilarResult, bypassCache: Boolean = false): MediaAssetsResponse = getMediaAssets(item.refOrId(), bypassCache)
+    suspend fun getMediaAssets(item: KnownForItem, bypassCache: Boolean = false): MediaAssetsResponse = getMediaAssets(item.refOrId(), bypassCache)
+
+    suspend fun getSimilarRecommendations(item: MediaItem, language: String? = null, page: Int? = null, bypassCache: Boolean = false): SimilarResponse = getSimilarRecommendations(item.refOrId(), language, page, bypassCache)
+    suspend fun getSimilarRecommendations(item: TitleListItem, language: String? = null, page: Int? = null, bypassCache: Boolean = false): SimilarResponse = getSimilarRecommendations(item.refOrId(), language, page, bypassCache)
+    suspend fun getSimilarRecommendations(item: PlaybackItem, language: String? = null, page: Int? = null, bypassCache: Boolean = false): SimilarResponse = getSimilarRecommendations(item.refOrId(), language, page, bypassCache)
+    suspend fun getSimilarRecommendations(item: SearchResult, language: String? = null, page: Int? = null, bypassCache: Boolean = false): SimilarResponse = getSimilarRecommendations(item.refOrId(), language, page, bypassCache)
+    suspend fun getSimilarRecommendations(item: SimilarResult, language: String? = null, page: Int? = null, bypassCache: Boolean = false): SimilarResponse = getSimilarRecommendations(item.refOrId(), language, page, bypassCache)
+    suspend fun getSimilarRecommendations(item: KnownForItem, language: String? = null, page: Int? = null, bypassCache: Boolean = false): SimilarResponse = getSimilarRecommendations(item.refOrId(), language, page, bypassCache)
+
+    suspend fun getSeasonDetails(item: MediaItem, seasonNumber: Int, language: String? = null, bypassCache: Boolean = false): SeasonDetailsResponse = getSeasonDetails(item.refOrId(), seasonNumber, language, bypassCache)
+    suspend fun getSeasonDetails(item: TitleListItem, seasonNumber: Int, language: String? = null, bypassCache: Boolean = false): SeasonDetailsResponse = getSeasonDetails(item.refOrId(), seasonNumber, language, bypassCache)
+    suspend fun getSeasonDetails(item: PlaybackItem, seasonNumber: Int, language: String? = null, bypassCache: Boolean = false): SeasonDetailsResponse = getSeasonDetails(item.refOrId(), seasonNumber, language, bypassCache)
+    suspend fun getSeasonDetails(item: SearchResult, seasonNumber: Int, language: String? = null, bypassCache: Boolean = false): SeasonDetailsResponse = getSeasonDetails(item.refOrId(), seasonNumber, language, bypassCache)
+    suspend fun getSeasonDetails(item: SimilarResult, seasonNumber: Int, language: String? = null, bypassCache: Boolean = false): SeasonDetailsResponse = getSeasonDetails(item.refOrId(), seasonNumber, language, bypassCache)
+    suspend fun getSeasonDetails(item: KnownForItem, seasonNumber: Int, language: String? = null, bypassCache: Boolean = false): SeasonDetailsResponse = getSeasonDetails(item.refOrId(), seasonNumber, language, bypassCache)
+
+    suspend fun getTitleState(item: MediaItem, providers: Boolean? = false): TitleState = getTitleState(item.refOrId(), providers)
+    suspend fun getTitleState(item: TitleListItem, providers: Boolean? = false): TitleState = getTitleState(item.refOrId(), providers)
+    suspend fun getTitleState(item: PlaybackItem, providers: Boolean? = false): TitleState = getTitleState(item.refOrId(), providers)
+    suspend fun getTitleState(item: SearchResult, providers: Boolean? = false): TitleState = getTitleState(item.refOrId(), providers)
+    suspend fun getTitleState(item: SimilarResult, providers: Boolean? = false): TitleState = getTitleState(item.refOrId(), providers)
+    suspend fun getTitleState(item: KnownForItem, providers: Boolean? = false): TitleState = getTitleState(item.refOrId(), providers)
+
+    suspend fun getSeasonState(item: MediaItem, seasonNumber: Int): SeasonState = getSeasonState(item.refOrId(), seasonNumber)
+    suspend fun getSeasonState(item: TitleListItem, seasonNumber: Int): SeasonState = getSeasonState(item.refOrId(), seasonNumber)
+    suspend fun getSeasonState(item: PlaybackItem, seasonNumber: Int): SeasonState = getSeasonState(item.refOrId(), seasonNumber)
+    suspend fun getSeasonState(item: SearchResult, seasonNumber: Int): SeasonState = getSeasonState(item.refOrId(), seasonNumber)
+    suspend fun getSeasonState(item: SimilarResult, seasonNumber: Int): SeasonState = getSeasonState(item.refOrId(), seasonNumber)
+    suspend fun getSeasonState(item: KnownForItem, seasonNumber: Int): SeasonState = getSeasonState(item.refOrId(), seasonNumber)
+
+    suspend fun setRating(item: MediaItem, value: Rating): TitleState = setRating(item.refOrId(), value)
+    suspend fun setRating(item: TitleListItem, value: Rating): TitleState = setRating(item.refOrId(), value)
+    suspend fun setRating(item: PlaybackItem, value: Rating): TitleState = setRating(item.refOrId(), value)
+    suspend fun setRating(item: SearchResult, value: Rating): TitleState = setRating(item.refOrId(), value)
+    suspend fun setRating(item: SimilarResult, value: Rating): TitleState = setRating(item.refOrId(), value)
+    suspend fun setRating(item: KnownForItem, value: Rating): TitleState = setRating(item.refOrId(), value)
+
+    suspend fun clearRating(item: MediaItem): TitleState = clearRating(item.refOrId())
+    suspend fun clearRating(item: TitleListItem): TitleState = clearRating(item.refOrId())
+    suspend fun clearRating(item: PlaybackItem): TitleState = clearRating(item.refOrId())
+    suspend fun clearRating(item: SearchResult): TitleState = clearRating(item.refOrId())
+    suspend fun clearRating(item: SimilarResult): TitleState = clearRating(item.refOrId())
+    suspend fun clearRating(item: KnownForItem): TitleState = clearRating(item.refOrId())
+
+    suspend fun addToWatchlist(item: MediaItem): TitleState = addToWatchlist(item.refOrId())
+    suspend fun addToWatchlist(item: TitleListItem): TitleState = addToWatchlist(item.refOrId())
+    suspend fun addToWatchlist(item: PlaybackItem): TitleState = addToWatchlist(item.refOrId())
+    suspend fun addToWatchlist(item: SearchResult): TitleState = addToWatchlist(item.refOrId())
+    suspend fun addToWatchlist(item: SimilarResult): TitleState = addToWatchlist(item.refOrId())
+    suspend fun addToWatchlist(item: KnownForItem): TitleState = addToWatchlist(item.refOrId())
+
+    suspend fun removeFromWatchlist(item: MediaItem): TitleState = removeFromWatchlist(item.refOrId())
+    suspend fun removeFromWatchlist(item: TitleListItem): TitleState = removeFromWatchlist(item.refOrId())
+    suspend fun removeFromWatchlist(item: PlaybackItem): TitleState = removeFromWatchlist(item.refOrId())
+    suspend fun removeFromWatchlist(item: SearchResult): TitleState = removeFromWatchlist(item.refOrId())
+    suspend fun removeFromWatchlist(item: SimilarResult): TitleState = removeFromWatchlist(item.refOrId())
+    suspend fun removeFromWatchlist(item: KnownForItem): TitleState = removeFromWatchlist(item.refOrId())
+
+    suspend fun markWatched(item: MediaItem, season: Int? = null, episode: Int? = null): TitleState = markWatched(item.refOrId(), season, episode)
+    suspend fun markWatched(item: TitleListItem, season: Int? = null, episode: Int? = null): TitleState = markWatched(item.refOrId(), season, episode)
+    suspend fun markWatched(item: PlaybackItem, season: Int? = null, episode: Int? = null): TitleState = markWatched(item.refOrId(), season, episode)
+    suspend fun markWatched(item: SearchResult, season: Int? = null, episode: Int? = null): TitleState = markWatched(item.refOrId(), season, episode)
+    suspend fun markWatched(item: SimilarResult, season: Int? = null, episode: Int? = null): TitleState = markWatched(item.refOrId(), season, episode)
+    suspend fun markWatched(item: KnownForItem, season: Int? = null, episode: Int? = null): TitleState = markWatched(item.refOrId(), season, episode)
+
+    suspend fun markUnwatched(item: MediaItem, season: Int? = null, episode: Int? = null): TitleState = markUnwatched(item.refOrId(), season, episode)
+    suspend fun markUnwatched(item: TitleListItem, season: Int? = null, episode: Int? = null): TitleState = markUnwatched(item.refOrId(), season, episode)
+    suspend fun markUnwatched(item: PlaybackItem, season: Int? = null, episode: Int? = null): TitleState = markUnwatched(item.refOrId(), season, episode)
+    suspend fun markUnwatched(item: SearchResult, season: Int? = null, episode: Int? = null): TitleState = markUnwatched(item.refOrId(), season, episode)
+    suspend fun markUnwatched(item: SimilarResult, season: Int? = null, episode: Int? = null): TitleState = markUnwatched(item.refOrId(), season, episode)
+    suspend fun markUnwatched(item: KnownForItem, season: Int? = null, episode: Int? = null): TitleState = markUnwatched(item.refOrId(), season, episode)
+
+    suspend fun deletePlaybackItem(item: MediaItem): SuccessMessage = deletePlaybackItem(item.refOrId())
+    suspend fun deletePlaybackItem(item: TitleListItem): SuccessMessage = deletePlaybackItem(item.refOrId())
+    suspend fun deletePlaybackItem(item: PlaybackItem): SuccessMessage = deletePlaybackItem(item.refOrId())
+    suspend fun deletePlaybackItem(item: SearchResult): SuccessMessage = deletePlaybackItem(item.refOrId())
+    suspend fun deletePlaybackItem(item: SimilarResult): SuccessMessage = deletePlaybackItem(item.refOrId())
+    suspend fun deletePlaybackItem(item: KnownForItem): SuccessMessage = deletePlaybackItem(item.refOrId())
+
+    suspend fun scrobble(item: MediaItem, progress: Double, tv: EpisodeRef? = null): ScrobbleResponse = scrobble(item.refOrId(), progress, tv)
+    suspend fun scrobble(item: TitleListItem, progress: Double, tv: EpisodeRef? = null): ScrobbleResponse = scrobble(item.refOrId(), progress, tv)
+    suspend fun scrobble(item: PlaybackItem, progress: Double, tv: EpisodeRef? = null): ScrobbleResponse = scrobble(item.refOrId(), progress, tv)
+    suspend fun scrobble(item: SearchResult, progress: Double, tv: EpisodeRef? = null): ScrobbleResponse = scrobble(item.refOrId(), progress, tv)
+    suspend fun scrobble(item: SimilarResult, progress: Double, tv: EpisodeRef? = null): ScrobbleResponse = scrobble(item.refOrId(), progress, tv)
+    suspend fun scrobble(item: KnownForItem, progress: Double, tv: EpisodeRef? = null): ScrobbleResponse = scrobble(item.refOrId(), progress, tv)
+
+    suspend fun getPage(tile: NavigationItem, bypassCache: Boolean = false): Page = getPage(tile.refOrId(), bypassCache)
+    suspend fun getPage(tile: ProviderItem, bypassCache: Boolean = false): Page = getPage(tile.refOrId(), bypassCache)
+
+    suspend fun getRows(tile: NavigationItem, nextPageToken: String? = null, limit: Int? = null, bypassCache: Boolean = false): GetRowsResponse = getRows(tile.refOrId(), nextPageToken, limit, bypassCache)
+    suspend fun getRows(tile: ProviderItem, nextPageToken: String? = null, limit: Int? = null, bypassCache: Boolean = false): GetRowsResponse = getRows(tile.refOrId(), nextPageToken, limit, bypassCache)
+
+    suspend fun getRow(tile: NavigationItem, rowId: String, bypassCache: Boolean = false): Row = getRow(tile.refOrId(), rowId, bypassCache)
+    suspend fun getRow(tile: ProviderItem, rowId: String, bypassCache: Boolean = false): Row = getRow(tile.refOrId(), rowId, bypassCache)
+
+    suspend fun getRowItems(tile: NavigationItem, rowId: String, nextPageToken: String? = null, limit: Int? = null, bypassCache: Boolean = false): GetRowItemsResponse = getRowItems(tile.refOrId(), rowId, nextPageToken, limit, bypassCache)
+    suspend fun getRowItems(tile: ProviderItem, rowId: String, nextPageToken: String? = null, limit: Int? = null, bypassCache: Boolean = false): GetRowItemsResponse = getRowItems(tile.refOrId(), rowId, nextPageToken, limit, bypassCache)
 }
 
 

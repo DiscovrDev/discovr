@@ -274,4 +274,177 @@ class DiscovrCacheTest {
 
         assertEquals(2, calls)
     }
+
+    @Test
+    fun midFlightClearWhileActive_retriesOnceTransparently() = runTest {
+        var calls = 0
+        val gate = CompletableDeferred<Map<String, String>>()
+        val cache = _DiscovrCache(retryScope = { "profileA" })
+
+        val fetcher: suspend () -> Map<String, String> = {
+            calls++
+            if (calls == 1) gate.await() else mapOf("snap" to "snap2")
+        }
+
+        val pending = async { cache.wrap("getPage", mapOf("pageId" to "home"), null, false, fetcher) }
+        yield()
+        cache.clearForSnapshot("snap2", retryable = true)
+        gate.complete(mapOf("snap" to "snap1"))
+
+        assertEquals(mapOf("snap" to "snap2"), pending.await())
+        assertEquals(2, calls)
+
+        // Fresh retry value was cached; stale value was discarded.
+        assertEquals(mapOf("snap" to "snap2"), cache.wrap("getPage", mapOf("pageId" to "home"), null, false, fetcher))
+        assertEquals(2, calls)
+    }
+
+    @Test
+    fun midFlightClearWhileActive_leaderAndFollowerBothReceiveFreshResult() = runTest {
+        var calls = 0
+        val gate1 = CompletableDeferred<Map<String, String>>()
+        val gate2 = CompletableDeferred<Map<String, String>>()
+        val cache = _DiscovrCache(retryScope = { "profileA" })
+
+        val fetcher: suspend () -> Map<String, String> = {
+            calls++
+            if (calls == 1) gate1.await() else gate2.await()
+        }
+
+        val leader = async { cache.wrap("getPage", mapOf("pageId" to "home"), null, false, fetcher) }
+        yield()
+        val follower = async { cache.wrap("getPage", mapOf("pageId" to "home"), null, false, fetcher) }
+        yield()
+
+        cache.clear()
+        gate1.complete(mapOf("snap" to "stale"))
+        yield()
+        yield()
+        gate2.complete(mapOf("snap" to "fresh"))
+
+        assertEquals(mapOf("snap" to "fresh"), leader.await())
+        assertEquals(mapOf("snap" to "fresh"), follower.await())
+        assertEquals(2, calls) // 1 stale + 1 deduped retry
+    }
+
+    @Test
+    fun profileSwitchDuringInFlightFetch_neverRetriesAcrossProfilesEvenAfterSnapshotTurnover() = runTest {
+        supervisorScope {
+            var activeProfile: String? = "profileA"
+            var calls = 0
+            val gate = CompletableDeferred<Map<String, String>>()
+            val cache = _DiscovrCache(retryScope = { activeProfile })
+
+            val pending = async {
+                cache.wrap("getPage", mapOf("pageId" to "home"), null, false) {
+                    calls++
+                    if (calls == 1) gate.await() else mapOf("profile" to "profileB")
+                }
+            }
+            yield()
+            // Switch to Profile B (non-retryable), followed by a retryable
+            // snapshot turnover before Profile A's slow fetch completes.
+            activeProfile = "profileB"
+            cache.clearAndMarkSnapshot("snapB1", retryable = false)
+            cache.clearForSnapshot("snapB2", retryable = true)
+            gate.complete(mapOf("profile" to "profileA"))
+
+            assertFailsWith<DiscovrCacheStaleGenerationException> { pending.await() }
+            assertEquals(1, calls)
+        }
+    }
+
+    @Test
+    fun nonRetryableClearOnSignOutOrReselect_doesNotRetryEvenAfterLaterRetryableClear() = runTest {
+        supervisorScope {
+            var calls = 0
+            val gate = CompletableDeferred<Map<String, String>>()
+            val cache = _DiscovrCache(retryScope = { "profileA" })
+
+            val pending = async {
+                cache.wrap("getPage", mapOf("pageId" to "home"), null, false) {
+                    calls++
+                    gate.await()
+                }
+            }
+            yield()
+            cache.clear(retryable = false)
+            cache.clear(retryable = true)
+            gate.complete(mapOf("snap" to "stale"))
+
+            assertFailsWith<DiscovrCacheStaleGenerationException> { pending.await() }
+            assertEquals(1, calls)
+        }
+    }
+
+    @Test
+    fun clearWhileSignedOut_doesNotRetry() = runTest {
+        supervisorScope {
+            var scope: String? = "profileA"
+            var calls = 0
+            val gate = CompletableDeferred<Map<String, String>>()
+            val cache = _DiscovrCache(retryScope = { scope })
+
+            val pending = async {
+                cache.wrap("getPage", mapOf("pageId" to "home"), null, false) {
+                    calls++
+                    gate.await()
+                }
+            }
+            yield()
+            scope = null
+            cache.clear()
+            gate.complete(mapOf("snap" to "stale"))
+
+            assertFailsWith<DiscovrCacheStaleGenerationException> { pending.await() }
+            assertEquals(1, calls)
+        }
+    }
+
+    @Test
+    fun secondConsecutiveClearDuringRetry_throwsInsteadOfLooping() = runTest {
+        supervisorScope {
+            var calls = 0
+            val gate1 = CompletableDeferred<Map<String, String>>()
+            val gate2 = CompletableDeferred<Map<String, String>>()
+            val cache = _DiscovrCache(retryScope = { "profileA" })
+
+            val pending = async {
+                cache.wrap("getPage", mapOf("pageId" to "home"), null, false) {
+                    calls++
+                    if (calls == 1) gate1.await() else gate2.await()
+                }
+            }
+            yield()
+            cache.clear()
+            gate1.complete(mapOf("n" to "1"))
+            yield()
+            yield()
+            cache.clear()
+            gate2.complete(mapOf("n" to "2"))
+
+            assertFailsWith<DiscovrCacheStaleGenerationException> { pending.await() }
+            assertEquals(2, calls)
+        }
+    }
+
+    @Test
+    fun clearForSnapshot_skipsDuplicateForAlreadyMarkedSnapshot() = runTest {
+        val cache = _DiscovrCache()
+        var calls = 0
+        val fetcher: suspend () -> String = { calls++; "v$calls" }
+
+        cache.clearAndMarkSnapshot("snap1")
+        assertEquals("v1", cache.wrap("getPage", mapOf("pageId" to "home"), null, false, fetcher))
+
+        // Duplicate delayed event for snap1 is a no-op; cached entry survives.
+        cache.clearForSnapshot("snap1")
+        assertEquals("v1", cache.wrap("getPage", mapOf("pageId" to "home"), null, false, fetcher))
+        assertEquals(1, calls)
+
+        // Genuine move to snap2 clears the cache.
+        cache.clearForSnapshot("snap2")
+        assertEquals("v2", cache.wrap("getPage", mapOf("pageId" to "home"), null, false, fetcher))
+        assertEquals(2, calls)
+    }
 }

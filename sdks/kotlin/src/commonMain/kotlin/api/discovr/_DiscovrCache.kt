@@ -47,6 +47,15 @@ class _DiscovrCache(
     private val enabled: Boolean = true,
     /** Max time to wait on a fetcher before treating it as failed. Defaults to 30s. */
     private val timeoutMs: Long = DEFAULT_TIMEOUT_MS,
+    /**
+     * Optional scope resolver returning the active profile scope eligible for
+     * transparent stale-generation retry (e.g. active profile ID when signed in,
+     * `null` when signed out or before a profile is selected). [wrap] only
+     * retries a mid-flight cache clear when the scope is non-null, unchanged
+     * across the fetch, and no non-retryable clear (`signOut`, `selectProfile`,
+     * `switchProfile`) occurred in between.
+     */
+    private val retryScope: (() -> String?)? = null,
 ) {
     private val mutex = Mutex()
     private val entries = LinkedHashMap<String, CacheEntry>()
@@ -61,6 +70,15 @@ class _DiscovrCache(
      * read/written under [mutex], same as `entries`/`inFlight`.
      */
     private var generation = 0
+    /**
+     * Monotonically bumped on every non-retryable clear (sign-out, profile
+     * switch/re-select). Unlike a single boolean, a later retryable snapshot
+     * turnover can never re-enable retry for a slow fetch that straddled a
+     * non-retryable clear.
+     */
+    private var nonRetryableGeneration = 0
+    /** Last snapshot id already cleared for, preventing duplicate delayed async clears after selectProfile. */
+    private var lastClearedSnapshotId: String? = null
 
     private data class Slot(val deferred: CompletableDeferred<Any?>, val isLeader: Boolean)
 
@@ -69,11 +87,10 @@ class _DiscovrCache(
      * in-flight requests along the way (so a tight accidental loop over the
      * same params costs one network call, not N).
      *
-     * The cached-value check, the in-flight lookup, and registering this call
-     * as the "leader" that will actually fetch all happen inside a single
-     * [Mutex.withLock] critical section — splitting that across separate lock
-     * acquisitions would let two concurrent callers both see no pending fetch
-     * and both register their own, firing duplicate network calls.
+     * If a retryable [clear] (e.g. same-profile snapshot turnover) lands
+     * mid-flight while [retryScope] returns the same non-null scope and no
+     * non-retryable clear intervened, the stale result is discarded and the
+     * call is retried once transparently under the new generation.
      *
      * @param ttlMs `null` means cache for the life of the session (until
      *   invalidated or [clear]ed); a value caches for that many ms.
@@ -81,7 +98,6 @@ class _DiscovrCache(
      *   call, but still refresh the stored entry with the result — a "force
      *   refresh" that also warms the cache for the next normal call.
      */
-    @Suppress("UNCHECKED_CAST")
     suspend fun <T> wrap(
         operationId: String,
         keyParams: Map<String, Any?>,
@@ -92,16 +108,44 @@ class _DiscovrCache(
         if (!enabled) return fetcher()
 
         val key = buildKey(operationId, keyParams)
+        val startScope = retryScope?.invoke()
+        val startNonRetryableGen = mutex.withLock { nonRetryableGeneration }
+        return try {
+            wrapAttempt(key, ttlMs, bypass, fetcher)
+        } catch (e: DiscovrCacheStaleGenerationException) {
+            val sameNonRetryableGen = mutex.withLock { nonRetryableGeneration == startNonRetryableGen }
+            val currentScope = retryScope?.invoke()
+            if (sameNonRetryableGen && startScope != null && currentScope == startScope) {
+                wrapAttempt(key, ttlMs, bypass, fetcher)
+            } else {
+                throw e
+            }
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private suspend fun <T> wrapAttempt(
+        key: String,
+        ttlMs: Long?,
+        bypass: Boolean,
+        fetcher: suspend () -> T,
+    ): T {
         val now = Clock.System.now().toEpochMilliseconds()
 
         if (bypass) {
             val startGeneration = mutex.withLock { generation }
             val value = fetchWithTimeout(fetcher)
-            mutex.withLock {
+            val stillCurrent = mutex.withLock {
                 if (generation == startGeneration) {
                     entries[key] = CacheEntry(value, ttlMs?.let { now + it })
                     evictIfNeeded()
+                    true
+                } else {
+                    false
                 }
+            }
+            if (!stillCurrent) {
+                throw DiscovrCacheStaleGenerationException()
             }
             return value
         }
@@ -143,8 +187,8 @@ class _DiscovrCache(
                 // while this fetch was in flight — this result belongs to a
                 // superseded generation, possibly the wrong profile's data.
                 // Fail rather than complete so any follower awaiting this same
-                // deferred doesn't get handed stale data; it'll fall through to
-                // a fresh fetch under the new generation on its next call.
+                // deferred doesn't get handed stale data; callers eligible for
+                // retry fall through to a fresh fetch under the new generation.
                 val staleError = DiscovrCacheStaleGenerationException()
                 slot.deferred.completeExceptionally(staleError)
                 throw staleError
@@ -172,13 +216,45 @@ class _DiscovrCache(
         }
     }
 
-    /** Full wipe — called on profile switch, sign-out, and session rotation. */
-    suspend fun clear() {
+    /**
+     * Full wipe — called on profile switch, sign-out, and session rotation.
+     * Pass `retryable = false` on sign-out or profile switch so in-flight
+     * calls do not retry across profiles or into a signed-out session.
+     */
+    suspend fun clear(retryable: Boolean = true) {
         mutex.withLock {
-            generation++
-            entries.clear()
-            inFlight.clear()
+            resetLocked(retryable = retryable, snapshotId = null)
         }
+    }
+
+    /**
+     * Always clears the cache and marks [snapshotId] as already handled so an
+     * asynchronous snapshot-change collector does not fire a duplicate delayed
+     * clear right after `selectProfile`/`switchProfile` returns.
+     */
+    internal suspend fun clearAndMarkSnapshot(snapshotId: String?, retryable: Boolean = false) {
+        mutex.withLock {
+            resetLocked(retryable = retryable, snapshotId = snapshotId)
+        }
+    }
+
+    /**
+     * Clears the cache only if [snapshotId] differs from the snapshot most
+     * recently cleared via [clearAndMarkSnapshot] / [clearForSnapshot].
+     */
+    internal suspend fun clearForSnapshot(snapshotId: String?, retryable: Boolean = true) {
+        mutex.withLock {
+            if (snapshotId != null && snapshotId == lastClearedSnapshotId) return
+            resetLocked(retryable = retryable, snapshotId = snapshotId)
+        }
+    }
+
+    private fun resetLocked(retryable: Boolean, snapshotId: String?) {
+        generation++
+        if (!retryable) nonRetryableGeneration++
+        lastClearedSnapshotId = snapshotId
+        entries.clear()
+        inFlight.clear()
     }
 
     private suspend fun <T> fetchWithTimeout(fetcher: suspend () -> T): T {

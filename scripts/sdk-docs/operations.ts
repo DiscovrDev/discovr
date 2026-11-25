@@ -1,4 +1,4 @@
-import { dereferenceSchema } from "../facade/schema-utils";
+import { dereferenceSchema, primarySchemaType } from "../facade/schema-utils";
 import type { OasOperation, OpenAPISpec } from "../facade/types";
 import { cleanDescription, sanitizeMdxProse } from "./helpers";
 import type { LangSnippets, MethodDoc } from "./types";
@@ -49,7 +49,8 @@ export function buildOperationDoc(
 	for (const param of op.parameters ?? []) {
 		const paramSchema = param.schema as any;
 		const resolvedParam = dereferenceSchema(schemas, paramSchema) ?? paramSchema;
-		let type = resolvedParam?.type ?? paramSchema?.$ref?.split("/").pop() ?? "any";
+		let type =
+			primarySchemaType(resolvedParam?.type) ?? paramSchema?.$ref?.split("/").pop() ?? "any";
 		if (resolvedParam?.enum) {
 			type = (resolvedParam.enum as any[]).map((e) => `"${e}"`).join(" | ");
 		}
@@ -79,7 +80,7 @@ export function buildOperationDoc(
 					typeStr = (prop.$ref as string).split("/").pop()!;
 				} else {
 					const resolvedProp = dereferenceSchema(schemas, prop) ?? prop;
-					typeStr = resolvedProp?.type ?? "any";
+					typeStr = primarySchemaType(resolvedProp?.type) ?? "any";
 					if (resolvedProp?.format) typeStr += ` (${resolvedProp.format})`;
 				}
 				params.push({

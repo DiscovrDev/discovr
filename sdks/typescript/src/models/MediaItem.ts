@@ -51,7 +51,7 @@ export interface MediaItem {
      * @type {string}
      * @memberof MediaItem
      */
-    overview: string;
+    overview: string | null;
     /**
      * Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
      * @type {{ [key: string]: string; }}
@@ -96,11 +96,11 @@ export interface MediaItem {
      */
     logoPath?: { [key: string]: string; };
     /**
-     * The best trailer for the title, picked the same way as `getMediaAssets`. `null` when it has none. Added to row items when they are served; absent under the same conditions as `logo_path`.
+     * 
      * @type {MediaItemTrailer}
      * @memberof MediaItem
      */
-    trailer?: MediaItemTrailer;
+    trailer?: MediaItemTrailer | null;
     /**
      * Running time in minutes. Movies only, and absent when the catalogue has none. Added to row items when they are served.
      * @type {number}

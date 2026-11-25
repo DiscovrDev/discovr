@@ -30,11 +30,10 @@ MediaResponseMovie:
       type: string
       description: Title in the movie's original language. Differs from `title` for translated releases.
     overview:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Short synopsis, suitable for a detail sheet.
     poster_path:
-      type: object
+      type: [object, "null"]
       description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -43,9 +42,8 @@ MediaResponseMovie:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     backdrop_path:
-      type: object
+      type: [object, "null"]
       description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -54,15 +52,12 @@ MediaResponseMovie:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     release_date:
-      type: string
+      type: [string, "null"]
       format: date
-      nullable: true
       description: Theatrical or first release date, as `YYYY-MM-DD`, or `null` when unknown.
     runtime:
-      type: integer
-      nullable: true
+      type: [integer, "null"]
       description: Length in whole minutes, or `null` when unknown.
     vote_average:
       type: number
@@ -79,8 +74,7 @@ MediaResponseMovie:
       items:
         $ref: "#/Genre"
     tagline:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Short marketing line, where one exists.
     status:
       type: string
@@ -92,12 +86,10 @@ MediaResponseMovie:
       type: integer
       description: Worldwide box office in US dollars. `0` when unknown.
     homepage:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Official site for the movie, where one exists.
     imdb_id:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: IMDb identifier, for linking out to IMDb.
   additionalProperties: false
 
@@ -118,12 +110,11 @@ MediaResponseTvSeason:
       type: integer
       description: Position of the season, starting at `1`. Specials use `0`. Pass this to `getSeasonDetails`.
     air_date:
-      type: string
+      type: [string, "null"]
       format: date
-      nullable: true
       description: Date the season's first episode aired, as `YYYY-MM-DD`, or `null` when unknown.
     poster_path:
-      type: object
+      type: [object, "null"]
       description: Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -132,7 +123,6 @@ MediaResponseTvSeason:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
   additionalProperties: false
 
 MediaResponseTv:
@@ -152,11 +142,10 @@ MediaResponseTv:
       type: string
       description: Name in the show's original language. Differs from `name` for translated releases.
     overview:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Short synopsis, suitable for a detail sheet.
     poster_path:
-      type: object
+      type: [object, "null"]
       description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -165,9 +154,8 @@ MediaResponseTv:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     backdrop_path:
-      type: object
+      type: [object, "null"]
       description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -176,16 +164,13 @@ MediaResponseTv:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     first_air_date:
-      type: string
+      type: [string, "null"]
       format: date
-      nullable: true
       description: Date the first episode aired, as `YYYY-MM-DD`, or `null` when unknown.
     last_air_date:
-      type: string
+      type: [string, "null"]
       format: date
-      nullable: true
       description: Date the most recent episode aired, as `YYYY-MM-DD`, or `null` when unknown.
     number_of_episodes:
       type: integer
@@ -208,15 +193,13 @@ MediaResponseTv:
       items:
         $ref: "#/Genre"
     tagline:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Short marketing line, where one exists.
     status:
       type: string
       description: Production status, such as `Returning Series`, `Ended`, or `Canceled`.
     homepage:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Official site for the show, where one exists.
     in_production:
       type: boolean
@@ -293,13 +276,11 @@ CastMember:
       description: The person's name.
       example: "Keanu Reeves"
     character:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: The role they play. `null` when the catalogue doesn't list one.
       example: "Neo"
     profile_path:
-      type: object
-      nullable: true
+      type: [object, "null"]
       description: Portrait URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or `null` when there is no photo.
       additionalProperties:
         type: string
@@ -330,8 +311,7 @@ CrewMember:
       description: Their role on the title, such as `Director`, `Screenplay`, `Writer` or `Creator`.
       example: "Director"
     profile_path:
-      type: object
-      nullable: true
+      type: [object, "null"]
       description: Portrait URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or `null` when there is no photo.
       additionalProperties:
         type: string
@@ -346,13 +326,11 @@ MediaExternalIds:
   description: The title's identifiers on other services, for deep links and cross-referencing.
   properties:
     imdb_id:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: IMDb identifier, such as `tt0133093`. `null` when none is known.
       example: "tt0133093"
     tvdb_id:
-      type: integer
-      nullable: true
+      type: [integer, "null"]
       description: TheTVDB identifier. TV only; `null` for movies and for shows with none.
       example: 81189
   additionalProperties: false
@@ -459,11 +437,10 @@ SearchResult:
       type: string
       description: Show name in its original language.
     overview:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Short synopsis. Not present for `person` results.
     poster_path:
-      type: object
+      type: [object, "null"]
       description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Absent for `person` results.
       additionalProperties:
         type: string
@@ -472,9 +449,8 @@ SearchResult:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     backdrop_path:
-      type: object
+      type: [object, "null"]
       description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Absent for `person` results.
       additionalProperties:
         type: string
@@ -483,16 +459,13 @@ SearchResult:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     release_date:
-      type: string
+      type: [string, "null"]
       format: date
-      nullable: true
       description: Release date for `movie` results, as `YYYY-MM-DD`, or `null` when unknown.
     first_air_date:
-      type: string
+      type: [string, "null"]
       format: date
-      nullable: true
       description: First air date for `tv` results, as `YYYY-MM-DD`, or `null` when unknown.
     popularity:
       type: number
@@ -504,7 +477,7 @@ SearchResult:
       type: integer
       description: How many ratings `vote_average` is based on. Not present for `person` results.
     profile_path:
-      type: object
+      type: [object, "null"]
       description: Headshot image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Only present for `person` results.
       additionalProperties:
         type: string
@@ -513,10 +486,8 @@ SearchResult:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     known_for_department:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: The department this person is best known for, e.g. `Acting` or `Directing`.
       example: "Directing"
     known_for:
@@ -566,32 +537,27 @@ KnownForItem:
       type: string
       description: TV show name. Movies use `title` instead.
     overview:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Short synopsis of the title.
     poster_path:
-      type: object
+      type: [object, "null"]
       description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
         format: uri
-      nullable: true
     backdrop_path:
-      type: object
+      type: [object, "null"]
       description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
         format: uri
-      nullable: true
     release_date:
-      type: string
+      type: [string, "null"]
       format: date
-      nullable: true
       description: Release date, for movies, as `YYYY-MM-DD`, or `null` when unknown.
     first_air_date:
-      type: string
+      type: [string, "null"]
       format: date
-      nullable: true
       description: First air date, for TV shows, as `YYYY-MM-DD`, or `null` when unknown.
     vote_average:
       type: number
@@ -666,11 +632,10 @@ SimilarResult:
       type: string
       description: Original name of the TV show (only for TV shows)
     overview:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Overview or description
     poster_path:
-      type: object
+      type: [object, "null"]
       description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -679,9 +644,8 @@ SimilarResult:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     backdrop_path:
-      type: object
+      type: [object, "null"]
       description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -690,16 +654,13 @@ SimilarResult:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     release_date:
-      type: string
+      type: [string, "null"]
       format: date
-      nullable: true
       description: Release date (only for movies), as `YYYY-MM-DD`, or `null` when unknown.
     first_air_date:
-      type: string
+      type: [string, "null"]
       format: date
-      nullable: true
       description: First air date (only for TV shows), as `YYYY-MM-DD`, or `null` when unknown.
     popularity:
       type: number
@@ -760,8 +721,7 @@ MediaAssetsResponse:
   description: Best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type.
   properties:
     poster:
-      type: object
-      nullable: true
+      type: [object, "null"]
       description: Best poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no poster is available.
       additionalProperties:
         type: string
@@ -771,8 +731,7 @@ MediaAssetsResponse:
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
     backdrop:
-      type: object
-      nullable: true
+      type: [object, "null"]
       description: Best backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no backdrop is available.
       additionalProperties:
         type: string
@@ -782,8 +741,7 @@ MediaAssetsResponse:
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
     logo:
-      type: object
-      nullable: true
+      type: [object, "null"]
       description: Best title logo (English preferred) URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no logo is available.
       additionalProperties:
         type: string
@@ -793,8 +751,9 @@ MediaAssetsResponse:
         w500: "https://cdn.example.com/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
         original: "https://cdn.example.com/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
     trailer:
-      $ref: "#/MediaAssetsTrailer"
-      nullable: true
+      anyOf:
+        - $ref: "#/MediaAssetsTrailer"
+        - type: "null"
       description: |
         The best trailer or clip for this title, or `null` when no videos exist for this title.
   additionalProperties: false
@@ -830,11 +789,10 @@ SeasonDetailsResponse:
       description: Name of the season
       example: "Season 1"
     overview:
-      type: string
+      type: [string, "null"]
       description: Overview of the season
-      nullable: true
     poster_path:
-      type: object
+      type: [object, "null"]
       description: Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -843,17 +801,15 @@ SeasonDetailsResponse:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     season_number:
       type: integer
       description: The number of the season
       example: 1
     air_date:
-      type: string
+      type: [string, "null"]
       format: date
       description: Air date of the season, as `YYYY-MM-DD`, or `null` when unknown.
       example: "2011-04-17"
-      nullable: true
     episodes:
       type: array
       description: List of episodes in the season
@@ -877,22 +833,19 @@ EpisodeCrewMember:
       description: Display name of the crew member.
       example: "Vince Gilligan"
     job:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Role on the episode, such as `Director` or `Writer`.
       example: "Director"
     department:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Production department, such as `Directing` or `Writing`.
       example: "Directing"
     profile_path:
-      type: object
+      type: [object, "null"]
       description: Headshot image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
         format: uri
-      nullable: true
   additionalProperties: false
 
 EpisodeGuestStar:
@@ -911,22 +864,19 @@ EpisodeGuestStar:
       description: Display name of the actor.
       example: "John Koyama"
     character:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Character played in the episode.
       example: "Emilio Koyama"
     order:
-      type: integer
-      nullable: true
+      type: [integer, "null"]
       description: Billing order in the episode credits.
       example: 1
     profile_path:
-      type: object
+      type: [object, "null"]
       description: Headshot image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
         format: uri
-      nullable: true
   additionalProperties: false
 
 Episode:
@@ -952,11 +902,10 @@ Episode:
       description: Episode title.
       example: "Winter Is Coming"
     overview:
-      type: string
+      type: [string, "null"]
       description: Episode synopsis.
-      nullable: true
     still_path:
-      type: object
+      type: [object, "null"]
       description: Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -965,18 +914,15 @@ Episode:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     air_date:
-      type: string
+      type: [string, "null"]
       format: date
       description: Original air date of the episode, as `YYYY-MM-DD`, or `null` when unknown.
       example: "2011-04-17"
-      nullable: true
     runtime:
-      type: integer
+      type: [integer, "null"]
       description: Episode runtime in minutes.
       example: 62
-      nullable: true
     season_number:
       type: integer
       description: Season this episode belongs to.
@@ -986,19 +932,16 @@ Episode:
       description: The parent TV show identifier (e.g., `TV_1396`).
       example: "TV_1396"
     production_code:
-      type: string
+      type: [string, "null"]
       description: Production code for the episode.
-      nullable: true
     vote_average:
-      type: number
+      type: [number, "null"]
       description: Community rating for the episode.
       example: 9.1
-      nullable: true
     vote_count:
-      type: integer
+      type: [integer, "null"]
       description: Number of ratings for the episode.
       example: 123
-      nullable: true
     crew:
       type: array
       description: Crew members for this episode.

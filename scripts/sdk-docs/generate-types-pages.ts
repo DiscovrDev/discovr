@@ -1,29 +1,31 @@
 import { TAG_CONFIG } from "../facade/config";
-import { dereferenceSchema } from "../facade/schema-utils";
+import { dereferenceSchema, primarySchemaType, unwrapNullableBranch } from "../facade/schema-utils";
 import type { OpenAPISpec } from "../facade/types";
 import { sanitizeMdxProse, toAnchorId } from "./helpers";
 
 function resolvePropertyTypeStr(prop: any, schemas: Record<string, any>): string {
-	const resolved = dereferenceSchema(schemas, prop) ?? prop;
+	const unwrapped = unwrapNullableBranch(prop) ?? prop;
+	const resolved = dereferenceSchema(schemas, unwrapped) ?? unwrapped;
 	if (!resolved) return "any";
 	if (resolved.$ref) {
 		const name = (resolved.$ref as string).split("/").pop()!;
 		return `\`${name}\``;
 	}
-	if (resolved.type === "array") {
+	const baseType = primarySchemaType(resolved.type);
+	if (baseType === "array") {
 		const itemResolved = dereferenceSchema(schemas, resolved.items) ?? resolved.items;
 		const itemName =
 			(resolved.items as any)?.$ref?.split("/").pop() ??
 			itemResolved?.title ??
-			itemResolved?.type ??
+			primarySchemaType(itemResolved?.type) ??
 			"any";
 		return `\`${itemName}[]\``;
 	}
 	if (resolved.enum) {
 		return resolved.enum.map((e: any) => `\`"${e}"\``).join(" \\| ");
 	}
-	if (resolved.type === "object") return "`object`";
-	return `\`${resolved.type ?? "any"}\``;
+	if (baseType === "object") return "`object`";
+	return `\`${baseType ?? "any"}\``;
 }
 
 function buildPropertiesTable(schema: any, schemas: Record<string, any>): string {
@@ -107,7 +109,8 @@ function generateTypeSection(name: string, schema: any, schemas: Record<string, 
 	}
 
 	// Plain object
-	if (resolved.type === "object" || resolved.properties) {
+	const resolvedBaseType = primarySchemaType(resolved.type);
+	if (resolvedBaseType === "object" || resolved.properties) {
 		mdx += buildPropertiesTable(resolved, schemas);
 		return mdx;
 	}
@@ -119,8 +122,8 @@ function generateTypeSection(name: string, schema: any, schemas: Record<string, 
 	}
 
 	// Primitive
-	if (resolved.type) {
-		mdx += `Type: \`${resolved.type}\`\n\n`;
+	if (resolvedBaseType) {
+		mdx += `Type: \`${resolvedBaseType}\`\n\n`;
 	}
 
 	return mdx;

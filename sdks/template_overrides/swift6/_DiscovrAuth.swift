@@ -850,6 +850,14 @@ internal actor _DiscovrAuth {
         }
     }
 
+    /// Current recommendation snapshot ID, used by `DiscovrClient` to avoid
+    /// duplicate delayed cache clears after `selectProfile`/`switchProfile`.
+    internal var currentSnapshotId: String? { snapshotId }
+
+    /// Active profile scope eligible for transparent stale-generation cache retry
+    /// (`nil` when signed out or before a profile is selected).
+    internal var activeRetryScope: String? { isSignedIn ? activeProfileId : nil }
+
     private func removeSnapshotContinuation(_ id: UUID) {
         snapshotContinuations.removeValue(forKey: id)
     }

@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import yaml from "js-yaml";
 
 import { SPEC_PATH } from "./config";
-import { dereferenceSchema } from "./schema-utils";
+import { dereferenceSchema, primarySchemaType, unwrapNullableBranch } from "./schema-utils";
 import type {
 	AuthTier,
 	BoundParam,
@@ -212,8 +212,9 @@ function getCachePolicy(op: OasOperation): { cachePolicy: CachePolicy; cacheTtlS
 
 function resolveType(
 	schemas: Record<string, JsonSchema>,
-	schema?: JsonSchema | null,
+	rawSchema?: JsonSchema | null,
 ): TypeDescriptor {
+	const schema = unwrapNullableBranch(rawSchema);
 	if (!schema) return { tsType: "unknown", ktType: "Any", swiftType: "Any" };
 	if (schema.$ref) {
 		const refName = schema.$ref.split("/").pop();
@@ -244,7 +245,7 @@ function resolveType(
 			swiftType: "[String: Any]",
 		};
 	}
-	switch (schema.type) {
+	switch (primarySchemaType(schema.type)) {
 		case "string":
 			if (schema.format === "date-time") {
 				return {

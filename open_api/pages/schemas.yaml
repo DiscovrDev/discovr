@@ -50,25 +50,21 @@ FilterSpec:
         minLength: 1
       description: Region codes (e.g., "US", "GB")
     with_runtime_gte:
-      type: integer
-      nullable: true
+      type: [integer, "null"]
       format: int32
       minimum: 0
       description: Minimum runtime in minutes
     with_runtime_lte:
-      type: integer
-      nullable: true
+      type: [integer, "null"]
       format: int32
       minimum: 0
       description: Maximum runtime in minutes
     with_release_date_gte:
-      type: string
-      nullable: true
+      type: [string, "null"]
       format: date
       description: Earliest release date (YYYY-MM-DD)
     with_release_date_lte:
-      type: string
-      nullable: true
+      type: [string, "null"]
       format: date
       description: Latest release date (YYYY-MM-DD)
     with_watch_providers:
@@ -206,11 +202,10 @@ MediaItem:
       type: string
       description: Title of the media item
     overview:
-      type: string
-      nullable: true
+      type: [string, "null"]
       description: Synopsis/summary text for this title.
     poster_path:
-      type: object
+      type: [object, "null"]
       description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -219,9 +214,8 @@ MediaItem:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     backdrop_path:
-      type: object
+      type: [object, "null"]
       description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
       additionalProperties:
         type: string
@@ -230,7 +224,6 @@ MediaItem:
         w185: "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         w500: "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
         original: "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
-      nullable: true
     media_type:
       type: string
       enum: [movie, tv]
@@ -252,8 +245,7 @@ MediaItem:
       description: Genre names, most relevant first. Absent when none are known.
       example: ["Drama", "Thriller"]
     logo_path:
-      type: object
-      nullable: true
+      type: [object, "null"]
       description: |
         Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). `null` when the title has no logo. Always present on `hero` items. On row items it is added when the items are served, and is absent only if the catalogue couldn't be reached for that title; fetch the row's items again to fill it in.
       additionalProperties:
@@ -264,8 +256,9 @@ MediaItem:
         w500: "https://cdn.example.com/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
         original: "https://cdn.example.com/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
     trailer:
-      $ref: "#/MediaItemTrailer"
-      nullable: true
+      anyOf:
+        - $ref: "#/MediaItemTrailer"
+        - type: "null"
       description: The best trailer for the title, picked the same way as `getMediaAssets`. `null` when it has none. Added to row items when they are served; absent under the same conditions as `logo_path`.
     runtime:
       type: integer
@@ -322,7 +315,7 @@ NavigationItem:
       type: string
       description: Title of the navigation item
     vertical_path:
-      type: object
+      type: [object, "null"]
       description: |
         Vertical tile image URLs keyed by size: `original` (800×1200) and `thumbnail` (400×600), pre-rendered at build time.
       additionalProperties:
@@ -331,9 +324,8 @@ NavigationItem:
       example:
         original: "https://cdn.example.com/rows/keyword-nav-vertical.jpg"
         thumbnail: "https://cdn.example.com/rows/keyword-nav-vertical-thumbnail.jpg"
-      nullable: true
     horizontal_path:
-      type: object
+      type: [object, "null"]
       description: |
         Horizontal tile image URLs keyed by size: `original` (1080×608) and `thumbnail` (540×304), pre-rendered at build time.
       additionalProperties:
@@ -342,7 +334,6 @@ NavigationItem:
       example:
         original: "https://cdn.example.com/rows/keyword-nav-horizontal.jpg"
         thumbnail: "https://cdn.example.com/rows/keyword-nav-horizontal-thumbnail.jpg"
-      nullable: true
     page_id:
       type: string
       description: ID of the page this navigation item links to

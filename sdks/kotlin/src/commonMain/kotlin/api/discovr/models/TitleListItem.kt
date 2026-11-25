@@ -32,7 +32,7 @@ import kotlinx.serialization.encoding.*
  * @param watchlist Whether this title is on the profile's watchlist.
  * @param updatedAt ISO 8601 timestamp for the active sort dimension (rated time, watchlisted time, or last watched time).
  * @param ref This item's `id` with the list it came from attached.  Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, rating it, or removing it from a list. A bare `id` always works; `ref` is never required. 
- * @param rating The profile's rating for this title, or `null` if unrated.
+ * @param rating 
  * @param completed Present on `watched=true` results — whether the title is fully finished.
  * @param plays Present on `watched=true` results — total completed plays.
  * @param season Present on `watched=true` TV results — most recently watched season number.
@@ -67,7 +67,6 @@ data class TitleListItem (
     /* This item's `id` with the list it came from attached.  Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, rating it, or removing it from a list. A bare `id` always works; `ref` is never required.  */
     @SerialName(value = "ref") val ref: kotlin.String? = null,
 
-    /* The profile's rating for this title, or `null` if unrated. */
     @SerialName(value = "rating") val rating: Rating? = null,
 
     /* Present on `watched=true` results — whether the title is fully finished. */

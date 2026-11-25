@@ -1,4 +1,4 @@
-import { dereferenceSchema } from "./schema-utils";
+import { dereferenceSchema, primarySchemaType } from "./schema-utils";
 import type { BoundParam, JsonSchema } from "./types";
 
 export type DocSnippetLang = "ts" | "kt" | "swift";
@@ -113,11 +113,12 @@ function placeholderFromSchema(
 	if (d.default !== undefined) return emitFromJsonValue(lang, d.default);
 	if (d.enum?.length) return emitFirstEnum(lang, d.enum[0]);
 
-	if (d.properties && (!d.type || d.type === "object")) {
+	const baseType = primarySchemaType(d.type);
+	if (d.properties && (!baseType || baseType === "object")) {
 		return objectPlaceholder(lang, schemas, d, refName);
 	}
 
-	switch (d.type) {
+	switch (baseType) {
 		case "string": {
 			if (d.format === "date-time") return dateTimePlaceholder(lang);
 			if (d.format === "date") return dateOnlyPlaceholder(lang);
@@ -129,7 +130,7 @@ function placeholderFromSchema(
 		case "integer":
 		case "number": {
 			const n = pickNumericExample(d);
-			if (lang === "swift" && d.type === "integer") return String(Math.trunc(n));
+			if (lang === "swift" && baseType === "integer") return String(Math.trunc(n));
 			return String(n);
 		}
 		case "boolean":

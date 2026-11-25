@@ -9,7 +9,7 @@ Name | Type | Description | Notes
 **title** | **String** | The title of the media. | 
 **posterPath** | **[String: String]** | Poster image URLs keyed by width bucket (&#x60;w45&#x60;, &#x60;w92&#x60;, &#x60;w154&#x60;, &#x60;w185&#x60;, &#x60;w300&#x60;, &#x60;w342&#x60;, &#x60;w500&#x60;, &#x60;w780&#x60;, &#x60;w1280&#x60;, &#x60;original&#x60;). | 
 **backdropPath** | **[String: String]** | Backdrop image URLs keyed by width bucket (&#x60;w45&#x60;, &#x60;w92&#x60;, &#x60;w154&#x60;, &#x60;w185&#x60;, &#x60;w300&#x60;, &#x60;w342&#x60;, &#x60;w500&#x60;, &#x60;w780&#x60;, &#x60;w1280&#x60;, &#x60;original&#x60;). | 
-**rating** | [**Rating**](Rating.md) | The profile&#39;s rating for this title, or &#x60;null&#x60; if unrated. | [optional] 
+**rating** | [**Rating**](Rating.md) |  | [optional] 
 **watchlist** | **Bool** | Whether this title is on the profile&#39;s watchlist. | 
 **updatedAt** | **Date** | ISO 8601 timestamp for the active sort dimension (rated time, watchlisted time, or last watched time). | 
 **completed** | **Bool** | Present on &#x60;watched&#x3D;true&#x60; results — whether the title is fully finished. | [optional] 

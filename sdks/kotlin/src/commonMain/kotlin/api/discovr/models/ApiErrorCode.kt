@@ -21,115 +21,115 @@ import kotlinx.serialization.*
 /**
  * Machine-readable kebab-case error code returned in the `error` field of every API error response.
  *
- * Values: notMinusFound,duplicate,invalidMinusInput,permissionMinusDenied,methodMinusNotMinusAllowed,internalMinusError,dataMinusIntegrity,upstreamMinusUnavailable,serviceMinusUnavailable,demoMinusUnavailable,directMinusAccessMinusDenied,rateMinusLimited,profileMinusNotMinusFound,cursorMinusExpired,sessionMinusExpired,sessionMinusAlreadyMinusConsumed,sessionMinusNotMinusFound,deviceMinusCodeMinusExpired,deviceMinusCodeMinusAlreadyMinusConsumed,deviceMinusCodeMinusDenied,deviceMinusCodeMinusBusy,deviceMinusCodeMinusNotMinusFound,tokenMinusInvalid,tokenMinusExpired,wrongMinusTokenMinusKind,clientMinusNotMinusFound,clientMinusMismatch,redirectMinusUriMinusNotMinusRegistered,redirectMinusUriMinusInvalid,openerMinusOriginMinusNotMinusAllowed,codeMinusChallengeMinusRequired,codeMinusChallengeMinusInvalid,codeMinusVerifierMinusInvalid,accessMinusNotMinusGranted,legalMinusAcceptanceMinusRequired
+ * Values: notFound,duplicate,invalidInput,permissionDenied,methodNotAllowed,internalError,dataIntegrity,upstreamUnavailable,serviceUnavailable,demoUnavailable,directAccessDenied,rateLimited,profileNotFound,cursorExpired,sessionExpired,sessionAlreadyConsumed,sessionNotFound,deviceCodeExpired,deviceCodeAlreadyConsumed,deviceCodeDenied,deviceCodeBusy,deviceCodeNotFound,tokenInvalid,tokenExpired,wrongTokenKind,clientNotFound,clientMismatch,redirectUriNotRegistered,redirectUriInvalid,openerOriginNotAllowed,codeChallengeRequired,codeChallengeInvalid,codeVerifierInvalid,accessNotGranted,legalAcceptanceRequired
  */
 @Serializable
 enum class ApiErrorCode(val value: kotlin.String) {
 
     @SerialName(value = "not-found")
-    notMinusFound("not-found"),
+    notFound("not-found"),
 
     @SerialName(value = "duplicate")
     duplicate("duplicate"),
 
     @SerialName(value = "invalid-input")
-    invalidMinusInput("invalid-input"),
+    invalidInput("invalid-input"),
 
     @SerialName(value = "permission-denied")
-    permissionMinusDenied("permission-denied"),
+    permissionDenied("permission-denied"),
 
     @SerialName(value = "method-not-allowed")
-    methodMinusNotMinusAllowed("method-not-allowed"),
+    methodNotAllowed("method-not-allowed"),
 
     @SerialName(value = "internal-error")
-    internalMinusError("internal-error"),
+    internalError("internal-error"),
 
     @SerialName(value = "data-integrity")
-    dataMinusIntegrity("data-integrity"),
+    dataIntegrity("data-integrity"),
 
     @SerialName(value = "upstream-unavailable")
-    upstreamMinusUnavailable("upstream-unavailable"),
+    upstreamUnavailable("upstream-unavailable"),
 
     @SerialName(value = "service-unavailable")
-    serviceMinusUnavailable("service-unavailable"),
+    serviceUnavailable("service-unavailable"),
 
     @SerialName(value = "demo-unavailable")
-    demoMinusUnavailable("demo-unavailable"),
+    demoUnavailable("demo-unavailable"),
 
     @SerialName(value = "direct-access-denied")
-    directMinusAccessMinusDenied("direct-access-denied"),
+    directAccessDenied("direct-access-denied"),
 
     @SerialName(value = "rate-limited")
-    rateMinusLimited("rate-limited"),
+    rateLimited("rate-limited"),
 
     @SerialName(value = "profile-not-found")
-    profileMinusNotMinusFound("profile-not-found"),
+    profileNotFound("profile-not-found"),
 
     @SerialName(value = "cursor-expired")
-    cursorMinusExpired("cursor-expired"),
+    cursorExpired("cursor-expired"),
 
     @SerialName(value = "session-expired")
-    sessionMinusExpired("session-expired"),
+    sessionExpired("session-expired"),
 
     @SerialName(value = "session-already-consumed")
-    sessionMinusAlreadyMinusConsumed("session-already-consumed"),
+    sessionAlreadyConsumed("session-already-consumed"),
 
     @SerialName(value = "session-not-found")
-    sessionMinusNotMinusFound("session-not-found"),
+    sessionNotFound("session-not-found"),
 
     @SerialName(value = "device-code-expired")
-    deviceMinusCodeMinusExpired("device-code-expired"),
+    deviceCodeExpired("device-code-expired"),
 
     @SerialName(value = "device-code-already-consumed")
-    deviceMinusCodeMinusAlreadyMinusConsumed("device-code-already-consumed"),
+    deviceCodeAlreadyConsumed("device-code-already-consumed"),
 
     @SerialName(value = "device-code-denied")
-    deviceMinusCodeMinusDenied("device-code-denied"),
+    deviceCodeDenied("device-code-denied"),
 
     @SerialName(value = "device-code-busy")
-    deviceMinusCodeMinusBusy("device-code-busy"),
+    deviceCodeBusy("device-code-busy"),
 
     @SerialName(value = "device-code-not-found")
-    deviceMinusCodeMinusNotMinusFound("device-code-not-found"),
+    deviceCodeNotFound("device-code-not-found"),
 
     @SerialName(value = "token-invalid")
-    tokenMinusInvalid("token-invalid"),
+    tokenInvalid("token-invalid"),
 
     @SerialName(value = "token-expired")
-    tokenMinusExpired("token-expired"),
+    tokenExpired("token-expired"),
 
     @SerialName(value = "wrong-token-kind")
-    wrongMinusTokenMinusKind("wrong-token-kind"),
+    wrongTokenKind("wrong-token-kind"),
 
     @SerialName(value = "client-not-found")
-    clientMinusNotMinusFound("client-not-found"),
+    clientNotFound("client-not-found"),
 
     @SerialName(value = "client-mismatch")
-    clientMinusMismatch("client-mismatch"),
+    clientMismatch("client-mismatch"),
 
     @SerialName(value = "redirect-uri-not-registered")
-    redirectMinusUriMinusNotMinusRegistered("redirect-uri-not-registered"),
+    redirectUriNotRegistered("redirect-uri-not-registered"),
 
     @SerialName(value = "redirect-uri-invalid")
-    redirectMinusUriMinusInvalid("redirect-uri-invalid"),
+    redirectUriInvalid("redirect-uri-invalid"),
 
     @SerialName(value = "opener-origin-not-allowed")
-    openerMinusOriginMinusNotMinusAllowed("opener-origin-not-allowed"),
+    openerOriginNotAllowed("opener-origin-not-allowed"),
 
     @SerialName(value = "code-challenge-required")
-    codeMinusChallengeMinusRequired("code-challenge-required"),
+    codeChallengeRequired("code-challenge-required"),
 
     @SerialName(value = "code-challenge-invalid")
-    codeMinusChallengeMinusInvalid("code-challenge-invalid"),
+    codeChallengeInvalid("code-challenge-invalid"),
 
     @SerialName(value = "code-verifier-invalid")
-    codeMinusVerifierMinusInvalid("code-verifier-invalid"),
+    codeVerifierInvalid("code-verifier-invalid"),
 
     @SerialName(value = "access-not-granted")
-    accessMinusNotMinusGranted("access-not-granted"),
+    accessNotGranted("access-not-granted"),
 
     @SerialName(value = "legal-acceptance-required")
-    legalMinusAcceptanceMinusRequired("legal-acceptance-required");
+    legalAcceptanceRequired("legal-acceptance-required");
 
     /**
      * Override [toString()] to avoid using the enum variable name as the value, and instead use

@@ -36,13 +36,13 @@ export interface EpisodeGuestStar {
      * @type {string}
      * @memberof EpisodeGuestStar
      */
-    character?: string;
+    character?: string | null;
     /**
      * Billing order in the episode credits.
      * @type {number}
      * @memberof EpisodeGuestStar
      */
-    order?: number;
+    order?: number | null;
     /**
      * Headshot image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
      * @type {{ [key: string]: string; }}

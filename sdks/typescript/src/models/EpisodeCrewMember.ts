@@ -36,13 +36,13 @@ export interface EpisodeCrewMember {
      * @type {string}
      * @memberof EpisodeCrewMember
      */
-    job?: string;
+    job?: string | null;
     /**
      * Production department, such as `Directing` or `Writing`.
      * @type {string}
      * @memberof EpisodeCrewMember
      */
-    department?: string;
+    department?: string | null;
     /**
      * Headshot image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
      * @type {{ [key: string]: string; }}

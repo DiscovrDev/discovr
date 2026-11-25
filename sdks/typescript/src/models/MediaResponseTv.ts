@@ -63,7 +63,7 @@ export interface MediaResponseTv {
      * @type {string}
      * @memberof MediaResponseTv
      */
-    overview?: string;
+    overview?: string | null;
     /**
      * Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
      * @type {{ [key: string]: string; }}
@@ -81,13 +81,13 @@ export interface MediaResponseTv {
      * @type {Date}
      * @memberof MediaResponseTv
      */
-    firstAirDate?: Date;
+    firstAirDate?: Date | null;
     /**
      * Date the most recent episode aired, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof MediaResponseTv
      */
-    lastAirDate?: Date;
+    lastAirDate?: Date | null;
     /**
      * Total episodes released across every season.
      * @type {number}
@@ -129,7 +129,7 @@ export interface MediaResponseTv {
      * @type {string}
      * @memberof MediaResponseTv
      */
-    tagline?: string;
+    tagline?: string | null;
     /**
      * Production status, such as `Returning Series`, `Ended`, or `Canceled`.
      * @type {string}
@@ -141,7 +141,7 @@ export interface MediaResponseTv {
      * @type {string}
      * @memberof MediaResponseTv
      */
-    homepage?: string;
+    homepage?: string | null;
     /**
      * Whether more episodes are still being made.
      * @type {boolean}

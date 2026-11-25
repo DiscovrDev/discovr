@@ -77,7 +77,7 @@ export interface SimilarResult {
      * @type {string}
      * @memberof SimilarResult
      */
-    overview?: string;
+    overview?: string | null;
     /**
      * Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
      * @type {{ [key: string]: string; }}
@@ -95,13 +95,13 @@ export interface SimilarResult {
      * @type {Date}
      * @memberof SimilarResult
      */
-    releaseDate?: Date;
+    releaseDate?: Date | null;
     /**
      * First air date (only for TV shows), as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof SimilarResult
      */
-    firstAirDate?: Date;
+    firstAirDate?: Date | null;
     /**
      * Popularity score
      * @type {number}

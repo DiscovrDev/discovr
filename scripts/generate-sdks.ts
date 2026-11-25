@@ -142,6 +142,37 @@ function copyOverrides(overridesDir: string, targetDir: string): void {
 	runOrThrow("cp", ["-R", `${overridesDir}/.`, targetDir]);
 }
 
+/**
+ * OpenAPI Generator's Kotlin generator replaces hyphens in enum values with
+ * `Minus` (`not-found` -> `notMinusFound`), while TypeScript and Swift already
+ * produce idiomatic PascalCase (`NotFound`) and camelCase (`notFound`) names.
+ * Adding `x-enum-varnames` directly to the shared spec would override TS or
+ * Swift casing, so we attach camelCase `x-enum-varnames` to kebab-case string
+ * enums on a temporary spec copy used only by the Kotlin generator.
+ */
+function addKotlinKebabEnumVarnames(node: unknown): void {
+	if (Array.isArray(node)) {
+		for (const item of node) addKotlinKebabEnumVarnames(item);
+		return;
+	}
+	if (!node || typeof node !== "object") return;
+	const obj = node as Record<string, unknown>;
+	if (
+		Array.isArray(obj.enum) &&
+		obj.enum.length > 0 &&
+		obj.enum.every((v) => typeof v === "string") &&
+		obj.enum.some((v) => (v as string).includes("-")) &&
+		!("x-enum-varnames" in obj)
+	) {
+		obj["x-enum-varnames"] = (obj.enum as string[]).map((v) =>
+			v.replace(/-([a-z0-9])/gi, (_, ch: string) => ch.toUpperCase()),
+		);
+	}
+	for (const value of Object.values(obj)) {
+		addKotlinKebabEnumVarnames(value);
+	}
+}
+
 try {
 	const fileContents = fs.readFileSync(path.join(PUBLIC_ROOT, CONFIG_FILE), "utf8");
 	const config = yaml.load(fileContents) as Record<string, LangConfig>;
@@ -233,12 +264,22 @@ try {
 		};
 		fs.writeFileSync(tempConfigPath, JSON.stringify(additionalProperties));
 
+		let inputSpecRel = SPEC_FILE_REL;
+		let tempSpecPath: string | null = null;
+		if (langConfig.generatorName === "kotlin") {
+			const kotlinSpec = yaml.load(fs.readFileSync(path.join(PUBLIC_ROOT, SPEC_FILE_REL), "utf8"));
+			addKotlinKebabEnumVarnames(kotlinSpec);
+			inputSpecRel = path.join(".tmp", `temp-spec-${lang}.yaml`);
+			tempSpecPath = path.join(PUBLIC_ROOT, inputSpecRel);
+			fs.writeFileSync(tempSpecPath, yaml.dump(kotlinSpec, { lineWidth: -1 }));
+		}
+
 		try {
 			const args = [
 				"@openapitools/openapi-generator-cli",
 				"generate",
 				"-i",
-				SPEC_FILE_REL,
+				inputSpecRel,
 				"-g",
 				langConfig.generatorName,
 				"-o",
@@ -301,6 +342,9 @@ try {
 		} finally {
 			if (fs.existsSync(tempConfigPath)) {
 				fs.unlinkSync(tempConfigPath);
+			}
+			if (tempSpecPath && fs.existsSync(tempSpecPath)) {
+				fs.unlinkSync(tempSpecPath);
 			}
 		}
 	}
