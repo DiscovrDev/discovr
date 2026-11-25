@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * The Discovr API
- * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
+ * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
  *
  * The version of the OpenAPI document: 1.0.0-alpha.1
  * Contact: dev@discovr.media
@@ -32,11 +32,17 @@ export interface ScrobbleResponse {
      */
     progress: number;
     /**
-     * `true` if the item was marked as watched (progress reached 80% or more).
+     * `true` if the movie or episode reached 80% or more.
      * @type {boolean}
      * @memberof ScrobbleResponse
      */
     completed: boolean;
+    /**
+     * Present when a TV episode crosses 80% — lists every regular season now fully watched.
+     * @type {Array<number>}
+     * @memberof ScrobbleResponse
+     */
+    completedSeasons?: Array<number>;
 }
 
 /**
@@ -62,6 +68,7 @@ export function ScrobbleResponseFromJSONTyped(json: any, ignoreDiscriminator: bo
         'status': json['status'],
         'progress': json['progress'],
         'completed': json['completed'],
+        'completedSeasons': json['completedSeasons'] == null ? undefined : json['completedSeasons'],
     };
 }
 
@@ -79,6 +86,7 @@ export function ScrobbleResponseToJSONTyped(value?: ScrobbleResponse | null, ign
         'status': value['status'],
         'progress': value['progress'],
         'completed': value['completed'],
+        'completedSeasons': value['completedSeasons'],
     };
 }
 

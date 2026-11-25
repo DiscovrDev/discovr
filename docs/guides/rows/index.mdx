@@ -250,24 +250,25 @@ import { refOrId } from "discovr";
 
 // Opening a title from a row
 const details = await client.getMedia(refOrId(item));
-await client.addLikedItem(refOrId(item));
+const state = await client.setRating(refOrId(item), "liked");
 
 // Drilling into a navigation or provider tile
 const page = await client.getPage(refOrId(tile));
 ```
 
 ```kotlin Kotlin
+import api.discovr.models.Rating
 import api.discovr.refOrId
 
 val details = client.getMedia(mediaId = item.refOrId())
-client.addLikedItem(mediaId = item.refOrId())
+val state = client.setRating(mediaId = item.refOrId(), value = Rating.liked)
 
 val page = client.getPage(pageId = tile.refOrId())
 ```
 
 ```swift Swift
 let details = try await client.getMedia(mediaId: item.refOrId)
-try await client.addLikedItem(mediaId: item.refOrId)
+let state = try await client.setRating(mediaId: item.refOrId, value: .liked)
 
 let page = try await client.getPage(pageId: tile.refOrId)
 ```
@@ -294,7 +295,7 @@ navigate(`/title/${item.id}`, { state: { ref: refOrId(item) } });
 const { id } = useParams();
 const ref = useLocation().state?.ref ?? id; // opened from a shared link? the id works too
 const details = await client.getMedia(ref);
-await client.addLikedItem(ref);
+const state = await client.setRating(ref, "liked");
 
 // Holding only a ref, like a saved "recently viewed" entry? idOf gets the id back.
 const cacheKey = idOf(savedRef);
@@ -302,6 +303,7 @@ const cacheKey = idOf(savedRef);
 
 ```kotlin Kotlin
 import api.discovr.idOf
+import api.discovr.models.Rating
 import api.discovr.refOrId
 
 // Tapping a tile: the screen is named by the id and carries the ref along
@@ -309,7 +311,7 @@ val screen = TitleScreen(id = item.id, ref = item.refOrId())
 
 // On the detail screen: act with the ref, name the title with the id
 val details = client.getMedia(mediaId = screen.ref)
-client.addLikedItem(mediaId = screen.ref)
+val state = client.setRating(mediaId = screen.ref, value = Rating.liked)
 
 // Holding only a ref, like a saved "recently viewed" entry? idOf gets the id back.
 val cacheKey = idOf(savedRef)
@@ -321,7 +323,7 @@ path.append(TitleRoute(id: item.id, ref: item.refOrId))
 
 // On the detail screen: act with the ref, name the title with the id
 let details = try await client.getMedia(mediaId: route.ref)
-try await client.addLikedItem(mediaId: route.ref)
+let state = try await client.setRating(mediaId: route.ref, value: .liked)
 
 // Holding only a ref, like a saved "recently viewed" entry? idOf gets the id back.
 let cacheKey = idOf(savedRef)

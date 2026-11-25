@@ -1,4 +1,4 @@
-# Path operations for playback list endpoints
+# Path operations for Continue Watching (playback list) endpoints
 
 get:
   tags:
@@ -9,12 +9,11 @@ get:
   description: |
     Returns the profile's in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a "Continue Watching" row.
 
-    Each item includes a `progress` field (0–100) showing how far through the title the user is.
+    Each item includes a `progress` field (0–100) showing how far through the title the user is. To update progress as a viewer watches, call `POST /profile/scrobble/{mediaId}`.
 
     **Pagination:**
     Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available.
   operationId: getPlaybackItems
-  # Never cache: reflects live, cross-device mutable profile state.
   x-cache-policy: none
   security:
     - BearerAuth: []
@@ -54,104 +53,14 @@ get:
     "503":
       $ref: "../../shared/responses.yaml#/ServiceUnavailable"
 
-post:
-  tags:
-    - Discovr
-    - Profile Lists
-  x-sdk-group: Playback
-  summary: Add an item to playback list
-  description: |
-    Records a new playback position for a title. If the title is already being tracked, returns 409 — use PATCH to update an existing entry.
-
-    - `mediaId`: the title to track. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`).
-    - `progress`: how far through the title the user is, as a percentage (0–100). Optional — omit if you don't have a position yet.
-    - `updatedAt`: the ISO 8601 timestamp of when this progress was recorded. Defaults to now. Send the actual client time so resume positions stay accurate if the user is offline.
-  operationId: addPlaybackItem
-  security:
-    - BearerAuth: []
-  requestBody:
-    required: true
-    content:
-      application/json:
-        schema:
-          $ref: "./schemas.yaml#/AddPlaybackPayload"
-        example:
-          mediaId: "MV_550"
-          progress: 25
-          updatedAt: "2023-01-15T10:30:00.000Z"
-  responses:
-    "201":
-      description: Item added successfully
-      content:
-        application/json:
-          schema:
-            $ref: "./schemas.yaml#/SuccessMessage"
-          example:
-            message: "Item added to playback list successfully"
-    "400":
-      $ref: "../../shared/responses.yaml#/BadRequest"
-    "401":
-      $ref: "../../shared/responses.yaml#/Unauthorized"
-    "404":
-      $ref: "../../shared/responses.yaml#/NotFound"
-    "500":
-      $ref: "../../shared/responses.yaml#/InternalServerError"
-    "429":
-      $ref: "../../shared/responses.yaml#/RateLimited"
-    "503":
-      $ref: "../../shared/responses.yaml#/ServiceUnavailable"
-
-patch:
-  tags:
-    - Discovr
-    - Profile Lists
-  x-sdk-group: Playback
-  summary: Update playback progress
-  description: |
-    Updates the playback position for an existing entry. Same fields as the add endpoint. If no entry exists for the `mediaId`, one is created.
-  operationId: updatePlaybackItem
-  security:
-    - BearerAuth: []
-  requestBody:
-    required: true
-    content:
-      application/json:
-        schema:
-          $ref: "./schemas.yaml#/EditPlaybackPayload"
-        example:
-          mediaId: "MV_550"
-          progress: 75
-          updatedAt: "2023-01-20T14:00:00.000Z"
-  responses:
-    "200":
-      description: Item updated successfully
-      content:
-        application/json:
-          schema:
-            $ref: "./schemas.yaml#/SuccessMessage"
-          example:
-            message: "Playback item updated successfully"
-    "400":
-      $ref: "../../shared/responses.yaml#/BadRequest"
-    "401":
-      $ref: "../../shared/responses.yaml#/Unauthorized"
-    "404":
-      $ref: "../../shared/responses.yaml#/NotFound"
-    "500":
-      $ref: "../../shared/responses.yaml#/InternalServerError"
-    "429":
-      $ref: "../../shared/responses.yaml#/RateLimited"
-    "503":
-      $ref: "../../shared/responses.yaml#/ServiceUnavailable"
-
 delete:
   tags:
     - Discovr
     - Profile Lists
   x-sdk-group: Playback
-  summary: Delete an item from playback list
+  summary: Remove a title from Continue Watching
   description: |
-    Removes a title from the in-progress list. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`).
+    Removes a title from the in-progress Continue Watching list without changing its watched history. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`).
   operationId: deletePlaybackItem
   security:
     - BearerAuth: []

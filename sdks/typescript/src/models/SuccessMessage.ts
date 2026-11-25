@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * The Discovr API
- * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
+ * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
  *
  * The version of the OpenAPI document: 1.0.0-alpha.1
  * Contact: dev@discovr.media
@@ -14,29 +14,17 @@
 
 import { mapValues } from '../runtime';
 /**
- * Confirmation response with the action taken. For exclusive lists (liked/disliked/super_liked), also includes `added` (which list the item was added to) and optionally `removed` (which list it was removed from).
+ * Confirmation response for deletions that do not return a title state object.
  * @export
  * @interface SuccessMessage
  */
 export interface SuccessMessage {
     /**
-     * Success message
+     * Success message.
      * @type {string}
      * @memberof SuccessMessage
      */
     message: string;
-    /**
-     * The list type the item was added to (for exclusive lists)
-     * @type {string}
-     * @memberof SuccessMessage
-     */
-    added?: string;
-    /**
-     * The list type the item was removed from, if any (for exclusive lists)
-     * @type {string}
-     * @memberof SuccessMessage
-     */
-    removed?: string;
 }
 
 /**
@@ -58,8 +46,6 @@ export function SuccessMessageFromJSONTyped(json: any, ignoreDiscriminator: bool
     return {
         
         'message': json['message'],
-        'added': json['added'] == null ? undefined : json['added'],
-        'removed': json['removed'] == null ? undefined : json['removed'],
     };
 }
 
@@ -75,8 +61,6 @@ export function SuccessMessageToJSONTyped(value?: SuccessMessage | null, ignoreD
     return {
         
         'message': value['message'],
-        'added': value['added'],
-        'removed': value['removed'],
     };
 }
 

@@ -3,20 +3,21 @@ import api.discovr.auth.*
 import api.discovr.models.*
 import kotlinx.coroutines.*
 // docs:start
-import api.discovr.models.MediaProfileMeta
+import api.discovr.models.Rating
+import api.discovr.models.TitleState
 // docs:end
 
 // docs:start
 data class PrimaryCta(val label: String, val progress: Double? = null)
 
-fun primaryCta(meta: MediaProfileMeta): PrimaryCta {
-	val d = meta.playback.data
-	return if (meta.playback.inlist && d != null) {
-		PrimaryCta(label = "Resume", progress = d.progress)
+fun primaryCta(state: TitleState): PrimaryCta {
+	val p = state.playback
+	return if (p != null) {
+		PrimaryCta(label = "Resume", progress = p.progress)
 	} else {
 		PrimaryCta(label = "Play")
 	}
 }
 
-fun liked(meta: MediaProfileMeta): Boolean = meta.liked
+fun liked(state: TitleState): Boolean = state.rating == Rating.liked
 // docs:end

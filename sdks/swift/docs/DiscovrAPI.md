@@ -4,30 +4,16 @@ All URIs are relative to *https://api.discovr.media*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**addDislikedItem**](DiscovrAPI.md#adddislikeditem) | **POST** /profile/disliked | Add an item to disliked list
-[**addHistoryItem**](DiscovrAPI.md#addhistoryitem) | **POST** /profile/history | Add an item to history list
-[**addLikedItem**](DiscovrAPI.md#addlikeditem) | **POST** /profile/liked | Add an item to liked list
-[**addPlaybackItem**](DiscovrAPI.md#addplaybackitem) | **POST** /profile/playback | Add an item to playback list
-[**addSuperLikedItem**](DiscovrAPI.md#addsuperlikeditem) | **POST** /profile/super_liked | Add an item to the super-liked list
-[**addWatchlistItem**](DiscovrAPI.md#addwatchlistitem) | **POST** /profile/watchlist | Add an item to watchlist
+[**addToWatchlist**](DiscovrAPI.md#addtowatchlist) | **PUT** /profile/titles/{mediaId}/watchlist | Add a title to the watchlist
 [**authorizeClientWeb**](DiscovrAPI.md#authorizeclientweb) | **GET** /auth/web/authorize | Redirect to web authentication
+[**clearRating**](DiscovrAPI.md#clearrating) | **DELETE** /profile/titles/{mediaId}/rating | Clear a title&#39;s rating
 [**createPage**](DiscovrAPI.md#createpage) | **POST** /pages | Create a recommendation page
 [**createProfile**](DiscovrAPI.md#createprofile) | **POST** /profiles | Create a profile
-[**deleteDislikedItem**](DiscovrAPI.md#deletedislikeditem) | **DELETE** /profile/disliked/{mediaId} | Delete an item from disliked list
-[**deleteHistoryItem**](DiscovrAPI.md#deletehistoryitem) | **DELETE** /profile/history/{mediaId} | Delete an item from history list
-[**deleteLikedItem**](DiscovrAPI.md#deletelikeditem) | **DELETE** /profile/liked/{mediaId} | Delete an item from liked list
-[**deletePlaybackItem**](DiscovrAPI.md#deleteplaybackitem) | **DELETE** /profile/playback/{mediaId} | Delete an item from playback list
+[**deletePlaybackItem**](DiscovrAPI.md#deleteplaybackitem) | **DELETE** /profile/playback/{mediaId} | Remove a title from Continue Watching
 [**deleteProfile**](DiscovrAPI.md#deleteprofile) | **DELETE** /profiles/{profileId} | Delete a profile
-[**deleteSuperLikedItem**](DiscovrAPI.md#deletesuperlikeditem) | **DELETE** /profile/super_liked/{mediaId} | Delete an item from the super-liked list
-[**deleteWatchlistItem**](DiscovrAPI.md#deletewatchlistitem) | **DELETE** /profile/watchlist/{mediaId} | Delete an item from watchlist
 [**exchangeWebAuthCode**](DiscovrAPI.md#exchangewebauthcode) | **POST** /auth/web/token | Redeem a web sign-in code
-[**getDislikedItems**](DiscovrAPI.md#getdislikeditems) | **GET** /profile/disliked | Get disliked items
-[**getHistoryItems**](DiscovrAPI.md#gethistoryitems) | **GET** /profile/history | Get history items
-[**getHistoryItemsByMediaId**](DiscovrAPI.md#gethistoryitemsbymediaid) | **GET** /profile/history/{mediaId} | Get history items for a specific media
-[**getLikedItems**](DiscovrAPI.md#getlikeditems) | **GET** /profile/liked | Get liked items
 [**getMedia**](DiscovrAPI.md#getmedia) | **GET** /media/{mediaId} | Get media details
 [**getMediaAssets**](DiscovrAPI.md#getmediaassets) | **GET** /media/{mediaId}/assets | Get media assets
-[**getMediaProfileMeta**](DiscovrAPI.md#getmediaprofilemeta) | **GET** /media/{mediaId}/profile_meta | Get profile interaction data for a title
 [**getPage**](DiscovrAPI.md#getpage) | **GET** /pages/{pageId} | Get a page
 [**getPlaybackItems**](DiscovrAPI.md#getplaybackitems) | **GET** /profile/playback | Get playback items
 [**getProfile**](DiscovrAPI.md#getprofile) | **GET** /profiles/{profileId} | Get a profile
@@ -37,33 +23,34 @@ Method | HTTP request | Description
 [**getRowItems**](DiscovrAPI.md#getrowitems) | **GET** /pages/{pageId}/rows/{rowId}/items | List row items
 [**getRows**](DiscovrAPI.md#getrows) | **GET** /pages/{pageId}/rows | List rows
 [**getSeasonDetails**](DiscovrAPI.md#getseasondetails) | **GET** /media/{mediaId}/seasons/{seasonNumber} | Get TV season details
-[**getSeasonProfileMeta**](DiscovrAPI.md#getseasonprofilemeta) | **GET** /media/{mediaId}/seasons/{seasonNumber}/meta | Get which episodes of a TV season are finished
+[**getSeasonState**](DiscovrAPI.md#getseasonstate) | **GET** /profile/titles/{mediaId}/seasons/{seasonNumber} | Get which episodes of a TV season are watched
 [**getSimilarRecommendations**](DiscovrAPI.md#getsimilarrecommendations) | **GET** /media/{mediaId}/similar | Get similar titles
-[**getSuperLikedItems**](DiscovrAPI.md#getsuperlikeditems) | **GET** /profile/super_liked | Get super-liked items
-[**getWatchlistItems**](DiscovrAPI.md#getwatchlistitems) | **GET** /profile/watchlist | Get watchlist items
-[**markUnwatched**](DiscovrAPI.md#markunwatched) | **DELETE** /profile/watched/{mediaId} | Mark a title as unwatched
+[**getTitleState**](DiscovrAPI.md#gettitlestate) | **GET** /profile/titles/{mediaId} | Get the active profile&#39;s state for a title
+[**getTitles**](DiscovrAPI.md#gettitles) | **GET** /profile/titles | List titles by rating, watchlist, or watch history
+[**importHistory**](DiscovrAPI.md#importhistory) | **POST** /profile/history | Import a watch history entry
+[**markUnwatched**](DiscovrAPI.md#markunwatched) | **DELETE** /profile/titles/{mediaId}/watched | Mark a title, season, or episode as unwatched
+[**markWatched**](DiscovrAPI.md#markwatched) | **PUT** /profile/titles/{mediaId}/watched | Mark a title, season, or episode as watched
 [**mintSessionToken**](DiscovrAPI.md#mintsessiontoken) | **POST** /auth/session-token | Mint a session token
-[**patchHistoryItem**](DiscovrAPI.md#patchhistoryitem) | **PATCH** /profile/history/{mediaId} | Update or create a history item
 [**pollDeviceCode**](DiscovrAPI.md#polldevicecode) | **POST** /auth/device-codes/{deviceCode}/poll | Poll for auth token
+[**removeFromWatchlist**](DiscovrAPI.md#removefromwatchlist) | **DELETE** /profile/titles/{mediaId}/watchlist | Remove a title from the watchlist
 [**requestDeviceCode**](DiscovrAPI.md#requestdevicecode) | **POST** /auth/device-codes | Request device code
 [**scrobble**](DiscovrAPI.md#scrobble) | **POST** /profile/scrobble/{mediaId} | Record playback progress
-[**scrobbleSkip**](DiscovrAPI.md#scrobbleskip) | **POST** /profile/scrobble/{mediaId}/skip | Record a skip event
 [**searchGifs**](DiscovrAPI.md#searchgifs) | **GET** /gif-search | Search GIFs
 [**searchMedia**](DiscovrAPI.md#searchmedia) | **GET** /search | Search media
+[**setRating**](DiscovrAPI.md#setrating) | **PUT** /profile/titles/{mediaId}/rating | Set a title&#39;s rating
 [**signOutSession**](DiscovrAPI.md#signoutsession) | **DELETE** /auth/session | Sign out the current device
 [**startDemoSession**](DiscovrAPI.md#startdemosession) | **POST** /auth/demo-session | Start a demo session
-[**updatePlaybackItem**](DiscovrAPI.md#updateplaybackitem) | **PATCH** /profile/playback | Update playback progress
 [**updateProfile**](DiscovrAPI.md#updateprofile) | **PATCH** /profiles/{profileId} | Update a profile
 
 
-# **addDislikedItem**
+# **addToWatchlist**
 ```swift
-    open class func addDislikedItem(addSimpleListItemPayload: AddSimpleListItemPayload, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
+    open class func addToWatchlist(mediaId: String, completion: @escaping (_ data: TitleState?, _ error: Error?) -> Void)
 ```
 
-Add an item to disliked list
+Add a title to the watchlist
 
-Adds a title to the disliked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Liked, disliked, and super-liked are exclusive — disliking something automatically removes any existing like or super-like for the same title.  Returns `201` if the item was newly added, `200` if it was already disliked. 
+Adds a title to the active profile's watchlist. Safe to call if it is already on the watchlist.  Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
 
 ### Example
 ```swift
@@ -73,11 +60,11 @@ import Discovr
 let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
-let addSimpleListItemPayload: AddSimpleListItemPayload = AddSimpleListItemPayload(mediaId: "mediaId_example") // 
+let mediaId: String = "mediaId_example" // The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
 
 Task {
     do {
-        let result = try await discovr.addDislikedItem(addSimpleListItemPayload: addSimpleListItemPayload)
+        let result = try await discovr.addToWatchlist(mediaId: mediaId)
         dump(result)
     } catch {
         print(error)
@@ -89,11 +76,11 @@ Task {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **addSimpleListItemPayload** | [**AddSimpleListItemPayload**](AddSimpleListItemPayload.md) |  | 
+ **mediaId** | **String** | The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | 
 
 ### Return type
 
-[**SuccessMessage**](SuccessMessage.md)
+[**TitleState**](TitleState.md)
 
 ### Authorization
 
@@ -101,257 +88,7 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **addHistoryItem**
-```swift
-    open class func addHistoryItem(addHistoryPayload: AddHistoryPayload, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Add an item to history list
-
-Records a watch history entry. Unlike other lists, history allows multiple entries for the same title — each completed viewing is tracked separately.  - `mediaId`: the title to record. Use `MV_<number>` for movies, `TV_<number>` for TV shows. - `progress`: how far through the title the user watched, as a percentage (0–100). Optional. - `updatedAt`: the ISO 8601 timestamp of when the viewing was recorded. Defaults to now if omitted.  **TV Shows:** Include `season` (required for TV shows) and optionally `episode` to track per-episode history. Omitting `episode` records a season-level entry — clients can use this to mark all episodes in a season as watched in a single call. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let addHistoryPayload: AddHistoryPayload = AddHistoryPayload(mediaId: "mediaId_example", updatedAt: Date(), progress: 123, season: 123, episode: 123, imported: "imported_example") // 
-
-Task {
-    do {
-        let result = try await discovr.addHistoryItem(addHistoryPayload: addHistoryPayload)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **addHistoryPayload** | [**AddHistoryPayload**](AddHistoryPayload.md) |  | 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **addLikedItem**
-```swift
-    open class func addLikedItem(addSimpleListItemPayload: AddSimpleListItemPayload, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Add an item to liked list
-
-Adds a title to the liked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Liked, disliked, and super-liked are exclusive — liking something automatically removes any existing dislike or super-like for the same title.  Returns `201` if the item was newly added, `200` if it was already liked. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let addSimpleListItemPayload: AddSimpleListItemPayload = AddSimpleListItemPayload(mediaId: "mediaId_example") // 
-
-Task {
-    do {
-        let result = try await discovr.addLikedItem(addSimpleListItemPayload: addSimpleListItemPayload)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **addSimpleListItemPayload** | [**AddSimpleListItemPayload**](AddSimpleListItemPayload.md) |  | 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **addPlaybackItem**
-```swift
-    open class func addPlaybackItem(addPlaybackPayload: AddPlaybackPayload, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Add an item to playback list
-
-Records a new playback position for a title. If the title is already being tracked, returns 409 — use PATCH to update an existing entry.  - `mediaId`: the title to track. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). - `progress`: how far through the title the user is, as a percentage (0–100). Optional — omit if you don't have a position yet. - `updatedAt`: the ISO 8601 timestamp of when this progress was recorded. Defaults to now. Send the actual client time so resume positions stay accurate if the user is offline. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let addPlaybackPayload: AddPlaybackPayload = AddPlaybackPayload(mediaId: "mediaId_example", progress: 123, updatedAt: Date()) // 
-
-Task {
-    do {
-        let result = try await discovr.addPlaybackItem(addPlaybackPayload: addPlaybackPayload)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **addPlaybackPayload** | [**AddPlaybackPayload**](AddPlaybackPayload.md) |  | 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **addSuperLikedItem**
-```swift
-    open class func addSuperLikedItem(addSimpleListItemPayload: AddSimpleListItemPayload, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Add an item to the super-liked list
-
-Adds a title to the super-liked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Super-liking a title says the viewer loves it. Like the liked list, adding a super-like automatically removes any existing dislike or like for the same title.  Returns `201` if the item was newly added, `200` if it was already super-liked. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let addSimpleListItemPayload: AddSimpleListItemPayload = AddSimpleListItemPayload(mediaId: "mediaId_example") // 
-
-Task {
-    do {
-        let result = try await discovr.addSuperLikedItem(addSimpleListItemPayload: addSimpleListItemPayload)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **addSimpleListItemPayload** | [**AddSimpleListItemPayload**](AddSimpleListItemPayload.md) |  | 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **addWatchlistItem**
-```swift
-    open class func addWatchlistItem(addSimpleListItemPayload: AddSimpleListItemPayload, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Add an item to watchlist
-
-Adds a title to the watchlist.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Unlike liked/disliked/super-liked, the watchlist is non-exclusive — you can watchlist something regardless of how it's rated. Titles are automatically removed from the watchlist when the user starts watching via `scrobble`. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let addSimpleListItemPayload: AddSimpleListItemPayload = AddSimpleListItemPayload(mediaId: "mediaId_example") // 
-
-Task {
-    do {
-        let result = try await discovr.addWatchlistItem(addSimpleListItemPayload: addSimpleListItemPayload)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **addSimpleListItemPayload** | [**AddSimpleListItemPayload**](AddSimpleListItemPayload.md) |  | 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -406,6 +143,56 @@ Void (empty response body)
 ### Authorization
 
 No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **clearRating**
+```swift
+    open class func clearRating(mediaId: String, completion: @escaping (_ data: TitleState?, _ error: Error?) -> Void)
+```
+
+Clear a title's rating
+
+Clears the active profile's rating for a title. Safe to call if the title has no rating.  Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+
+### Example
+```swift
+import Discovr
+
+// Initialize DiscovrClient (public entry point)
+let discovr = DiscovrClient(clientId: "your-client-id")
+// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
+
+let mediaId: String = "mediaId_example" // The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
+
+Task {
+    do {
+        let result = try await discovr.clearRating(mediaId: mediaId)
+        dump(result)
+    } catch {
+        print(error)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **mediaId** | **String** | The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | 
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 
@@ -514,168 +301,14 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **deleteDislikedItem**
-```swift
-    open class func deleteDislikedItem(mediaId: String, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Delete an item from disliked list
-
-Removes a title from the disliked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let mediaId: String = "mediaId_example" // Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-
-Task {
-    do {
-        let result = try await discovr.deleteDislikedItem(mediaId: mediaId)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **mediaId** | **String** | Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **deleteHistoryItem**
-```swift
-    open class func deleteHistoryItem(mediaId: String, season: Int? = nil, episode: Int? = nil, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Delete an item from history list
-
-Deletes history entries for a title. Because history allows duplicates, this removes all matching entries for the specified media (and episode, if provided).  For TV shows, pass `season` as a query parameter (required) and optionally `episode`. Include `episode` to delete that episode's entries. Omit it to delete the entries that were recorded for the season as a whole, without an episode (for example, marking a season watched in one go); entries for individual episodes are kept.  To take a title back to unwatched, use [`DELETE /profile/watched/{mediaId}`](/api-reference/discovr/mark-unwatched) instead. This call removes history entries and nothing else: it doesn't touch the in-progress list, and a TV show's `completed` state is brought up to date from whatever history is left. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let mediaId: String = "mediaId_example" // The media ID of the title to delete. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-let season: Int = 987 // Season number. Required for TV shows (`TV_` mediaId); ignored for movies. (optional)
-let episode: Int = 987 // Episode number. Optional — omit to delete the season-level entries (those recorded without an episode); include to delete a specific episode's entries only. (optional)
-
-Task {
-    do {
-        let result = try await discovr.deleteHistoryItem(mediaId: mediaId, season: season, episode: episode)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **mediaId** | **String** | The media ID of the title to delete. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | 
- **season** | **Int** | Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. | [optional] 
- **episode** | **Int** | Episode number. Optional — omit to delete the season-level entries (those recorded without an episode); include to delete a specific episode&#39;s entries only. | [optional] 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **deleteLikedItem**
-```swift
-    open class func deleteLikedItem(mediaId: String, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Delete an item from liked list
-
-Removes a title from the liked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let mediaId: String = "mediaId_example" // Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-
-Task {
-    do {
-        let result = try await discovr.deleteLikedItem(mediaId: mediaId)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **mediaId** | **String** | Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
 # **deletePlaybackItem**
 ```swift
     open class func deletePlaybackItem(mediaId: String, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
 ```
 
-Delete an item from playback list
+Remove a title from Continue Watching
 
-Removes a title from the in-progress list. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). 
+Removes a title from the in-progress Continue Watching list without changing its watched history. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). 
 
 ### Example
 ```swift
@@ -768,106 +401,6 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **deleteSuperLikedItem**
-```swift
-    open class func deleteSuperLikedItem(mediaId: String, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Delete an item from the super-liked list
-
-Removes a title from the super-liked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let mediaId: String = "mediaId_example" // Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-
-Task {
-    do {
-        let result = try await discovr.deleteSuperLikedItem(mediaId: mediaId)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **mediaId** | **String** | Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **deleteWatchlistItem**
-```swift
-    open class func deleteWatchlistItem(mediaId: String, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Delete an item from watchlist
-
-Removes a title from the watchlist. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let mediaId: String = "mediaId_example" // Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-
-Task {
-    do {
-        let result = try await discovr.deleteWatchlistItem(mediaId: mediaId)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **mediaId** | **String** | Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
 # **exchangeWebAuthCode**
 ```swift
     open class func exchangeWebAuthCode(webTokenPayload: WebTokenPayload, completion: @escaping (_ data: RefreshTokenResponse?, _ error: Error?) -> Void)
@@ -912,220 +445,6 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **getDislikedItems**
-```swift
-    open class func getDislikedItems(nextPageToken: String? = nil, limit: Int? = nil, completion: @escaping (_ data: SimpleListResponse?, _ error: Error?) -> Void)
-```
-
-Get disliked items
-
-Returns the disliked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let nextPageToken: String = "nextPageToken_example" // Opaque token from previous page for pagination (optional)
-let limit: Int = 987 // Maximum number of items to return (1-50, default: 10) (optional) (default: 10)
-
-Task {
-    do {
-        let result = try await discovr.getDislikedItems(nextPageToken: nextPageToken, limit: limit)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **nextPageToken** | **String** | Opaque token from previous page for pagination | [optional] 
- **limit** | **Int** | Maximum number of items to return (1-50, default: 10) | [optional] [default to 10]
-
-### Return type
-
-[**SimpleListResponse**](SimpleListResponse.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **getHistoryItems**
-```swift
-    open class func getHistoryItems(nextPageToken: String? = nil, limit: Int? = nil, completion: @escaping (_ data: HistoryListResponse?, _ error: Error?) -> Void)
-```
-
-Get history items
-
-Returns the profile's full watch history, newest entries first.  History allows multiple entries for the same title — every completed viewing is tracked separately, so you may see the same `mediaId` more than once.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let nextPageToken: String = "nextPageToken_example" // Opaque token from previous page for pagination (optional)
-let limit: Int = 987 // Maximum number of items to return (1-50, default: 10) (optional) (default: 10)
-
-Task {
-    do {
-        let result = try await discovr.getHistoryItems(nextPageToken: nextPageToken, limit: limit)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **nextPageToken** | **String** | Opaque token from previous page for pagination | [optional] 
- **limit** | **Int** | Maximum number of items to return (1-50, default: 10) | [optional] [default to 10]
-
-### Return type
-
-[**HistoryListResponse**](HistoryListResponse.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **getHistoryItemsByMediaId**
-```swift
-    open class func getHistoryItemsByMediaId(mediaId: String, season: Int? = nil, episode: Int? = nil, nextPageToken: String? = nil, limit: Int? = nil, completion: @escaping (_ data: HistoryListResponse?, _ error: Error?) -> Void)
-```
-
-Get history items for a specific media
-
-Returns history entries for a specific title. Newest entries first.  For TV shows, pass `season` as a query parameter (required) and optionally `episode` to filter by episode. Omitting `episode` returns all entries for the whole season.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let mediaId: String = "mediaId_example" // The media ID of the title. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-let season: Int = 987 // Season number. Required for TV shows (`TV_` mediaId); ignored for movies. (optional)
-let episode: Int = 987 // Episode number. Optional — omit to return all entries for the season; include to filter to a specific episode. (optional)
-let nextPageToken: String = "nextPageToken_example" // Opaque token from previous page for pagination (optional)
-let limit: Int = 987 // Maximum number of items to return (1-50, default: 10) (optional) (default: 10)
-
-Task {
-    do {
-        let result = try await discovr.getHistoryItemsByMediaId(mediaId: mediaId, season: season, episode: episode, nextPageToken: nextPageToken, limit: limit)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **mediaId** | **String** | The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | 
- **season** | **Int** | Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. | [optional] 
- **episode** | **Int** | Episode number. Optional — omit to return all entries for the season; include to filter to a specific episode. | [optional] 
- **nextPageToken** | **String** | Opaque token from previous page for pagination | [optional] 
- **limit** | **Int** | Maximum number of items to return (1-50, default: 10) | [optional] [default to 10]
-
-### Return type
-
-[**HistoryListResponse**](HistoryListResponse.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **getLikedItems**
-```swift
-    open class func getLikedItems(nextPageToken: String? = nil, limit: Int? = nil, completion: @escaping (_ data: SimpleListResponse?, _ error: Error?) -> Void)
-```
-
-Get liked items
-
-Returns the liked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let nextPageToken: String = "nextPageToken_example" // Opaque token from previous page for pagination (optional)
-let limit: Int = 987 // Maximum number of items to return (1-50, default: 10) (optional) (default: 10)
-
-Task {
-    do {
-        let result = try await discovr.getLikedItems(nextPageToken: nextPageToken, limit: limit)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **nextPageToken** | **String** | Opaque token from previous page for pagination | [optional] 
- **limit** | **Int** | Maximum number of items to return (1-50, default: 10) | [optional] [default to 10]
-
-### Return type
-
-[**SimpleListResponse**](SimpleListResponse.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -1230,58 +549,6 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **getMediaProfileMeta**
-```swift
-    open class func getMediaProfileMeta(mediaId: String, providers: Bool? = nil, completion: @escaping (_ data: MediaProfileMeta?, _ error: Error?) -> Void)
-```
-
-Get profile interaction data for a title
-
-Returns the current profile's interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile's selected region. Pass `providers=true` to include this. - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).  **This call directly affects the profile's recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn't open registers similarly to liking those titles and will skew their recommendations. Pass the item's `ref` when you have one.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let mediaId: String = "mediaId_example" // The unique identifier of the media item. Use `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-let providers: Bool = true // Set to `true` to include streaming provider availability in the response. (optional) (default: false)
-
-Task {
-    do {
-        let result = try await discovr.getMediaProfileMeta(mediaId: mediaId, providers: providers)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **mediaId** | **String** | The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | 
- **providers** | **Bool** | Set to &#x60;true&#x60; to include streaming provider availability in the response. | [optional] [default to false]
-
-### Return type
-
-[**MediaProfileMeta**](MediaProfileMeta.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
 # **getPage**
 ```swift
     open class func getPage(pageId: String, completion: @escaping (_ data: Page?, _ error: Error?) -> Void)
@@ -1339,7 +606,7 @@ Name | Type | Description  | Notes
 
 Get playback items
 
-Returns the profile's in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \"Continue Watching\" row.  Each item includes a `progress` field (0–100) showing how far through the title the user is.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
+Returns the profile's in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \"Continue Watching\" row.  Each item includes a `progress` field (0–100) showing how far through the title the user is. To update progress as a viewer watches, call `POST /profile/scrobble/{mediaId}`.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
 
 ### Example
 ```swift
@@ -1746,14 +1013,14 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **getSeasonProfileMeta**
+# **getSeasonState**
 ```swift
-    open class func getSeasonProfileMeta(mediaId: String, seasonNumber: Int, completion: @escaping (_ data: SeasonProfileMeta?, _ error: Error?) -> Void)
+    open class func getSeasonState(mediaId: String, seasonNumber: Int, completion: @escaping (_ data: SeasonState?, _ error: Error?) -> Void)
 ```
 
-Get which episodes of a TV season are finished
+Get which episodes of a TV season are watched
 
-Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.  Pair this with `getSeasonDetails` for episode titles and artwork, and with `getMediaProfileMeta` for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn't tracked, so it won't show a progress bar. The profile's place in the episode it is watching now is `playback` on `getMediaProfileMeta`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+Returns which episodes of a single TV season the active profile has finished, plus whether the season as a whole is complete.  A season counts as complete when every aired episode in it is watched. Specials (season `0`) never count toward show completion. Pair this with `getSeasonDetails` for episode titles and artwork, and with `getTitleState` for title-level state and live playback position.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
 
 ### Example
 ```swift
@@ -1763,12 +1030,12 @@ import Discovr
 let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
-let mediaId: String = "mediaId_example" // The unique identifier of the TV show (e.g., `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-let seasonNumber: Int = 987 // The season number.
+let mediaId: String = "mediaId_example" // The TV show's media ID (`TV_<id>`), or an item `ref`. 
+let seasonNumber: Int = 987 // The season number (0 for specials, 1+ for regular seasons).
 
 Task {
     do {
-        let result = try await discovr.getSeasonProfileMeta(mediaId: mediaId, seasonNumber: seasonNumber)
+        let result = try await discovr.getSeasonState(mediaId: mediaId, seasonNumber: seasonNumber)
         dump(result)
     } catch {
         print(error)
@@ -1780,12 +1047,12 @@ Task {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **mediaId** | **String** | The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | 
- **seasonNumber** | **Int** | The season number. | 
+ **mediaId** | **String** | The TV show&#39;s media ID (&#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | 
+ **seasonNumber** | **Int** | The season number (0 for specials, 1+ for regular seasons). | 
 
 ### Return type
 
-[**SeasonProfileMeta**](SeasonProfileMeta.md)
+[**SeasonState**](SeasonState.md)
 
 ### Authorization
 
@@ -1852,14 +1119,14 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **getSuperLikedItems**
+# **getTitleState**
 ```swift
-    open class func getSuperLikedItems(nextPageToken: String? = nil, limit: Int? = nil, completion: @escaping (_ data: SimpleListResponse?, _ error: Error?) -> Void)
+    open class func getTitleState(mediaId: String, providers: Bool? = nil, completion: @escaping (_ data: TitleState?, _ error: Error?) -> Void)
 ```
 
-Get super-liked items
+Get the active profile's state for a title
 
-Returns the super-liked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. Super-liked titles are the ones the viewer loves most. 
+Returns everything your UI needs to show the active profile's relationship with a title:  - **Rating**: `liked`, `disliked`, `super_liked`, or `null`. - **Watchlist**: whether the title is saved to the watchlist. - **Watch progress & completion**: whether the profile has started (`watched`) or finished (`completed`) the title, total `plays`, watched `episodes` and `completedSeasons` for TV shows, and the live `playback` resume position when mid-watch. - **Providers** *(optional)*: pass `providers=true` to include streaming availability filtered to the account's chosen services.  **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened the title and directly affects the profile's recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Every state write (`setRating`, `clearRating`, `addToWatchlist`, `removeFromWatchlist`, `markWatched`, `markUnwatched`) returns the updated `TitleState`, so you don't need to refetch this endpoint after a change.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
 
 ### Example
 ```swift
@@ -1869,12 +1136,12 @@ import Discovr
 let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
-let nextPageToken: String = "nextPageToken_example" // Opaque token from previous page for pagination (optional)
-let limit: Int = 987 // Maximum number of items to return (1-50, default: 10) (optional) (default: 10)
+let mediaId: String = "mediaId_example" // The title's media ID (`MV_<id>` for movies, `TV_<id>` for TV shows).  Also accepts an item's `ref` in place of the ID. Prefer the `ref` when you have one — it resolves to the same title and sharpens recommendations. 
+let providers: Bool = true // Set to `true` to include streaming provider availability filtered to the account's selected services. (optional) (default: false)
 
 Task {
     do {
-        let result = try await discovr.getSuperLikedItems(nextPageToken: nextPageToken, limit: limit)
+        let result = try await discovr.getTitleState(mediaId: mediaId, providers: providers)
         dump(result)
     } catch {
         print(error)
@@ -1886,12 +1153,12 @@ Task {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **nextPageToken** | **String** | Opaque token from previous page for pagination | [optional] 
- **limit** | **Int** | Maximum number of items to return (1-50, default: 10) | [optional] [default to 10]
+ **mediaId** | **String** | The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; for movies, &#x60;TV_&lt;id&gt;&#x60; for TV shows).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the ID. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens recommendations.  | 
+ **providers** | **Bool** | Set to &#x60;true&#x60; to include streaming provider availability filtered to the account&#39;s selected services. | [optional] [default to false]
 
 ### Return type
 
-[**SimpleListResponse**](SimpleListResponse.md)
+[**TitleState**](TitleState.md)
 
 ### Authorization
 
@@ -1904,14 +1171,14 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **getWatchlistItems**
+# **getTitles**
 ```swift
-    open class func getWatchlistItems(nextPageToken: String? = nil, limit: Int? = nil, completion: @escaping (_ data: SimpleListResponse?, _ error: Error?) -> Void)
+    open class func getTitles(rating: Rating? = nil, watchlist: Bool? = nil, watched: Bool? = nil, nextPageToken: String? = nil, limit: Int? = nil, completion: @escaping (_ data: TitleListResponse?, _ error: Error?) -> Void)
 ```
 
-Get watchlist items
+List titles by rating, watchlist, or watch history
 
-Returns the profile's watchlist — titles saved to watch later.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Ordered by when they were added (newest first). Supports cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available. 
+Returns a paginated list of titles for the active profile, ordered most recent first.  Pass **exactly one** filter query parameter:  - `rating=liked`, `rating=disliked`, or `rating=super_liked` — titles with that rating, newest rated first. - `watchlist=true` — the profile's watchlist, newest added first. - `watched=true` — the profile's watch history (one entry per title, with `completed`, `plays`, and the last episode for TV shows), most recently watched first.  Each item includes a `ref` alongside its `id`. Pass the `ref` when the viewer opens or acts on the title.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
 
 ### Example
 ```swift
@@ -1921,12 +1188,15 @@ import Discovr
 let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
-let nextPageToken: String = "nextPageToken_example" // Opaque token from previous page for pagination (optional)
-let limit: Int = 987 // Maximum number of items to return (1-50, default: 10) (optional) (default: 10)
+let rating: Rating = Rating() // Filter by rating (`liked`, `disliked`, or `super_liked`). (optional)
+let watchlist: Bool = true // Set to `true` to list the profile's watchlist. (optional)
+let watched: Bool = true // Set to `true` to list the profile's watch history (one row per title). (optional)
+let nextPageToken: String = "nextPageToken_example" // Opaque cursor token from the previous page. (optional)
+let limit: Int = 987 // Maximum number of titles to return (1–50, default 10). (optional) (default: 10)
 
 Task {
     do {
-        let result = try await discovr.getWatchlistItems(nextPageToken: nextPageToken, limit: limit)
+        let result = try await discovr.getTitles(rating: rating, watchlist: watchlist, watched: watched, nextPageToken: nextPageToken, limit: limit)
         dump(result)
     } catch {
         print(error)
@@ -1938,12 +1208,15 @@ Task {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **nextPageToken** | **String** | Opaque token from previous page for pagination | [optional] 
- **limit** | **Int** | Maximum number of items to return (1-50, default: 10) | [optional] [default to 10]
+ **rating** | [**Rating**](.md) | Filter by rating (&#x60;liked&#x60;, &#x60;disliked&#x60;, or &#x60;super_liked&#x60;). | [optional] 
+ **watchlist** | **Bool** | Set to &#x60;true&#x60; to list the profile&#39;s watchlist. | [optional] 
+ **watched** | **Bool** | Set to &#x60;true&#x60; to list the profile&#39;s watch history (one row per title). | [optional] 
+ **nextPageToken** | **String** | Opaque cursor token from the previous page. | [optional] 
+ **limit** | **Int** | Maximum number of titles to return (1–50, default 10). | [optional] [default to 10]
 
 ### Return type
 
-[**SimpleListResponse**](SimpleListResponse.md)
+[**TitleListResponse**](TitleListResponse.md)
 
 ### Authorization
 
@@ -1952,18 +1225,68 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **importHistory**
+```swift
+    open class func importHistory(importHistoryPayload: ImportHistoryPayload, completion: @escaping (_ data: TitleState?, _ error: Error?) -> Void)
+```
+
+Import a watch history entry
+
+Imports a previously watched movie, show, season, or episode from an external source.  - `mediaId`: the title to import (`MV_<number>` for movies, `TV_<number>` for TV shows). - `imported`: required string naming the external source (for example `\"trakt\"`). - `updatedAt`: optional ISO 8601 timestamp of when it was watched. Defaults to now. - `season` / `episode`: optional TV scope. Omit both to import all aired episodes of the show; pass `season` to import that season; pass both to import a single episode.  For live viewing use `scrobble()`, and for interactive \"Mark as watched\" buttons use `markWatched()`. To read watch history, use `GET /profile/titles?watched=true`.  Returns the title's updated `TitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+
+### Example
+```swift
+import Discovr
+
+// Initialize DiscovrClient (public entry point)
+let discovr = DiscovrClient(clientId: "your-client-id")
+// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
+
+let importHistoryPayload: ImportHistoryPayload = ImportHistoryPayload(mediaId: "mediaId_example", imported: "imported_example", updatedAt: Date(), season: 123, episode: 123) // 
+
+Task {
+    do {
+        let result = try await discovr.importHistory(importHistoryPayload: importHistoryPayload)
+        dump(result)
+    } catch {
+        print(error)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **importHistoryPayload** | [**ImportHistoryPayload**](ImportHistoryPayload.md) |  | 
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **markUnwatched**
 ```swift
-    open class func markUnwatched(mediaId: String, season: Int? = nil, episode: Int? = nil, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
+    open class func markUnwatched(mediaId: String, season: Int? = nil, episode: Int? = nil, completion: @escaping (_ data: TitleState?, _ error: Error?) -> Void)
 ```
 
-Mark a title as unwatched
+Mark a title, season, or episode as unwatched
 
-Takes a movie, a TV show, a season, or an episode back to unwatched, in one call.  It removes the history that made it watched, takes it out of the user's **in-progress** list if that is where it was, and brings a TV show's `completed` state back in line. Use it for a \"Mark as unwatched\" button.  For TV shows, `season` and `episode` choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass `season` to undo **that season**: its episodes, and any entry that counted the whole season as watched. - Pass `season` and `episode` to undo **that episode**.  Calling it for a title that isn't watched changes nothing and still succeeds, so it is safe to retry.  This is not the same as [`DELETE /profile/history/{mediaId}`](/api-reference/discovr/delete-history-item), which removes history entries and nothing else. Marking something unwatched with that call and `DELETE /profile/playback/{mediaId}` leaves a TV show's `completed` out of date unless they run in a particular order; this endpoint does the right thing whichever way you reach it.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+Takes a movie, a TV show, a season, or an episode back to unwatched in one atomic call.  It removes the watched state for that scope and clears any in-progress Continue Watching position inside it. Calling it for a title that isn't watched changes nothing and still succeeds, so it's safe to retry.  For TV shows, `season` and `episode` choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass `season` to undo **that season**. - Pass `season` and `episode` to undo **that episode**.  Returns the title's updated `TitleState`, so you don't need to refetch `getTitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
 
 ### Example
 ```swift
@@ -1973,7 +1296,7 @@ import Discovr
 let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
-let mediaId: String = "mediaId_example" // The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. 
+let mediaId: String = "mediaId_example" // The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
 let season: Int = 987 // TV only. Season number. Omit to undo every season of the show. (optional)
 let episode: Int = 987 // TV only, and only together with `season`. Episode number. Omit to undo the whole season. (optional)
 
@@ -1991,13 +1314,67 @@ Task {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **mediaId** | **String** | The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id.  | 
+ **mediaId** | **String** | The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | 
  **season** | **Int** | TV only. Season number. Omit to undo every season of the show. | [optional] 
  **episode** | **Int** | TV only, and only together with &#x60;season&#x60;. Episode number. Omit to undo the whole season. | [optional] 
 
 ### Return type
 
-[**SuccessMessage**](SuccessMessage.md)
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **markWatched**
+```swift
+    open class func markWatched(mediaId: String, season: Int? = nil, episode: Int? = nil, completion: @escaping (_ data: TitleState?, _ error: Error?) -> Void)
+```
+
+Mark a title, season, or episode as watched
+
+Marks a movie, an entire TV show, a season, or a single episode as watched in one atomic call.  For TV shows, `season` and `episode` pick the scope:  - Omit both to mark **every aired episode** across all regular seasons (season 1 and up) as watched. Specials (season `0`) are excluded. - Pass `season` to mark every aired episode of **that season**. - Pass `season` and `episode` to mark **that episode**.  Any in-progress Continue Watching position within the marked scope is cleared automatically. Returns the title's updated `TitleState`, so you don't need to refetch `getTitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+
+### Example
+```swift
+import Discovr
+
+// Initialize DiscovrClient (public entry point)
+let discovr = DiscovrClient(clientId: "your-client-id")
+// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
+
+let mediaId: String = "mediaId_example" // The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
+let season: Int = 987 // TV only. Season number. Omit to mark every aired season of the show. (optional)
+let episode: Int = 987 // TV only, and only together with `season`. Episode number. Omit to mark the whole season. (optional)
+
+Task {
+    do {
+        let result = try await discovr.markWatched(mediaId: mediaId, season: season, episode: episode)
+        dump(result)
+    } catch {
+        print(error)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **mediaId** | **String** | The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | 
+ **season** | **Int** | TV only. Season number. Omit to mark every aired season of the show. | [optional] 
+ **episode** | **Int** | TV only, and only together with &#x60;season&#x60;. Episode number. Omit to mark the whole season. | [optional] 
+
+### Return type
+
+[**TitleState**](TitleState.md)
 
 ### Authorization
 
@@ -2060,62 +1437,6 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **patchHistoryItem**
-```swift
-    open class func patchHistoryItem(mediaId: String, patchHistoryPayload: PatchHistoryPayload, season: Int? = nil, episode: Int? = nil, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Update or create a history item
-
-Updates the history entry for a title. If no entry exists, creates one (upsert). This ensures only one entry exists per `mediaId` + `season` + `episode` combination.  For TV shows, `season` is required as a query parameter. Include `episode` to target a specific episode; omit it to update the season-level entry.  - `progress`: how far through the title the user watched, as a percentage (0–100). 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let mediaId: String = "mediaId_example" // The media ID of the title. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-let patchHistoryPayload: PatchHistoryPayload = PatchHistoryPayload(progress: 123) // 
-let season: Int = 987 // Season number. Required for TV shows (`TV_` mediaId); ignored for movies. (optional)
-let episode: Int = 987 // Episode number. Optional — omit to update the season-level entry; include to target a specific episode. (optional)
-
-Task {
-    do {
-        let result = try await discovr.patchHistoryItem(mediaId: mediaId, patchHistoryPayload: patchHistoryPayload, season: season, episode: episode)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **mediaId** | **String** | The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | 
- **patchHistoryPayload** | [**PatchHistoryPayload**](PatchHistoryPayload.md) |  | 
- **season** | **Int** | Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. | [optional] 
- **episode** | **Int** | Episode number. Optional — omit to update the season-level entry; include to target a specific episode. | [optional] 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
 # **pollDeviceCode**
 ```swift
     open class func pollDeviceCode(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, completion: @escaping (_ data: DeviceCodePollResponse?, _ error: Error?) -> Void)
@@ -2162,6 +1483,56 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **removeFromWatchlist**
+```swift
+    open class func removeFromWatchlist(mediaId: String, completion: @escaping (_ data: TitleState?, _ error: Error?) -> Void)
+```
+
+Remove a title from the watchlist
+
+Removes a title from the active profile's watchlist. Safe to call if it is not on the watchlist.  Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+
+### Example
+```swift
+import Discovr
+
+// Initialize DiscovrClient (public entry point)
+let discovr = DiscovrClient(clientId: "your-client-id")
+// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
+
+let mediaId: String = "mediaId_example" // The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
+
+Task {
+    do {
+        let result = try await discovr.removeFromWatchlist(mediaId: mediaId)
+        dump(result)
+    } catch {
+        print(error)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **mediaId** | **String** | The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | 
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -2225,7 +1596,7 @@ No authorization required
 
 Record playback progress
 
-Scrobbling is Discovr's single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don't need to coordinate multiple endpoints.  Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:  - The item stays in the user's **in-progress** list until they finish watching. - Once they've watched 80% or more, it's marked as complete and moves to their **history**. - For movies, the item is removed from the user's watchlist once they've watched more than 20% — so it clears as soon as they're clearly watching it. For TV episodes, it's removed from the watchlist once the episode is complete (≥80%).  For TV shows, include `season` and `episode` in the request body so history is tracked per episode.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+Scrobbling is Discovr's single-call way to track playback. One call updates live resume progress, watch history, completion, and the watchlist.  Send the viewer's real position when playback starts (not `0` when resuming), about every 30 seconds while watching, and right away on pause, resume, seek, and completion. Discovr handles the rest:  - The title stays in Continue Watching until the movie or episode crosses 80%. - Once progress reaches 20% or more, the title is automatically removed from the watchlist — for both movies and TV shows. - Once progress reaches 80% or more, the movie or episode is marked watched and leaves Continue Watching. Lower progress later (such as a rewind) moves the live position without undoing completion — use `markUnwatched` to undo a watch. - For TV shows, include `season` and `episode` in `tv`. When an episode crosses 80%, the response includes `completedSeasons` listing every season now fully watched.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
 
 ### Example
 ```swift
@@ -2258,58 +1629,6 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**ScrobbleResponse**](ScrobbleResponse.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **scrobbleSkip**
-```swift
-    open class func scrobbleSkip(mediaId: String, scrobbleSkipBody: ScrobbleSkipBody, completion: @escaping (_ data: ScrobbleSkipResponse?, _ error: Error?) -> Void)
-```
-
-Record a skip event
-
-Signals that the user jumped to another point in the content, forward (a skip) or backward (a rewind). Used for watch analytics. Returns immediately — no side effects on lists or history.  `from` and `to` are playback positions as a percentage (0–100) and must differ; `from` higher than `to` is a jump backward. `duration` is how many seconds were jumped. After a jump, also send the position the viewer landed on as a progress update with `POST /profile/scrobble/{mediaId}`. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let mediaId: String = "mediaId_example" // The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-let scrobbleSkipBody: ScrobbleSkipBody = ScrobbleSkipBody(from: 123, to: 123, duration: 123, tv: EpisodeRef(season: 123, episode: 123)) // 
-
-Task {
-    do {
-        let result = try await discovr.scrobbleSkip(mediaId: mediaId, scrobbleSkipBody: scrobbleSkipBody)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **mediaId** | **String** | The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | 
- **scrobbleSkipBody** | [**ScrobbleSkipBody**](ScrobbleSkipBody.md) |  | 
-
-### Return type
-
-[**ScrobbleSkipResponse**](ScrobbleSkipResponse.md)
 
 ### Authorization
 
@@ -2434,6 +1753,58 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **setRating**
+```swift
+    open class func setRating(mediaId: String, setRatingPayload: SetRatingPayload, completion: @escaping (_ data: TitleState?, _ error: Error?) -> Void)
+```
+
+Set a title's rating
+
+Sets the active profile's rating for a title to `liked`, `disliked`, or `super_liked`.  Ratings are mutually exclusive: setting a new rating automatically replaces any previous one. Setting the rating the title already has is a safe no-op.  Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+
+### Example
+```swift
+import Discovr
+
+// Initialize DiscovrClient (public entry point)
+let discovr = DiscovrClient(clientId: "your-client-id")
+// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
+
+let mediaId: String = "mediaId_example" // The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
+let setRatingPayload: SetRatingPayload = SetRatingPayload(value: Rating()) // 
+
+Task {
+    do {
+        let result = try await discovr.setRating(mediaId: mediaId, setRatingPayload: setRatingPayload)
+        dump(result)
+    } catch {
+        print(error)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **mediaId** | **String** | The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | 
+ **setRatingPayload** | [**SetRatingPayload**](SetRatingPayload.md) |  | 
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **signOutSession**
 ```swift
     open class func signOutSession(completion: @escaping (_ data: SignOutResponse?, _ error: Error?) -> Void)
@@ -2520,56 +1891,6 @@ Name | Type | Description  | Notes
 ### Authorization
 
 No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **updatePlaybackItem**
-```swift
-    open class func updatePlaybackItem(editPlaybackPayload: EditPlaybackPayload, completion: @escaping (_ data: SuccessMessage?, _ error: Error?) -> Void)
-```
-
-Update playback progress
-
-Updates the playback position for an existing entry. Same fields as the add endpoint. If no entry exists for the `mediaId`, one is created. 
-
-### Example
-```swift
-import Discovr
-
-// Initialize DiscovrClient (public entry point)
-let discovr = DiscovrClient(clientId: "your-client-id")
-// Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
-
-let editPlaybackPayload: EditPlaybackPayload = EditPlaybackPayload(mediaId: "mediaId_example", progress: 123, updatedAt: Date()) // 
-
-Task {
-    do {
-        let result = try await discovr.updatePlaybackItem(editPlaybackPayload: editPlaybackPayload)
-        dump(result)
-    } catch {
-        print(error)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **editPlaybackPayload** | [**EditPlaybackPayload**](EditPlaybackPayload.md) |  | 
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 

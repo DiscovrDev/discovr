@@ -20,7 +20,7 @@ public struct MediaResponse: Sendable, Codable, ParameterConvertible, Hashable {
     public var mediaType: MediaType
     public var movie: MediaResponseMovie?
     public var tv: MediaResponseTv?
-    /** Full list of where this title is available, not filtered to any profile's preferences. Use `profile_meta` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.  */
+    /** Full list of where this title is available, not filtered to any profile's preferences. Use `GET /profile/titles/{mediaId}` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.  */
     public var watchProviders: [ProviderInfo]?
     public var credits: MediaCredits?
     public var externalIds: MediaExternalIds?

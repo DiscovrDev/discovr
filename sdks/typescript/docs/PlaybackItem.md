@@ -1,7 +1,7 @@
 
 # PlaybackItem
 
-A media item with playback progress. `progress` is 0–100.
+A media item with live playback progress. `progress` is 0–100.
 
 ## Properties
 

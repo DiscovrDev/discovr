@@ -2,15 +2,14 @@ import { DiscovrClient } from "discovr";
 
 export async function sample(client: DiscovrClient) {
 	// docs:start
-	// When the user pauses
-	async function onPause(mediaId: string, progress: number) {
+	// When playback starts — send the real start position (not 0 when resuming)
+	async function onStart(mediaId: string, progress: number) {
 		await client.scrobble(mediaId, progress);
 	}
 
-	// When they skip or rewind — log the jump, then the position they landed on
-	async function onSkip(mediaId: string, from: number, toProgress: number, secondsSkipped: number) {
-		await client.scrobbleSkip(mediaId, from, toProgress, secondsSkipped);
-		await client.scrobble(mediaId, toProgress);
+	// When the user pauses or seeks to a new position
+	async function onPauseOrSeek(mediaId: string, progress: number) {
+		await client.scrobble(mediaId, progress);
 	}
 
 	// About every 30 seconds while playing
@@ -18,4 +17,7 @@ export async function sample(client: DiscovrClient) {
 		await client.scrobble(mediaId, progress);
 	}
 	// docs:end
+	void onStart;
+	void onPauseOrSeek;
+	void heartbeat;
 }

@@ -98,55 +98,6 @@ open class MediaAPI {
     }
 
     /**
-     Get profile interaction data for a title
-     
-     - parameter mediaId: (path) The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter providers: (query) Set to &#x60;true&#x60; to include streaming provider availability in the response. (optional, default to false)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: MediaProfileMeta
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func getMediaProfileMeta(mediaId: String, providers: Bool? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> MediaProfileMeta {
-        return try await getMediaProfileMetaWithRequestBuilder(mediaId: mediaId, providers: providers, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Get profile interaction data for a title
-     - GET /media/{mediaId}/profile_meta
-     - Returns the current profile's interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile's selected region. Pass `providers=true` to include this. - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).  **This call directly affects the profile's recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn't open registers similarly to liking those titles and will skew their recommendations. Pass the item's `ref` when you have one.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter providers: (query) Set to &#x60;true&#x60; to include streaming provider availability in the response. (optional, default to false)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<MediaProfileMeta> 
-     */
-    open class func getMediaProfileMetaWithRequestBuilder(mediaId: String, providers: Bool? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<MediaProfileMeta> {
-        var localVariablePath = "/media/{mediaId}/profile_meta"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
-        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
-            "providers": (wrappedValue: providers?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-        ])
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<MediaProfileMeta>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
      Get TV season details
      
      - parameter mediaId: (path) The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
@@ -196,55 +147,6 @@ open class MediaAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<SeasonDetailsResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Get which episodes of a TV season are finished
-     
-     - parameter mediaId: (path) The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter seasonNumber: (path) The season number. 
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SeasonProfileMeta
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func getSeasonProfileMeta(mediaId: String, seasonNumber: Int, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SeasonProfileMeta {
-        return try await getSeasonProfileMetaWithRequestBuilder(mediaId: mediaId, seasonNumber: seasonNumber, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Get which episodes of a TV season are finished
-     - GET /media/{mediaId}/seasons/{seasonNumber}/meta
-     - Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.  Pair this with `getSeasonDetails` for episode titles and artwork, and with `getMediaProfileMeta` for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn't tracked, so it won't show a progress bar. The profile's place in the episode it is watching now is `playback` on `getMediaProfileMeta`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter seasonNumber: (path) The season number. 
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SeasonProfileMeta> 
-     */
-    open class func getSeasonProfileMetaWithRequestBuilder(mediaId: String, seasonNumber: Int, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SeasonProfileMeta> {
-        var localVariablePath = "/media/{mediaId}/seasons/{seasonNumber}/meta"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let seasonNumberPreEscape = "\(APIHelper.mapValueToPathItem(seasonNumber))"
-        let seasonNumberPostEscape = seasonNumberPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{seasonNumber}", with: seasonNumberPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SeasonProfileMeta>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }

@@ -25,7 +25,8 @@ import kotlinx.serialization.encoding.*
  *
  * @param status Always `\"ok\"` on success.
  * @param progress The progress value recorded (0–100).
- * @param completed `true` if the item was marked as watched (progress reached 80% or more).
+ * @param completed `true` if the movie or episode reached 80% or more.
+ * @param completedSeasons Present when a TV episode crosses 80% — lists every regular season now fully watched.
  */
 @Serializable
 
@@ -37,8 +38,11 @@ data class ScrobbleResponse (
     /* The progress value recorded (0–100). */
     @SerialName(value = "progress") @Required val progress: kotlin.Double,
 
-    /* `true` if the item was marked as watched (progress reached 80% or more). */
-    @SerialName(value = "completed") @Required val completed: kotlin.Boolean
+    /* `true` if the movie or episode reached 80% or more. */
+    @SerialName(value = "completed") @Required val completed: kotlin.Boolean,
+
+    /* Present when a TV episode crosses 80% — lists every regular season now fully watched. */
+    @SerialName(value = "completedSeasons") val completedSeasons: kotlin.collections.List<kotlin.Int>? = null
 
 ) {
 

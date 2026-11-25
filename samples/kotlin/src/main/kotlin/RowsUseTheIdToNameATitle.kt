@@ -4,6 +4,7 @@ import api.discovr.models.*
 import kotlinx.coroutines.*
 // docs:start
 import api.discovr.idOf
+import api.discovr.models.Rating
 import api.discovr.refOrId
 // docs:end
 
@@ -14,7 +15,7 @@ private suspend fun sample(client: DiscovrClient, mediaId: String) {
 
     // On the detail screen: act with the ref, name the title with the id
     val details = client.getMedia(mediaId = screen.ref)
-    client.addLikedItem(mediaId = screen.ref)
+    val state = client.setRating(mediaId = screen.ref, value = Rating.liked)
 
     // Holding only a ref, like a saved "recently viewed" entry? idOf gets the id back.
     val cacheKey = idOf(savedRef)

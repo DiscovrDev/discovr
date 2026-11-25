@@ -41,7 +41,7 @@ The screenshot is **illustrative**—backdrop, poster, synopsis, logos, episodes
 - **TV only, when a season is selected** — **[`getSeasonDetails(mediaId, seasonNumber, { language })`](/sdk-reference/media/get-season-details)** for that season’s **episodes** array (and season-level fields). The series id stays **`TV_…`**.
 - **Optional rail** — **[`getSimilarRecommendations(mediaId, { language, page })`](/sdk-reference/media/get-similar-recommendations)** for a **“More like this”** row. Treat **empty** or **404** as “no similar titles” and hide the section.
 
-Full response shapes are in the [`getMedia()`](/sdk-reference/media/get-media) SDK reference and [Type reference](/sdk-reference/types). For viewer-specific overlays (lists, **`playback`/`history`**, resume hints, and **completion**), **[`getMediaProfileMeta()`](/sdk-reference/media/get-media-profile-meta)**—see **[Understanding `getMediaProfileMeta`](/guides/profile-context/media-profile-meta)** and **[Profile context](/guides/profile-context)**. For per-episode progress within one TV season, see **[`getSeasonProfileMeta()`](/guides/profile-context/season-profile-meta)**.
+Full response shapes are in the [`getMedia()`](/sdk-reference/media/get-media) SDK reference and [Type reference](/sdk-reference/types). For viewer-specific overlays (rating, watchlist, **`playback`/`watched`**, resume hints, and **completion**), call **[`getTitleState()`](/sdk-reference/profile-lists/get-title-state)**—see **[Understanding Your Media State](/guides/profile-context/media-profile-meta)** and **[Profile context](/guides/profile-context)**. For per-episode completion within one TV season, see **[`getSeasonState()`](/guides/profile-context/season-profile-meta)**.
 
 {/* sample: media-what-to-load-and-when */}
 
@@ -222,7 +222,7 @@ func loadSimilar(client: DiscovrClient, mediaId: String) async -> [SimilarResult
 - [Rows overview](/guides/rows) — where **`mediaId`** comes from on **`media`** / **`top_n`** items
 - [Pages overview](/guides/pages) — hero items also carry titles you can open in detail
 - [Error handling](/guides/reference/error-handling) — session refresh if a call fails with **`401`** after snapshot or token changes
-- SDK: [`getMedia()`](/sdk-reference/media/get-media) · [`getMediaAssets()`](/sdk-reference/media/get-media-assets) · [`getSeasonDetails()`](/sdk-reference/media/get-season-details) · [`getSimilarRecommendations()`](/sdk-reference/media/get-similar-recommendations) · [`getMediaProfileMeta()`](/sdk-reference/media/get-media-profile-meta)
+- SDK: [`getMedia()`](/sdk-reference/media/get-media) · [`getMediaAssets()`](/sdk-reference/media/get-media-assets) · [`getSeasonDetails()`](/sdk-reference/media/get-season-details) · [`getSimilarRecommendations()`](/sdk-reference/media/get-similar-recommendations) · [`getTitleState()`](/sdk-reference/profile-lists/get-title-state)
 - HTTP: **[Get media details](/api-reference/discovr/get-media)** · **[Get media assets](/api-reference/discovr/get-media-assets)** · **[Get season details](/api-reference/discovr/get-season-details)** · **[Similar recommendations](/api-reference/discovr/get-similar-recommendations)**
 
 ---

@@ -15,19 +15,23 @@ public struct ScrobbleResponse: Sendable, Codable, ParameterConvertible, Hashabl
     public var status: String
     /** The progress value recorded (0–100). */
     public var progress: Double
-    /** `true` if the item was marked as watched (progress reached 80% or more). */
+    /** `true` if the movie or episode reached 80% or more. */
     public var completed: Bool
+    /** Present when a TV episode crosses 80% — lists every regular season now fully watched. */
+    public var completedSeasons: [Int]?
 
-    public init(status: String, progress: Double, completed: Bool) {
+    public init(status: String, progress: Double, completed: Bool, completedSeasons: [Int]? = nil) {
         self.status = status
         self.progress = progress
         self.completed = completed
+        self.completedSeasons = completedSeasons
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case status
         case progress
         case completed
+        case completedSeasons
     }
 
     // Encodable protocol methods
@@ -37,6 +41,7 @@ public struct ScrobbleResponse: Sendable, Codable, ParameterConvertible, Hashabl
         try container.encode(status, forKey: .status)
         try container.encode(progress, forKey: .progress)
         try container.encode(completed, forKey: .completed)
+        try container.encodeIfPresent(completedSeasons, forKey: .completedSeasons)
     }
 }
 

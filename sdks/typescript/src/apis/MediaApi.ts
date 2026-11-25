@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * The Discovr API
- * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
+ * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
  *
  * The version of the OpenAPI document: 1.0.0-alpha.1
  * Contact: dev@discovr.media
@@ -17,11 +17,9 @@ import * as runtime from '../runtime';
 import type {
   ApiError,
   MediaAssetsResponse,
-  MediaProfileMeta,
   MediaResponse,
   RateLimitedError,
   SeasonDetailsResponse,
-  SeasonProfileMeta,
   SimilarResponse,
 } from '../models/index';
 import {
@@ -29,16 +27,12 @@ import {
     ApiErrorToJSON,
     MediaAssetsResponseFromJSON,
     MediaAssetsResponseToJSON,
-    MediaProfileMetaFromJSON,
-    MediaProfileMetaToJSON,
     MediaResponseFromJSON,
     MediaResponseToJSON,
     RateLimitedErrorFromJSON,
     RateLimitedErrorToJSON,
     SeasonDetailsResponseFromJSON,
     SeasonDetailsResponseToJSON,
-    SeasonProfileMetaFromJSON,
-    SeasonProfileMetaToJSON,
     SimilarResponseFromJSON,
     SimilarResponseToJSON,
 } from '../models/index';
@@ -51,20 +45,10 @@ interface GetMediaAssetsRequest {
     mediaId: string;
 }
 
-interface GetMediaProfileMetaRequest {
-    mediaId: string;
-    providers?: boolean;
-}
-
 interface GetSeasonDetailsRequest {
     mediaId: string;
     seasonNumber: number;
     language?: string;
-}
-
-interface GetSeasonProfileMetaRequest {
-    mediaId: string;
-    seasonNumber: number;
 }
 
 interface GetSimilarRecommendationsRequest {
@@ -173,57 +157,6 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the current profile\'s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile\'s selected region. Pass `providers=true` to include this. - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).  **This call directly affects the profile\'s recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn\'t open registers similarly to liking those titles and will skew their recommendations. Pass the item\'s `ref` when you have one.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
-     * Get profile interaction data for a title
-     */
-    async getMediaProfileMetaRaw(requestParameters: GetMediaProfileMetaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MediaProfileMeta>> {
-        if (requestParameters['mediaId'] == null) {
-            throw new runtime.RequiredError(
-                'mediaId',
-                'Required parameter "mediaId" was null or undefined when calling getMediaProfileMeta().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters['providers'] != null) {
-            queryParameters['providers'] = requestParameters['providers'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/media/{mediaId}/profile_meta`;
-        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => MediaProfileMetaFromJSON(jsonValue));
-    }
-
-    /**
-     * Returns the current profile\'s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile\'s selected region. Pass `providers=true` to include this. - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).  **This call directly affects the profile\'s recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn\'t open registers similarly to liking those titles and will skew their recommendations. Pass the item\'s `ref` when you have one.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
-     * Get profile interaction data for a title
-     */
-    async getMediaProfileMeta(mediaId: string, providers?: boolean, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MediaProfileMeta> {
-        const response = await this.getMediaProfileMetaRaw({ mediaId: mediaId, providers: providers }, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata (what the profile has watched is `getSeasonProfileMeta`), but the call needs a profile. 
      * Get TV season details
      */
@@ -279,61 +212,6 @@ export class MediaApi extends runtime.BaseAPI {
      */
     async getSeasonDetails(mediaId: string, seasonNumber: number, language?: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SeasonDetailsResponse> {
         const response = await this.getSeasonDetailsRaw({ mediaId: mediaId, seasonNumber: seasonNumber, language: language }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.  Pair this with `getSeasonDetails` for episode titles and artwork, and with `getMediaProfileMeta` for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn\'t tracked, so it won\'t show a progress bar. The profile\'s place in the episode it is watching now is `playback` on `getMediaProfileMeta`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
-     * Get which episodes of a TV season are finished
-     */
-    async getSeasonProfileMetaRaw(requestParameters: GetSeasonProfileMetaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SeasonProfileMeta>> {
-        if (requestParameters['mediaId'] == null) {
-            throw new runtime.RequiredError(
-                'mediaId',
-                'Required parameter "mediaId" was null or undefined when calling getSeasonProfileMeta().'
-            );
-        }
-
-        if (requestParameters['seasonNumber'] == null) {
-            throw new runtime.RequiredError(
-                'seasonNumber',
-                'Required parameter "seasonNumber" was null or undefined when calling getSeasonProfileMeta().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/media/{mediaId}/seasons/{seasonNumber}/meta`;
-        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
-        urlPath = urlPath.replace(`{${"seasonNumber"}}`, encodeURIComponent(String(requestParameters['seasonNumber'])));
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SeasonProfileMetaFromJSON(jsonValue));
-    }
-
-    /**
-     * Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.  Pair this with `getSeasonDetails` for episode titles and artwork, and with `getMediaProfileMeta` for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn\'t tracked, so it won\'t show a progress bar. The profile\'s place in the episode it is watching now is `playback` on `getMediaProfileMeta`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
-     * Get which episodes of a TV season are finished
-     */
-    async getSeasonProfileMeta(mediaId: string, seasonNumber: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SeasonProfileMeta> {
-        const response = await this.getSeasonProfileMetaRaw({ mediaId: mediaId, seasonNumber: seasonNumber }, initOverrides);
         return await response.value();
     }
 

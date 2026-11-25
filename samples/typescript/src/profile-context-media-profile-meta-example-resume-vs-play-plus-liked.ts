@@ -1,17 +1,16 @@
 // docs:start
-import type { MediaProfileMeta } from "discovr";
+import type { TitleState } from "discovr";
 // docs:end
 
 // docs:start
-function primaryCta(meta: MediaProfileMeta): { label: string; progress?: number } {
-	if (meta.playback.inlist && meta.playback.data) {
-		const d = meta.playback.data;
-		return { label: "Resume", progress: d.progress };
+function primaryCta(state: TitleState): { label: string; progress?: number } {
+	if (state.playback) {
+		return { label: "Resume", progress: state.playback.progress };
 	}
 	return { label: "Play" };
 }
 
-function liked(meta: MediaProfileMeta): boolean {
-	return meta.liked;
+function liked(state: TitleState): boolean {
+	return state.rating === "liked";
 }
 // docs:end

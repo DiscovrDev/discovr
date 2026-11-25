@@ -1,0 +1,508 @@
+# Path operations for per-profile title state (/profile/titles/...)
+
+list:
+  get:
+    tags:
+      - Discovr
+      - Profile Lists
+    x-sdk-group: Titles
+    summary: List titles by rating, watchlist, or watch history
+    description: |
+      Returns a paginated list of titles for the active profile, ordered most recent first.
+
+      Pass **exactly one** filter query parameter:
+
+      - `rating=liked`, `rating=disliked`, or `rating=super_liked` — titles with that rating, newest rated first.
+      - `watchlist=true` — the profile's watchlist, newest added first.
+      - `watched=true` — the profile's watch history (one entry per title, with `completed`, `plays`, and the last episode for TV shows), most recently watched first.
+
+      Each item includes a `ref` alongside its `id`. Pass the `ref` when the viewer opens or acts on the title.
+
+      **Auth tier:** session — send your session token in `Authorization: Bearer`.
+    operationId: getTitles
+    x-cache-policy: none
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: rating
+        in: query
+        required: false
+        description: Filter by rating (`liked`, `disliked`, or `super_liked`).
+        schema:
+          $ref: "./schemas.yaml#/Rating"
+      - name: watchlist
+        in: query
+        required: false
+        description: Set to `true` to list the profile's watchlist.
+        schema:
+          type: boolean
+      - name: watched
+        in: query
+        required: false
+        description: Set to `true` to list the profile's watch history (one row per title).
+        schema:
+          type: boolean
+      - name: nextPageToken
+        in: query
+        required: false
+        description: Opaque cursor token from the previous page.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of titles to return (1–50, default 10).
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 10
+    responses:
+      "200":
+        description: Paginated list of matching titles.
+        content:
+          application/json:
+            schema:
+              $ref: "./lists/schemas.yaml#/TitleListResponse"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+
+state:
+  get:
+    tags:
+      - Discovr
+      - Profile Lists
+    x-sdk-group: Title State
+    summary: Get the active profile's state for a title
+    description: |
+      Returns everything your UI needs to show the active profile's relationship with a title:
+
+      - **Rating**: `liked`, `disliked`, `super_liked`, or `null`.
+      - **Watchlist**: whether the title is saved to the watchlist.
+      - **Watch progress & completion**: whether the profile has started (`watched`) or finished (`completed`) the title, total `plays`, watched `episodes` and `completedSeasons` for TV shows, and the live `playback` resume position when mid-watch.
+      - **Providers** *(optional)*: pass `providers=true` to include streaming availability filtered to the account's chosen services.
+
+      **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened the title and directly affects the profile's recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Every state write (`setRating`, `clearRating`, `addToWatchlist`, `removeFromWatchlist`, `markWatched`, `markUnwatched`) returns the updated `TitleState`, so you don't need to refetch this endpoint after a change.
+
+      **Auth tier:** session — send your session token in `Authorization: Bearer`.
+    operationId: getTitleState
+    x-cache-policy: none
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: mediaId
+        in: path
+        required: true
+        description: |
+          The title's media ID (`MV_<id>` for movies, `TV_<id>` for TV shows).
+
+          Also accepts an item's `ref` in place of the ID. Prefer the `ref` when you have one — it resolves to the same title and sharpens recommendations.
+        schema:
+          type: string
+        example: "MV_550"
+      - name: providers
+        in: query
+        required: false
+        description: Set to `true` to include streaming provider availability filtered to the account's selected services.
+        schema:
+          type: boolean
+          default: false
+    responses:
+      "200":
+        description: Title state returned successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/TitleState"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../shared/responses.yaml#/NotFound"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+
+seasonState:
+  get:
+    tags:
+      - Discovr
+      - Profile Lists
+    x-sdk-group: Title State
+    summary: Get which episodes of a TV season are watched
+    description: |
+      Returns which episodes of a single TV season the active profile has finished, plus whether the season as a whole is complete.
+
+      A season counts as complete when every aired episode in it is watched. Specials (season `0`) never count toward show completion. Pair this with `getSeasonDetails` for episode titles and artwork, and with `getTitleState` for title-level state and live playback position.
+
+      **Auth tier:** session — send your session token in `Authorization: Bearer`.
+    operationId: getSeasonState
+    x-cache-policy: none
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: mediaId
+        in: path
+        required: true
+        description: |
+          The TV show's media ID (`TV_<id>`), or an item `ref`.
+        schema:
+          type: string
+          pattern: '^(TV)_\d+(@[0-9A-Za-z_-]+)?$'
+        example: "TV_1396"
+      - name: seasonNumber
+        in: path
+        required: true
+        description: The season number (0 for specials, 1+ for regular seasons).
+        schema:
+          type: integer
+          minimum: 0
+        example: 1
+    responses:
+      "200":
+        description: Season completion state returned successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/SeasonState"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../shared/responses.yaml#/NotFound"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+
+rating:
+  put:
+    tags:
+      - Discovr
+      - Profile Lists
+    x-sdk-group: Rating
+    summary: Set a title's rating
+    description: |
+      Sets the active profile's rating for a title to `liked`, `disliked`, or `super_liked`.
+
+      Ratings are mutually exclusive: setting a new rating automatically replaces any previous one. Setting the rating the title already has is a safe no-op.
+
+      Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.
+
+      **Auth tier:** session — send your session token in `Authorization: Bearer`.
+    operationId: setRating
+    x-cache-policy: none
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: mediaId
+        in: path
+        required: true
+        description: |
+          The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
+        schema:
+          type: string
+        example: "MV_550"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas.yaml#/SetRatingPayload"
+          example:
+            value: "liked"
+    responses:
+      "200":
+        description: Rating updated; returns the title's new state.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/TitleState"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+
+  delete:
+    tags:
+      - Discovr
+      - Profile Lists
+    x-sdk-group: Rating
+    summary: Clear a title's rating
+    description: |
+      Clears the active profile's rating for a title. Safe to call if the title has no rating.
+
+      Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.
+
+      **Auth tier:** session — send your session token in `Authorization: Bearer`.
+    operationId: clearRating
+    x-cache-policy: none
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: mediaId
+        in: path
+        required: true
+        description: |
+          The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
+        schema:
+          type: string
+        example: "MV_550"
+    responses:
+      "200":
+        description: Rating cleared; returns the title's new state.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/TitleState"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+
+watchlist:
+  put:
+    tags:
+      - Discovr
+      - Profile Lists
+    x-sdk-group: Watchlist
+    summary: Add a title to the watchlist
+    description: |
+      Adds a title to the active profile's watchlist. Safe to call if it is already on the watchlist.
+
+      Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.
+
+      **Auth tier:** session — send your session token in `Authorization: Bearer`.
+    operationId: addToWatchlist
+    x-cache-policy: none
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: mediaId
+        in: path
+        required: true
+        description: |
+          The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
+        schema:
+          type: string
+        example: "MV_550"
+    responses:
+      "200":
+        description: Added to watchlist; returns the title's new state.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/TitleState"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+
+  delete:
+    tags:
+      - Discovr
+      - Profile Lists
+    x-sdk-group: Watchlist
+    summary: Remove a title from the watchlist
+    description: |
+      Removes a title from the active profile's watchlist. Safe to call if it is not on the watchlist.
+
+      Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.
+
+      **Auth tier:** session — send your session token in `Authorization: Bearer`.
+    operationId: removeFromWatchlist
+    x-cache-policy: none
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: mediaId
+        in: path
+        required: true
+        description: |
+          The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
+        schema:
+          type: string
+        example: "MV_550"
+    responses:
+      "200":
+        description: Removed from watchlist; returns the title's new state.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/TitleState"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+
+watched:
+  put:
+    tags:
+      - Discovr
+      - Scrobble
+    summary: Mark a title, season, or episode as watched
+    description: |
+      Marks a movie, an entire TV show, a season, or a single episode as watched in one atomic call.
+
+      For TV shows, `season` and `episode` pick the scope:
+
+      - Omit both to mark **every aired episode** across all regular seasons (season 1 and up) as watched. Specials (season `0`) are excluded.
+      - Pass `season` to mark every aired episode of **that season**.
+      - Pass `season` and `episode` to mark **that episode**.
+
+      Any in-progress Continue Watching position within the marked scope is cleared automatically. Returns the title's updated `TitleState`, so you don't need to refetch `getTitleState`.
+
+      **Auth tier:** session — send your session token in `Authorization: Bearer`.
+    operationId: markWatched
+    x-cache-policy: none
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: mediaId
+        in: path
+        required: true
+        description: |
+          The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
+        schema:
+          type: string
+        example: "TV_1396"
+      - name: season
+        in: query
+        required: false
+        description: "TV only. Season number. Omit to mark every aired season of the show."
+        schema:
+          type: integer
+          minimum: 1
+        example: 1
+      - name: episode
+        in: query
+        required: false
+        description: "TV only, and only together with `season`. Episode number. Omit to mark the whole season."
+        schema:
+          type: integer
+          minimum: 1
+        example: 5
+    responses:
+      "200":
+        description: Marked as watched; returns the title's new state.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/TitleState"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../shared/responses.yaml#/NotFound"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"
+
+  delete:
+    tags:
+      - Discovr
+      - Scrobble
+    summary: Mark a title, season, or episode as unwatched
+    description: |
+      Takes a movie, a TV show, a season, or an episode back to unwatched in one atomic call.
+
+      It removes the watched state for that scope and clears any in-progress Continue Watching position inside it. Calling it for a title that isn't watched changes nothing and still succeeds, so it's safe to retry.
+
+      For TV shows, `season` and `episode` choose how much to undo:
+
+      - Omit both to undo **the whole show**, every season.
+      - Pass `season` to undo **that season**.
+      - Pass `season` and `episode` to undo **that episode**.
+
+      Returns the title's updated `TitleState`, so you don't need to refetch `getTitleState`.
+
+      **Auth tier:** session — send your session token in `Authorization: Bearer`.
+    operationId: markUnwatched
+    x-cache-policy: none
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: mediaId
+        in: path
+        required: true
+        description: |
+          The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
+        schema:
+          type: string
+        example: "TV_1396"
+      - name: season
+        in: query
+        required: false
+        description: "TV only. Season number. Omit to undo every season of the show."
+        schema:
+          type: integer
+          minimum: 1
+        example: 1
+      - name: episode
+        in: query
+        required: false
+        description: "TV only, and only together with `season`. Episode number. Omit to undo the whole season."
+        schema:
+          type: integer
+          minimum: 1
+        example: 5
+    responses:
+      "200":
+        description: Marked as unwatched; returns the title's new state.
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas.yaml#/TitleState"
+      "400":
+        $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "429":
+        $ref: "../shared/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../shared/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../shared/responses.yaml#/ServiceUnavailable"

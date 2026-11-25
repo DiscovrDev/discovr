@@ -4,30 +4,16 @@ All URIs are relative to *https://api.discovr.media*
 
 | Method | HTTP request | Description |
 | ------------- | ------------- | ------------- |
-| [**addDislikedItem**](DiscovrApi.md#addDislikedItem) | **POST** /profile/disliked | Add an item to disliked list |
-| [**addHistoryItem**](DiscovrApi.md#addHistoryItem) | **POST** /profile/history | Add an item to history list |
-| [**addLikedItem**](DiscovrApi.md#addLikedItem) | **POST** /profile/liked | Add an item to liked list |
-| [**addPlaybackItem**](DiscovrApi.md#addPlaybackItem) | **POST** /profile/playback | Add an item to playback list |
-| [**addSuperLikedItem**](DiscovrApi.md#addSuperLikedItem) | **POST** /profile/super_liked | Add an item to the super-liked list |
-| [**addWatchlistItem**](DiscovrApi.md#addWatchlistItem) | **POST** /profile/watchlist | Add an item to watchlist |
+| [**addToWatchlist**](DiscovrApi.md#addToWatchlist) | **PUT** /profile/titles/{mediaId}/watchlist | Add a title to the watchlist |
 | [**authorizeClientWeb**](DiscovrApi.md#authorizeClientWeb) | **GET** /auth/web/authorize | Redirect to web authentication |
+| [**clearRating**](DiscovrApi.md#clearRating) | **DELETE** /profile/titles/{mediaId}/rating | Clear a title&#39;s rating |
 | [**createPage**](DiscovrApi.md#createPage) | **POST** /pages | Create a recommendation page |
 | [**createProfile**](DiscovrApi.md#createProfile) | **POST** /profiles | Create a profile |
-| [**deleteDislikedItem**](DiscovrApi.md#deleteDislikedItem) | **DELETE** /profile/disliked/{mediaId} | Delete an item from disliked list |
-| [**deleteHistoryItem**](DiscovrApi.md#deleteHistoryItem) | **DELETE** /profile/history/{mediaId} | Delete an item from history list |
-| [**deleteLikedItem**](DiscovrApi.md#deleteLikedItem) | **DELETE** /profile/liked/{mediaId} | Delete an item from liked list |
-| [**deletePlaybackItem**](DiscovrApi.md#deletePlaybackItem) | **DELETE** /profile/playback/{mediaId} | Delete an item from playback list |
+| [**deletePlaybackItem**](DiscovrApi.md#deletePlaybackItem) | **DELETE** /profile/playback/{mediaId} | Remove a title from Continue Watching |
 | [**deleteProfile**](DiscovrApi.md#deleteProfile) | **DELETE** /profiles/{profileId} | Delete a profile |
-| [**deleteSuperLikedItem**](DiscovrApi.md#deleteSuperLikedItem) | **DELETE** /profile/super_liked/{mediaId} | Delete an item from the super-liked list |
-| [**deleteWatchlistItem**](DiscovrApi.md#deleteWatchlistItem) | **DELETE** /profile/watchlist/{mediaId} | Delete an item from watchlist |
 | [**exchangeWebAuthCode**](DiscovrApi.md#exchangeWebAuthCode) | **POST** /auth/web/token | Redeem a web sign-in code |
-| [**getDislikedItems**](DiscovrApi.md#getDislikedItems) | **GET** /profile/disliked | Get disliked items |
-| [**getHistoryItems**](DiscovrApi.md#getHistoryItems) | **GET** /profile/history | Get history items |
-| [**getHistoryItemsByMediaId**](DiscovrApi.md#getHistoryItemsByMediaId) | **GET** /profile/history/{mediaId} | Get history items for a specific media |
-| [**getLikedItems**](DiscovrApi.md#getLikedItems) | **GET** /profile/liked | Get liked items |
 | [**getMedia**](DiscovrApi.md#getMedia) | **GET** /media/{mediaId} | Get media details |
 | [**getMediaAssets**](DiscovrApi.md#getMediaAssets) | **GET** /media/{mediaId}/assets | Get media assets |
-| [**getMediaProfileMeta**](DiscovrApi.md#getMediaProfileMeta) | **GET** /media/{mediaId}/profile_meta | Get profile interaction data for a title |
 | [**getPage**](DiscovrApi.md#getPage) | **GET** /pages/{pageId} | Get a page |
 | [**getPlaybackItems**](DiscovrApi.md#getPlaybackItems) | **GET** /profile/playback | Get playback items |
 | [**getProfile**](DiscovrApi.md#getProfile) | **GET** /profiles/{profileId} | Get a profile |
@@ -37,84 +23,33 @@ All URIs are relative to *https://api.discovr.media*
 | [**getRowItems**](DiscovrApi.md#getRowItems) | **GET** /pages/{pageId}/rows/{rowId}/items | List row items |
 | [**getRows**](DiscovrApi.md#getRows) | **GET** /pages/{pageId}/rows | List rows |
 | [**getSeasonDetails**](DiscovrApi.md#getSeasonDetails) | **GET** /media/{mediaId}/seasons/{seasonNumber} | Get TV season details |
-| [**getSeasonProfileMeta**](DiscovrApi.md#getSeasonProfileMeta) | **GET** /media/{mediaId}/seasons/{seasonNumber}/meta | Get which episodes of a TV season are finished |
+| [**getSeasonState**](DiscovrApi.md#getSeasonState) | **GET** /profile/titles/{mediaId}/seasons/{seasonNumber} | Get which episodes of a TV season are watched |
 | [**getSimilarRecommendations**](DiscovrApi.md#getSimilarRecommendations) | **GET** /media/{mediaId}/similar | Get similar titles |
-| [**getSuperLikedItems**](DiscovrApi.md#getSuperLikedItems) | **GET** /profile/super_liked | Get super-liked items |
-| [**getWatchlistItems**](DiscovrApi.md#getWatchlistItems) | **GET** /profile/watchlist | Get watchlist items |
-| [**markUnwatched**](DiscovrApi.md#markUnwatched) | **DELETE** /profile/watched/{mediaId} | Mark a title as unwatched |
+| [**getTitleState**](DiscovrApi.md#getTitleState) | **GET** /profile/titles/{mediaId} | Get the active profile&#39;s state for a title |
+| [**getTitles**](DiscovrApi.md#getTitles) | **GET** /profile/titles | List titles by rating, watchlist, or watch history |
+| [**importHistory**](DiscovrApi.md#importHistory) | **POST** /profile/history | Import a watch history entry |
+| [**markUnwatched**](DiscovrApi.md#markUnwatched) | **DELETE** /profile/titles/{mediaId}/watched | Mark a title, season, or episode as unwatched |
+| [**markWatched**](DiscovrApi.md#markWatched) | **PUT** /profile/titles/{mediaId}/watched | Mark a title, season, or episode as watched |
 | [**mintSessionToken**](DiscovrApi.md#mintSessionToken) | **POST** /auth/session-token | Mint a session token |
-| [**patchHistoryItem**](DiscovrApi.md#patchHistoryItem) | **PATCH** /profile/history/{mediaId} | Update or create a history item |
 | [**pollDeviceCode**](DiscovrApi.md#pollDeviceCode) | **POST** /auth/device-codes/{deviceCode}/poll | Poll for auth token |
+| [**removeFromWatchlist**](DiscovrApi.md#removeFromWatchlist) | **DELETE** /profile/titles/{mediaId}/watchlist | Remove a title from the watchlist |
 | [**requestDeviceCode**](DiscovrApi.md#requestDeviceCode) | **POST** /auth/device-codes | Request device code |
 | [**scrobble**](DiscovrApi.md#scrobble) | **POST** /profile/scrobble/{mediaId} | Record playback progress |
-| [**scrobbleSkip**](DiscovrApi.md#scrobbleSkip) | **POST** /profile/scrobble/{mediaId}/skip | Record a skip event |
 | [**searchGifs**](DiscovrApi.md#searchGifs) | **GET** /gif-search | Search GIFs |
 | [**searchMedia**](DiscovrApi.md#searchMedia) | **GET** /search | Search media |
+| [**setRating**](DiscovrApi.md#setRating) | **PUT** /profile/titles/{mediaId}/rating | Set a title&#39;s rating |
 | [**signOutSession**](DiscovrApi.md#signOutSession) | **DELETE** /auth/session | Sign out the current device |
 | [**startDemoSession**](DiscovrApi.md#startDemoSession) | **POST** /auth/demo-session | Start a demo session |
-| [**updatePlaybackItem**](DiscovrApi.md#updatePlaybackItem) | **PATCH** /profile/playback | Update playback progress |
 | [**updateProfile**](DiscovrApi.md#updateProfile) | **PATCH** /profiles/{profileId} | Update a profile |
 
 
-<a id="addDislikedItem"></a>
-# **addDislikedItem**
-> SuccessMessage addDislikedItem(addSimpleListItemPayload)
+<a id="addToWatchlist"></a>
+# **addToWatchlist**
+> TitleState addToWatchlist(mediaId)
 
-Add an item to disliked list
+Add a title to the watchlist
 
-Adds a title to the disliked list.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Liked, disliked, and super-liked are exclusive — disliking something automatically removes any existing like or super-like for the same title.  Returns &#x60;201&#x60; if the item was newly added, &#x60;200&#x60; if it was already disliked. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val addSimpleListItemPayload : AddSimpleListItemPayload = {mediaId=MV_550} // AddSimpleListItemPayload | 
-try {
-    val result : SuccessMessage = discovr.addDislikedItem(addSimpleListItemPayload)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#addDislikedItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#addDislikedItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **addSimpleListItemPayload** | [**AddSimpleListItemPayload**](AddSimpleListItemPayload.md)|  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-<a id="addHistoryItem"></a>
-# **addHistoryItem**
-> SuccessMessage addHistoryItem(addHistoryPayload)
-
-Add an item to history list
-
-Records a watch history entry. Unlike other lists, history allows multiple entries for the same title — each completed viewing is tracked separately.  - &#x60;mediaId&#x60;: the title to record. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows. - &#x60;progress&#x60;: how far through the title the user watched, as a percentage (0–100). Optional. - &#x60;updatedAt&#x60;: the ISO 8601 timestamp of when the viewing was recorded. Defaults to now if omitted.  **TV Shows:** Include &#x60;season&#x60; (required for TV shows) and optionally &#x60;episode&#x60; to track per-episode history. Omitting &#x60;episode&#x60; records a season-level entry — clients can use this to mark all episodes in a season as watched in a single call. 
+Adds a title to the active profile&#39;s watchlist. Safe to call if it is already on the watchlist.  Returns the title&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 ```kotlin
@@ -127,15 +62,15 @@ import api.discovr.DiscovrClient
 val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
 // Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
-val addHistoryPayload : AddHistoryPayload = {"mediaId":"TV_1396","updatedAt":"2023-01-15T20:00:00.000Z","progress":100,"season":1,"episode":5} // AddHistoryPayload | 
+val mediaId : kotlin.String = MV_550 // kotlin.String | The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
 try {
-    val result : SuccessMessage = discovr.addHistoryItem(addHistoryPayload)
+    val result : TitleState = discovr.addToWatchlist(mediaId)
     println(result)
 } catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#addHistoryItem")
+    println("4xx response calling DiscovrApi#addToWatchlist")
     e.printStackTrace()
 } catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#addHistoryItem")
+    println("5xx response calling DiscovrApi#addToWatchlist")
     e.printStackTrace()
 }
 ```
@@ -143,11 +78,11 @@ try {
 ### Parameters
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |
-| **addHistoryPayload** | [**AddHistoryPayload**](AddHistoryPayload.md)|  | |
+| **mediaId** | **kotlin.String**| The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | |
 
 ### Return type
 
-[**SuccessMessage**](SuccessMessage.md)
+[**TitleState**](TitleState.md)
 
 ### Authorization
 
@@ -157,215 +92,7 @@ Configure BearerAuth:
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-<a id="addLikedItem"></a>
-# **addLikedItem**
-> SuccessMessage addLikedItem(addSimpleListItemPayload)
-
-Add an item to liked list
-
-Adds a title to the liked list.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Liked, disliked, and super-liked are exclusive — liking something automatically removes any existing dislike or super-like for the same title.  Returns &#x60;201&#x60; if the item was newly added, &#x60;200&#x60; if it was already liked. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val addSimpleListItemPayload : AddSimpleListItemPayload = {"mediaId":"MV_550"} // AddSimpleListItemPayload | 
-try {
-    val result : SuccessMessage = discovr.addLikedItem(addSimpleListItemPayload)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#addLikedItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#addLikedItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **addSimpleListItemPayload** | [**AddSimpleListItemPayload**](AddSimpleListItemPayload.md)|  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-<a id="addPlaybackItem"></a>
-# **addPlaybackItem**
-> SuccessMessage addPlaybackItem(addPlaybackPayload)
-
-Add an item to playback list
-
-Records a new playback position for a title. If the title is already being tracked, returns 409 — use PATCH to update an existing entry.  - &#x60;mediaId&#x60;: the title to track. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;). - &#x60;progress&#x60;: how far through the title the user is, as a percentage (0–100). Optional — omit if you don&#39;t have a position yet. - &#x60;updatedAt&#x60;: the ISO 8601 timestamp of when this progress was recorded. Defaults to now. Send the actual client time so resume positions stay accurate if the user is offline. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val addPlaybackPayload : AddPlaybackPayload = {"mediaId":"MV_550","progress":25,"updatedAt":"2023-01-15T10:30:00.000Z"} // AddPlaybackPayload | 
-try {
-    val result : SuccessMessage = discovr.addPlaybackItem(addPlaybackPayload)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#addPlaybackItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#addPlaybackItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **addPlaybackPayload** | [**AddPlaybackPayload**](AddPlaybackPayload.md)|  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-<a id="addSuperLikedItem"></a>
-# **addSuperLikedItem**
-> SuccessMessage addSuperLikedItem(addSimpleListItemPayload)
-
-Add an item to the super-liked list
-
-Adds a title to the super-liked list.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Super-liking a title says the viewer loves it. Like the liked list, adding a super-like automatically removes any existing dislike or like for the same title.  Returns &#x60;201&#x60; if the item was newly added, &#x60;200&#x60; if it was already super-liked. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val addSimpleListItemPayload : AddSimpleListItemPayload = {mediaId=MV_550} // AddSimpleListItemPayload | 
-try {
-    val result : SuccessMessage = discovr.addSuperLikedItem(addSimpleListItemPayload)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#addSuperLikedItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#addSuperLikedItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **addSimpleListItemPayload** | [**AddSimpleListItemPayload**](AddSimpleListItemPayload.md)|  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-<a id="addWatchlistItem"></a>
-# **addWatchlistItem**
-> SuccessMessage addWatchlistItem(addSimpleListItemPayload)
-
-Add an item to watchlist
-
-Adds a title to the watchlist.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Unlike liked/disliked/super-liked, the watchlist is non-exclusive — you can watchlist something regardless of how it&#39;s rated. Titles are automatically removed from the watchlist when the user starts watching via &#x60;scrobble&#x60;. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val addSimpleListItemPayload : AddSimpleListItemPayload = {mediaId=MV_550} // AddSimpleListItemPayload | 
-try {
-    val result : SuccessMessage = discovr.addWatchlistItem(addSimpleListItemPayload)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#addWatchlistItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#addWatchlistItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **addSimpleListItemPayload** | [**AddSimpleListItemPayload**](AddSimpleListItemPayload.md)|  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 <a id="authorizeClientWeb"></a>
@@ -418,6 +145,58 @@ null (empty response body)
 ### Authorization
 
 No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+<a id="clearRating"></a>
+# **clearRating**
+> TitleState clearRating(mediaId)
+
+Clear a title&#39;s rating
+
+Clears the active profile&#39;s rating for a title. Safe to call if the title has no rating.  Returns the title&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+
+### Example
+```kotlin
+// Import classes:
+//import api.discovr.infrastructure.*
+//import api.discovr.models.*
+import api.discovr.DiscovrClient
+
+// Initialize DiscovrClient (public entry point)
+val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
+// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
+
+val mediaId : kotlin.String = MV_550 // kotlin.String | The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
+try {
+    val result : TitleState = discovr.clearRating(mediaId)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling DiscovrApi#clearRating")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling DiscovrApi#clearRating")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **mediaId** | **kotlin.String**| The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | |
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
 
 ### HTTP request headers
 
@@ -528,173 +307,13 @@ Configure BearerAuth:
  - **Content-Type**: application/json
  - **Accept**: application/json
 
-<a id="deleteDislikedItem"></a>
-# **deleteDislikedItem**
-> SuccessMessage deleteDislikedItem(mediaId)
-
-Delete an item from disliked list
-
-Removes a title from the disliked list. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val mediaId : kotlin.String = MV_550 // kotlin.String | Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-try {
-    val result : SuccessMessage = discovr.deleteDislikedItem(mediaId)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#deleteDislikedItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#deleteDislikedItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **mediaId** | **kotlin.String**| Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-<a id="deleteHistoryItem"></a>
-# **deleteHistoryItem**
-> SuccessMessage deleteHistoryItem(mediaId, season, episode)
-
-Delete an item from history list
-
-Deletes history entries for a title. Because history allows duplicates, this removes all matching entries for the specified media (and episode, if provided).  For TV shows, pass &#x60;season&#x60; as a query parameter (required) and optionally &#x60;episode&#x60;. Include &#x60;episode&#x60; to delete that episode&#39;s entries. Omit it to delete the entries that were recorded for the season as a whole, without an episode (for example, marking a season watched in one go); entries for individual episodes are kept.  To take a title back to unwatched, use [&#x60;DELETE /profile/watched/{mediaId}&#x60;](/api-reference/discovr/mark-unwatched) instead. This call removes history entries and nothing else: it doesn&#39;t touch the in-progress list, and a TV show&#39;s &#x60;completed&#x60; state is brought up to date from whatever history is left. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val mediaId : kotlin.String = TV_1396 // kotlin.String | The media ID of the title to delete. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-val season : kotlin.Int = 1 // kotlin.Int | Season number. Required for TV shows (`TV_` mediaId); ignored for movies.
-val episode : kotlin.Int = 5 // kotlin.Int | Episode number. Optional — omit to delete the season-level entries (those recorded without an episode); include to delete a specific episode's entries only.
-try {
-    val result : SuccessMessage = discovr.deleteHistoryItem(mediaId, season, episode)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#deleteHistoryItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#deleteHistoryItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| **mediaId** | **kotlin.String**| The media ID of the title to delete. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | |
-| **season** | **kotlin.Int**| Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. | [optional] |
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **episode** | **kotlin.Int**| Episode number. Optional — omit to delete the season-level entries (those recorded without an episode); include to delete a specific episode&#39;s entries only. | [optional] |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-<a id="deleteLikedItem"></a>
-# **deleteLikedItem**
-> SuccessMessage deleteLikedItem(mediaId)
-
-Delete an item from liked list
-
-Removes a title from the liked list. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val mediaId : kotlin.String = MV_550 // kotlin.String | Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-try {
-    val result : SuccessMessage = discovr.deleteLikedItem(mediaId)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#deleteLikedItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#deleteLikedItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **mediaId** | **kotlin.String**| Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
 <a id="deletePlaybackItem"></a>
 # **deletePlaybackItem**
 > SuccessMessage deletePlaybackItem(mediaId)
 
-Delete an item from playback list
+Remove a title from Continue Watching
 
-Removes a title from the in-progress list. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;). 
+Removes a title from the in-progress Continue Watching list without changing its watched history. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;). 
 
 ### Example
 ```kotlin
@@ -792,110 +411,6 @@ Configure BearerAuth:
  - **Content-Type**: Not defined
  - **Accept**: application/json
 
-<a id="deleteSuperLikedItem"></a>
-# **deleteSuperLikedItem**
-> SuccessMessage deleteSuperLikedItem(mediaId)
-
-Delete an item from the super-liked list
-
-Removes a title from the super-liked list. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val mediaId : kotlin.String = MV_550 // kotlin.String | Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-try {
-    val result : SuccessMessage = discovr.deleteSuperLikedItem(mediaId)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#deleteSuperLikedItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#deleteSuperLikedItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **mediaId** | **kotlin.String**| Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-<a id="deleteWatchlistItem"></a>
-# **deleteWatchlistItem**
-> SuccessMessage deleteWatchlistItem(mediaId)
-
-Delete an item from watchlist
-
-Removes a title from the watchlist. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val mediaId : kotlin.String = MV_550 // kotlin.String | Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-try {
-    val result : SuccessMessage = discovr.deleteWatchlistItem(mediaId)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#deleteWatchlistItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#deleteWatchlistItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **mediaId** | **kotlin.String**| Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
 <a id="exchangeWebAuthCode"></a>
 # **exchangeWebAuthCode**
 > RefreshTokenResponse exchangeWebAuthCode(webTokenPayload)
@@ -941,228 +456,6 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: application/json
-
-<a id="getDislikedItems"></a>
-# **getDislikedItems**
-> SimpleListResponse getDislikedItems(nextPageToken, limit)
-
-Get disliked items
-
-Returns the disliked list for a specific profile.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Items are ordered newest-first and support cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val nextPageToken : kotlin.String = nextPageToken_example // kotlin.String | Opaque token from previous page for pagination
-val limit : kotlin.Int = 56 // kotlin.Int | Maximum number of items to return (1-50, default: 10)
-try {
-    val result : SimpleListResponse = discovr.getDislikedItems(nextPageToken, limit)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#getDislikedItems")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#getDislikedItems")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| **nextPageToken** | **kotlin.String**| Opaque token from previous page for pagination | [optional] |
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **limit** | **kotlin.Int**| Maximum number of items to return (1-50, default: 10) | [optional] [default to 10] |
-
-### Return type
-
-[**SimpleListResponse**](SimpleListResponse.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-<a id="getHistoryItems"></a>
-# **getHistoryItems**
-> HistoryListResponse getHistoryItems(nextPageToken, limit)
-
-Get history items
-
-Returns the profile&#39;s full watch history, newest entries first.  History allows multiple entries for the same title — every completed viewing is tracked separately, so you may see the same &#x60;mediaId&#x60; more than once.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val nextPageToken : kotlin.String = nextPageToken_example // kotlin.String | Opaque token from previous page for pagination
-val limit : kotlin.Int = 56 // kotlin.Int | Maximum number of items to return (1-50, default: 10)
-try {
-    val result : HistoryListResponse = discovr.getHistoryItems(nextPageToken, limit)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#getHistoryItems")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#getHistoryItems")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| **nextPageToken** | **kotlin.String**| Opaque token from previous page for pagination | [optional] |
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **limit** | **kotlin.Int**| Maximum number of items to return (1-50, default: 10) | [optional] [default to 10] |
-
-### Return type
-
-[**HistoryListResponse**](HistoryListResponse.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-<a id="getHistoryItemsByMediaId"></a>
-# **getHistoryItemsByMediaId**
-> HistoryListResponse getHistoryItemsByMediaId(mediaId, season, episode, nextPageToken, limit)
-
-Get history items for a specific media
-
-Returns history entries for a specific title. Newest entries first.  For TV shows, pass &#x60;season&#x60; as a query parameter (required) and optionally &#x60;episode&#x60; to filter by episode. Omitting &#x60;episode&#x60; returns all entries for the whole season.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val mediaId : kotlin.String = TV_1396 // kotlin.String | The media ID of the title. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-val season : kotlin.Int = 1 // kotlin.Int | Season number. Required for TV shows (`TV_` mediaId); ignored for movies.
-val episode : kotlin.Int = 5 // kotlin.Int | Episode number. Optional — omit to return all entries for the season; include to filter to a specific episode.
-val nextPageToken : kotlin.String = nextPageToken_example // kotlin.String | Opaque token from previous page for pagination
-val limit : kotlin.Int = 56 // kotlin.Int | Maximum number of items to return (1-50, default: 10)
-try {
-    val result : HistoryListResponse = discovr.getHistoryItemsByMediaId(mediaId, season, episode, nextPageToken, limit)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#getHistoryItemsByMediaId")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#getHistoryItemsByMediaId")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| **mediaId** | **kotlin.String**| The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | |
-| **season** | **kotlin.Int**| Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. | [optional] |
-| **episode** | **kotlin.Int**| Episode number. Optional — omit to return all entries for the season; include to filter to a specific episode. | [optional] |
-| **nextPageToken** | **kotlin.String**| Opaque token from previous page for pagination | [optional] |
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **limit** | **kotlin.Int**| Maximum number of items to return (1-50, default: 10) | [optional] [default to 10] |
-
-### Return type
-
-[**HistoryListResponse**](HistoryListResponse.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-<a id="getLikedItems"></a>
-# **getLikedItems**
-> SimpleListResponse getLikedItems(nextPageToken, limit)
-
-Get liked items
-
-Returns the liked list for a specific profile.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Items are ordered newest-first and support cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val nextPageToken : kotlin.String = nextPageToken_example // kotlin.String | Opaque token from previous page for pagination
-val limit : kotlin.Int = 56 // kotlin.Int | Maximum number of items to return (1-50, default: 10)
-try {
-    val result : SimpleListResponse = discovr.getLikedItems(nextPageToken, limit)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#getLikedItems")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#getLikedItems")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| **nextPageToken** | **kotlin.String**| Opaque token from previous page for pagination | [optional] |
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **limit** | **kotlin.Int**| Maximum number of items to return (1-50, default: 10) | [optional] [default to 10] |
-
-### Return type
-
-[**SimpleListResponse**](SimpleListResponse.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
  - **Accept**: application/json
 
 <a id="getMedia"></a>
@@ -1269,60 +562,6 @@ Configure BearerAuth:
  - **Content-Type**: Not defined
  - **Accept**: application/json
 
-<a id="getMediaProfileMeta"></a>
-# **getMediaProfileMeta**
-> MediaProfileMeta getMediaProfileMeta(mediaId, providers)
-
-Get profile interaction data for a title
-
-Returns the current profile&#39;s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (&#x60;true&#x60;/&#x60;false&#x60; for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile&#39;s selected region. Pass &#x60;providers&#x3D;true&#x60; to include this. - **Completion**: whether the profile has finished this title (&#x60;completed&#x60;), and for TV shows, which season numbers are fully watched (&#x60;completedSeasons&#x60;).  **This call directly affects the profile&#39;s recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn&#39;t open registers similarly to liking those titles and will skew their recommendations. Pass the item&#39;s &#x60;ref&#x60; when you have one.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val mediaId : kotlin.String = mediaId_example // kotlin.String | The unique identifier of the media item. Use `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-val providers : kotlin.Boolean = true // kotlin.Boolean | Set to `true` to include streaming provider availability in the response.
-try {
-    val result : MediaProfileMeta = discovr.getMediaProfileMeta(mediaId, providers)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#getMediaProfileMeta")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#getMediaProfileMeta")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| **mediaId** | **kotlin.String**| The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | |
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **providers** | **kotlin.Boolean**| Set to &#x60;true&#x60; to include streaming provider availability in the response. | [optional] [default to false] |
-
-### Return type
-
-[**MediaProfileMeta**](MediaProfileMeta.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
 <a id="getPage"></a>
 # **getPage**
 > Page getPage(pageId)
@@ -1381,7 +620,7 @@ Configure BearerAuth:
 
 Get playback items
 
-Returns the profile&#39;s in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \&quot;Continue Watching\&quot; row.  Each item includes a &#x60;progress&#x60; field (0–100) showing how far through the title the user is.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
+Returns the profile&#39;s in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \&quot;Continue Watching\&quot; row.  Each item includes a &#x60;progress&#x60; field (0–100) showing how far through the title the user is. To update progress as a viewer watches, call &#x60;POST /profile/scrobble/{mediaId}&#x60;.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
 
 ### Example
 ```kotlin
@@ -1803,13 +1042,13 @@ Configure BearerAuth:
  - **Content-Type**: Not defined
  - **Accept**: application/json
 
-<a id="getSeasonProfileMeta"></a>
-# **getSeasonProfileMeta**
-> SeasonProfileMeta getSeasonProfileMeta(mediaId, seasonNumber)
+<a id="getSeasonState"></a>
+# **getSeasonState**
+> SeasonState getSeasonState(mediaId, seasonNumber)
 
-Get which episodes of a TV season are finished
+Get which episodes of a TV season are watched
 
-Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.  Pair this with &#x60;getSeasonDetails&#x60; for episode titles and artwork, and with &#x60;getMediaProfileMeta&#x60; for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn&#39;t tracked, so it won&#39;t show a progress bar. The profile&#39;s place in the episode it is watching now is &#x60;playback&#x60; on &#x60;getMediaProfileMeta&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+Returns which episodes of a single TV season the active profile has finished, plus whether the season as a whole is complete.  A season counts as complete when every aired episode in it is watched. Specials (season &#x60;0&#x60;) never count toward show completion. Pair this with &#x60;getSeasonDetails&#x60; for episode titles and artwork, and with &#x60;getTitleState&#x60; for title-level state and live playback position.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 ```kotlin
@@ -1822,29 +1061,29 @@ import api.discovr.DiscovrClient
 val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
 // Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
-val mediaId : kotlin.String = mediaId_example // kotlin.String | The unique identifier of the TV show (e.g., `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-val seasonNumber : kotlin.Int = 1 // kotlin.Int | The season number.
+val mediaId : kotlin.String = TV_1396 // kotlin.String | The TV show's media ID (`TV_<id>`), or an item `ref`. 
+val seasonNumber : kotlin.Int = 1 // kotlin.Int | The season number (0 for specials, 1+ for regular seasons).
 try {
-    val result : SeasonProfileMeta = discovr.getSeasonProfileMeta(mediaId, seasonNumber)
+    val result : SeasonState = discovr.getSeasonState(mediaId, seasonNumber)
     println(result)
 } catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#getSeasonProfileMeta")
+    println("4xx response calling DiscovrApi#getSeasonState")
     e.printStackTrace()
 } catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#getSeasonProfileMeta")
+    println("5xx response calling DiscovrApi#getSeasonState")
     e.printStackTrace()
 }
 ```
 
 ### Parameters
-| **mediaId** | **kotlin.String**| The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | |
+| **mediaId** | **kotlin.String**| The TV show&#39;s media ID (&#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |
-| **seasonNumber** | **kotlin.Int**| The season number. | |
+| **seasonNumber** | **kotlin.Int**| The season number (0 for specials, 1+ for regular seasons). | |
 
 ### Return type
 
-[**SeasonProfileMeta**](SeasonProfileMeta.md)
+[**SeasonState**](SeasonState.md)
 
 ### Authorization
 
@@ -1913,13 +1152,13 @@ Configure BearerAuth:
  - **Content-Type**: Not defined
  - **Accept**: application/json
 
-<a id="getSuperLikedItems"></a>
-# **getSuperLikedItems**
-> SimpleListResponse getSuperLikedItems(nextPageToken, limit)
+<a id="getTitleState"></a>
+# **getTitleState**
+> TitleState getTitleState(mediaId, providers)
 
-Get super-liked items
+Get the active profile&#39;s state for a title
 
-Returns the super-liked list for a specific profile.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Items are ordered newest-first and support cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. Super-liked titles are the ones the viewer loves most. 
+Returns everything your UI needs to show the active profile&#39;s relationship with a title:  - **Rating**: &#x60;liked&#x60;, &#x60;disliked&#x60;, &#x60;super_liked&#x60;, or &#x60;null&#x60;. - **Watchlist**: whether the title is saved to the watchlist. - **Watch progress &amp; completion**: whether the profile has started (&#x60;watched&#x60;) or finished (&#x60;completed&#x60;) the title, total &#x60;plays&#x60;, watched &#x60;episodes&#x60; and &#x60;completedSeasons&#x60; for TV shows, and the live &#x60;playback&#x60; resume position when mid-watch. - **Providers** *(optional)*: pass &#x60;providers&#x3D;true&#x60; to include streaming availability filtered to the account&#39;s chosen services.  **Title opens &amp; recommendations.** Calling &#x60;GET /profile/titles/{mediaId}&#x60; records that the viewer opened the title and directly affects the profile&#39;s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Every state write (&#x60;setRating&#x60;, &#x60;clearRating&#x60;, &#x60;addToWatchlist&#x60;, &#x60;removeFromWatchlist&#x60;, &#x60;markWatched&#x60;, &#x60;markUnwatched&#x60;) returns the updated &#x60;TitleState&#x60;, so you don&#39;t need to refetch this endpoint after a change.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 ```kotlin
@@ -1932,29 +1171,29 @@ import api.discovr.DiscovrClient
 val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
 // Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
-val nextPageToken : kotlin.String = nextPageToken_example // kotlin.String | Opaque token from previous page for pagination
-val limit : kotlin.Int = 56 // kotlin.Int | Maximum number of items to return (1-50, default: 10)
+val mediaId : kotlin.String = MV_550 // kotlin.String | The title's media ID (`MV_<id>` for movies, `TV_<id>` for TV shows).  Also accepts an item's `ref` in place of the ID. Prefer the `ref` when you have one — it resolves to the same title and sharpens recommendations. 
+val providers : kotlin.Boolean = true // kotlin.Boolean | Set to `true` to include streaming provider availability filtered to the account's selected services.
 try {
-    val result : SimpleListResponse = discovr.getSuperLikedItems(nextPageToken, limit)
+    val result : TitleState = discovr.getTitleState(mediaId, providers)
     println(result)
 } catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#getSuperLikedItems")
+    println("4xx response calling DiscovrApi#getTitleState")
     e.printStackTrace()
 } catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#getSuperLikedItems")
+    println("5xx response calling DiscovrApi#getTitleState")
     e.printStackTrace()
 }
 ```
 
 ### Parameters
-| **nextPageToken** | **kotlin.String**| Opaque token from previous page for pagination | [optional] |
+| **mediaId** | **kotlin.String**| The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; for movies, &#x60;TV_&lt;id&gt;&#x60; for TV shows).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the ID. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens recommendations.  | |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |
-| **limit** | **kotlin.Int**| Maximum number of items to return (1-50, default: 10) | [optional] [default to 10] |
+| **providers** | **kotlin.Boolean**| Set to &#x60;true&#x60; to include streaming provider availability filtered to the account&#39;s selected services. | [optional] [default to false] |
 
 ### Return type
 
-[**SimpleListResponse**](SimpleListResponse.md)
+[**TitleState**](TitleState.md)
 
 ### Authorization
 
@@ -1967,13 +1206,13 @@ Configure BearerAuth:
  - **Content-Type**: Not defined
  - **Accept**: application/json
 
-<a id="getWatchlistItems"></a>
-# **getWatchlistItems**
-> SimpleListResponse getWatchlistItems(nextPageToken, limit)
+<a id="getTitles"></a>
+# **getTitles**
+> TitleListResponse getTitles(rating, watchlist, watched, nextPageToken, limit)
 
-Get watchlist items
+List titles by rating, watchlist, or watch history
 
-Returns the profile&#39;s watchlist — titles saved to watch later.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Ordered by when they were added (newest first). Supports cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available. 
+Returns a paginated list of titles for the active profile, ordered most recent first.  Pass **exactly one** filter query parameter:  - &#x60;rating&#x3D;liked&#x60;, &#x60;rating&#x3D;disliked&#x60;, or &#x60;rating&#x3D;super_liked&#x60; — titles with that rating, newest rated first. - &#x60;watchlist&#x3D;true&#x60; — the profile&#39;s watchlist, newest added first. - &#x60;watched&#x3D;true&#x60; — the profile&#39;s watch history (one entry per title, with &#x60;completed&#x60;, &#x60;plays&#x60;, and the last episode for TV shows), most recently watched first.  Each item includes a &#x60;ref&#x60; alongside its &#x60;id&#x60;. Pass the &#x60;ref&#x60; when the viewer opens or acts on the title.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 ```kotlin
@@ -1986,29 +1225,35 @@ import api.discovr.DiscovrClient
 val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
 // Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
-val nextPageToken : kotlin.String = nextPageToken_example // kotlin.String | Opaque token from previous page for pagination
-val limit : kotlin.Int = 56 // kotlin.Int | Maximum number of items to return (1-50, default: 10)
+val rating : Rating =  // Rating | Filter by rating (`liked`, `disliked`, or `super_liked`).
+val watchlist : kotlin.Boolean = true // kotlin.Boolean | Set to `true` to list the profile's watchlist.
+val watched : kotlin.Boolean = true // kotlin.Boolean | Set to `true` to list the profile's watch history (one row per title).
+val nextPageToken : kotlin.String = nextPageToken_example // kotlin.String | Opaque cursor token from the previous page.
+val limit : kotlin.Int = 56 // kotlin.Int | Maximum number of titles to return (1–50, default 10).
 try {
-    val result : SimpleListResponse = discovr.getWatchlistItems(nextPageToken, limit)
+    val result : TitleListResponse = discovr.getTitles(rating, watchlist, watched, nextPageToken, limit)
     println(result)
 } catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#getWatchlistItems")
+    println("4xx response calling DiscovrApi#getTitles")
     e.printStackTrace()
 } catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#getWatchlistItems")
+    println("5xx response calling DiscovrApi#getTitles")
     e.printStackTrace()
 }
 ```
 
 ### Parameters
-| **nextPageToken** | **kotlin.String**| Opaque token from previous page for pagination | [optional] |
+| **rating** | [**Rating**](.md)| Filter by rating (&#x60;liked&#x60;, &#x60;disliked&#x60;, or &#x60;super_liked&#x60;). | [optional] [enum: liked, disliked, super_liked] |
+| **watchlist** | **kotlin.Boolean**| Set to &#x60;true&#x60; to list the profile&#39;s watchlist. | [optional] |
+| **watched** | **kotlin.Boolean**| Set to &#x60;true&#x60; to list the profile&#39;s watch history (one row per title). | [optional] |
+| **nextPageToken** | **kotlin.String**| Opaque cursor token from the previous page. | [optional] |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |
-| **limit** | **kotlin.Int**| Maximum number of items to return (1-50, default: 10) | [optional] [default to 10] |
+| **limit** | **kotlin.Int**| Maximum number of titles to return (1–50, default 10). | [optional] [default to 10] |
 
 ### Return type
 
-[**SimpleListResponse**](SimpleListResponse.md)
+[**TitleListResponse**](TitleListResponse.md)
 
 ### Authorization
 
@@ -2019,15 +1264,67 @@ Configure BearerAuth:
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+<a id="importHistory"></a>
+# **importHistory**
+> TitleState importHistory(importHistoryPayload)
+
+Import a watch history entry
+
+Imports a previously watched movie, show, season, or episode from an external source.  - &#x60;mediaId&#x60;: the title to import (&#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows). - &#x60;imported&#x60;: required string naming the external source (for example &#x60;\&quot;trakt\&quot;&#x60;). - &#x60;updatedAt&#x60;: optional ISO 8601 timestamp of when it was watched. Defaults to now. - &#x60;season&#x60; / &#x60;episode&#x60;: optional TV scope. Omit both to import all aired episodes of the show; pass &#x60;season&#x60; to import that season; pass both to import a single episode.  For live viewing use &#x60;scrobble()&#x60;, and for interactive \&quot;Mark as watched\&quot; buttons use &#x60;markWatched()&#x60;. To read watch history, use &#x60;GET /profile/titles?watched&#x3D;true&#x60;.  Returns the title&#39;s updated &#x60;TitleState&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+
+### Example
+```kotlin
+// Import classes:
+//import api.discovr.infrastructure.*
+//import api.discovr.models.*
+import api.discovr.DiscovrClient
+
+// Initialize DiscovrClient (public entry point)
+val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
+// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
+
+val importHistoryPayload : ImportHistoryPayload = {"mediaId":"TV_1396","imported":"trakt","updatedAt":"2023-01-15T20:00:00.000Z","season":1,"episode":5} // ImportHistoryPayload | 
+try {
+    val result : TitleState = discovr.importHistory(importHistoryPayload)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling DiscovrApi#importHistory")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling DiscovrApi#importHistory")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **importHistoryPayload** | [**ImportHistoryPayload**](ImportHistoryPayload.md)|  | |
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 <a id="markUnwatched"></a>
 # **markUnwatched**
-> SuccessMessage markUnwatched(mediaId, season, episode)
+> TitleState markUnwatched(mediaId, season, episode)
 
-Mark a title as unwatched
+Mark a title, season, or episode as unwatched
 
-Takes a movie, a TV show, a season, or an episode back to unwatched, in one call.  It removes the history that made it watched, takes it out of the user&#39;s **in-progress** list if that is where it was, and brings a TV show&#39;s &#x60;completed&#x60; state back in line. Use it for a \&quot;Mark as unwatched\&quot; button.  For TV shows, &#x60;season&#x60; and &#x60;episode&#x60; choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass &#x60;season&#x60; to undo **that season**: its episodes, and any entry that counted the whole season as watched. - Pass &#x60;season&#x60; and &#x60;episode&#x60; to undo **that episode**.  Calling it for a title that isn&#39;t watched changes nothing and still succeeds, so it is safe to retry.  This is not the same as [&#x60;DELETE /profile/history/{mediaId}&#x60;](/api-reference/discovr/delete-history-item), which removes history entries and nothing else. Marking something unwatched with that call and &#x60;DELETE /profile/playback/{mediaId}&#x60; leaves a TV show&#39;s &#x60;completed&#x60; out of date unless they run in a particular order; this endpoint does the right thing whichever way you reach it.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+Takes a movie, a TV show, a season, or an episode back to unwatched in one atomic call.  It removes the watched state for that scope and clears any in-progress Continue Watching position inside it. Calling it for a title that isn&#39;t watched changes nothing and still succeeds, so it&#39;s safe to retry.  For TV shows, &#x60;season&#x60; and &#x60;episode&#x60; choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass &#x60;season&#x60; to undo **that season**. - Pass &#x60;season&#x60; and &#x60;episode&#x60; to undo **that episode**.  Returns the title&#39;s updated &#x60;TitleState&#x60;, so you don&#39;t need to refetch &#x60;getTitleState&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 ```kotlin
@@ -2040,11 +1337,11 @@ import api.discovr.DiscovrClient
 val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
 // Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
-val mediaId : kotlin.String = TV_1396 // kotlin.String | The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. 
+val mediaId : kotlin.String = TV_1396 // kotlin.String | The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
 val season : kotlin.Int = 1 // kotlin.Int | TV only. Season number. Omit to undo every season of the show.
 val episode : kotlin.Int = 5 // kotlin.Int | TV only, and only together with `season`. Episode number. Omit to undo the whole season.
 try {
-    val result : SuccessMessage = discovr.markUnwatched(mediaId, season, episode)
+    val result : TitleState = discovr.markUnwatched(mediaId, season, episode)
     println(result)
 } catch (e: ClientException) {
     println("4xx response calling DiscovrApi#markUnwatched")
@@ -2056,7 +1353,7 @@ try {
 ```
 
 ### Parameters
-| **mediaId** | **kotlin.String**| The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id.  | |
+| **mediaId** | **kotlin.String**| The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | |
 | **season** | **kotlin.Int**| TV only. Season number. Omit to undo every season of the show. | [optional] |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |
@@ -2064,7 +1361,63 @@ try {
 
 ### Return type
 
-[**SuccessMessage**](SuccessMessage.md)
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+<a id="markWatched"></a>
+# **markWatched**
+> TitleState markWatched(mediaId, season, episode)
+
+Mark a title, season, or episode as watched
+
+Marks a movie, an entire TV show, a season, or a single episode as watched in one atomic call.  For TV shows, &#x60;season&#x60; and &#x60;episode&#x60; pick the scope:  - Omit both to mark **every aired episode** across all regular seasons (season 1 and up) as watched. Specials (season &#x60;0&#x60;) are excluded. - Pass &#x60;season&#x60; to mark every aired episode of **that season**. - Pass &#x60;season&#x60; and &#x60;episode&#x60; to mark **that episode**.  Any in-progress Continue Watching position within the marked scope is cleared automatically. Returns the title&#39;s updated &#x60;TitleState&#x60;, so you don&#39;t need to refetch &#x60;getTitleState&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+
+### Example
+```kotlin
+// Import classes:
+//import api.discovr.infrastructure.*
+//import api.discovr.models.*
+import api.discovr.DiscovrClient
+
+// Initialize DiscovrClient (public entry point)
+val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
+// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
+
+val mediaId : kotlin.String = TV_1396 // kotlin.String | The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
+val season : kotlin.Int = 1 // kotlin.Int | TV only. Season number. Omit to mark every aired season of the show.
+val episode : kotlin.Int = 5 // kotlin.Int | TV only, and only together with `season`. Episode number. Omit to mark the whole season.
+try {
+    val result : TitleState = discovr.markWatched(mediaId, season, episode)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling DiscovrApi#markWatched")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling DiscovrApi#markWatched")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| **mediaId** | **kotlin.String**| The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | |
+| **season** | **kotlin.Int**| TV only. Season number. Omit to mark every aired season of the show. | [optional] |
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **episode** | **kotlin.Int**| TV only, and only together with &#x60;season&#x60;. Episode number. Omit to mark the whole season. | [optional] |
+
+### Return type
+
+[**TitleState**](TitleState.md)
 
 ### Authorization
 
@@ -2129,64 +1482,6 @@ Configure BearerAuth:
  - **Content-Type**: application/json
  - **Accept**: application/json
 
-<a id="patchHistoryItem"></a>
-# **patchHistoryItem**
-> SuccessMessage patchHistoryItem(mediaId, patchHistoryPayload, season, episode)
-
-Update or create a history item
-
-Updates the history entry for a title. If no entry exists, creates one (upsert). This ensures only one entry exists per &#x60;mediaId&#x60; + &#x60;season&#x60; + &#x60;episode&#x60; combination.  For TV shows, &#x60;season&#x60; is required as a query parameter. Include &#x60;episode&#x60; to target a specific episode; omit it to update the season-level entry.  - &#x60;progress&#x60;: how far through the title the user watched, as a percentage (0–100). 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val mediaId : kotlin.String = TV_1396 // kotlin.String | The media ID of the title. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-val patchHistoryPayload : PatchHistoryPayload = {"progress":0} // PatchHistoryPayload | 
-val season : kotlin.Int = 1 // kotlin.Int | Season number. Required for TV shows (`TV_` mediaId); ignored for movies.
-val episode : kotlin.Int = 5 // kotlin.Int | Episode number. Optional — omit to update the season-level entry; include to target a specific episode.
-try {
-    val result : SuccessMessage = discovr.patchHistoryItem(mediaId, patchHistoryPayload, season, episode)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#patchHistoryItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#patchHistoryItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| **mediaId** | **kotlin.String**| The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | |
-| **patchHistoryPayload** | [**PatchHistoryPayload**](PatchHistoryPayload.md)|  | |
-| **season** | **kotlin.Int**| Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. | [optional] |
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **episode** | **kotlin.Int**| Episode number. Optional — omit to update the season-level entry; include to target a specific episode. | [optional] |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
 <a id="pollDeviceCode"></a>
 # **pollDeviceCode**
 > DeviceCodePollResponse pollDeviceCode(deviceCode, devicePollPayload)
@@ -2234,6 +1529,58 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+<a id="removeFromWatchlist"></a>
+# **removeFromWatchlist**
+> TitleState removeFromWatchlist(mediaId)
+
+Remove a title from the watchlist
+
+Removes a title from the active profile&#39;s watchlist. Safe to call if it is not on the watchlist.  Returns the title&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+
+### Example
+```kotlin
+// Import classes:
+//import api.discovr.infrastructure.*
+//import api.discovr.models.*
+import api.discovr.DiscovrClient
+
+// Initialize DiscovrClient (public entry point)
+val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
+// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
+
+val mediaId : kotlin.String = MV_550 // kotlin.String | The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
+try {
+    val result : TitleState = discovr.removeFromWatchlist(mediaId)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling DiscovrApi#removeFromWatchlist")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling DiscovrApi#removeFromWatchlist")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **mediaId** | **kotlin.String**| The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | |
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 <a id="requestDeviceCode"></a>
@@ -2293,7 +1640,7 @@ No authorization required
 
 Record playback progress
 
-Scrobbling is Discovr&#39;s single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don&#39;t need to coordinate multiple endpoints.  Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:  - The item stays in the user&#39;s **in-progress** list until they finish watching. - Once they&#39;ve watched 80% or more, it&#39;s marked as complete and moves to their **history**. - For movies, the item is removed from the user&#39;s watchlist once they&#39;ve watched more than 20% — so it clears as soon as they&#39;re clearly watching it. For TV episodes, it&#39;s removed from the watchlist once the episode is complete (≥80%).  For TV shows, include &#x60;season&#x60; and &#x60;episode&#x60; in the request body so history is tracked per episode.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+Scrobbling is Discovr&#39;s single-call way to track playback. One call updates live resume progress, watch history, completion, and the watchlist.  Send the viewer&#39;s real position when playback starts (not &#x60;0&#x60; when resuming), about every 30 seconds while watching, and right away on pause, resume, seek, and completion. Discovr handles the rest:  - The title stays in Continue Watching until the movie or episode crosses 80%. - Once progress reaches 20% or more, the title is automatically removed from the watchlist — for both movies and TV shows. - Once progress reaches 80% or more, the movie or episode is marked watched and leaves Continue Watching. Lower progress later (such as a rewind) moves the live position without undoing completion — use &#x60;markUnwatched&#x60; to undo a watch. - For TV shows, include &#x60;season&#x60; and &#x60;episode&#x60; in &#x60;tv&#x60;. When an episode crosses 80%, the response includes &#x60;completedSeasons&#x60; listing every season now fully watched.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 ```kotlin
@@ -2329,60 +1676,6 @@ try {
 ### Return type
 
 [**ScrobbleResponse**](ScrobbleResponse.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-<a id="scrobbleSkip"></a>
-# **scrobbleSkip**
-> ScrobbleSkipResponse scrobbleSkip(mediaId, scrobbleSkipBody)
-
-Record a skip event
-
-Signals that the user jumped to another point in the content, forward (a skip) or backward (a rewind). Used for watch analytics. Returns immediately — no side effects on lists or history.  &#x60;from&#x60; and &#x60;to&#x60; are playback positions as a percentage (0–100) and must differ; &#x60;from&#x60; higher than &#x60;to&#x60; is a jump backward. &#x60;duration&#x60; is how many seconds were jumped. After a jump, also send the position the viewer landed on as a progress update with &#x60;POST /profile/scrobble/{mediaId}&#x60;. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val mediaId : kotlin.String = TV_1396 // kotlin.String | The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-val scrobbleSkipBody : ScrobbleSkipBody = {"from":10,"to":20,"duration":45,"tv":{"season":1,"episode":4}} // ScrobbleSkipBody | 
-try {
-    val result : ScrobbleSkipResponse = discovr.scrobbleSkip(mediaId, scrobbleSkipBody)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#scrobbleSkip")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#scrobbleSkip")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| **mediaId** | **kotlin.String**| The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  | |
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **scrobbleSkipBody** | [**ScrobbleSkipBody**](ScrobbleSkipBody.md)|  | |
-
-### Return type
-
-[**ScrobbleSkipResponse**](ScrobbleSkipResponse.md)
 
 ### Authorization
 
@@ -2508,6 +1801,60 @@ Configure BearerAuth:
  - **Content-Type**: Not defined
  - **Accept**: application/json
 
+<a id="setRating"></a>
+# **setRating**
+> TitleState setRating(mediaId, setRatingPayload)
+
+Set a title&#39;s rating
+
+Sets the active profile&#39;s rating for a title to &#x60;liked&#x60;, &#x60;disliked&#x60;, or &#x60;super_liked&#x60;.  Ratings are mutually exclusive: setting a new rating automatically replaces any previous one. Setting the rating the title already has is a safe no-op.  Returns the title&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+
+### Example
+```kotlin
+// Import classes:
+//import api.discovr.infrastructure.*
+//import api.discovr.models.*
+import api.discovr.DiscovrClient
+
+// Initialize DiscovrClient (public entry point)
+val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
+// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
+
+val mediaId : kotlin.String = MV_550 // kotlin.String | The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`. 
+val setRatingPayload : SetRatingPayload = {"value":"liked"} // SetRatingPayload | 
+try {
+    val result : TitleState = discovr.setRating(mediaId, setRatingPayload)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling DiscovrApi#setRating")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling DiscovrApi#setRating")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| **mediaId** | **kotlin.String**| The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | |
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **setRatingPayload** | [**SetRatingPayload**](SetRatingPayload.md)|  | |
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
 <a id="signOutSession"></a>
 # **signOutSession**
 > SignOutResponse signOutSession()
@@ -2598,58 +1945,6 @@ try {
 ### Authorization
 
 No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-<a id="updatePlaybackItem"></a>
-# **updatePlaybackItem**
-> SuccessMessage updatePlaybackItem(editPlaybackPayload)
-
-Update playback progress
-
-Updates the playback position for an existing entry. Same fields as the add endpoint. If no entry exists for the &#x60;mediaId&#x60;, one is created. 
-
-### Example
-```kotlin
-// Import classes:
-//import api.discovr.infrastructure.*
-//import api.discovr.models.*
-import api.discovr.DiscovrClient
-
-// Initialize DiscovrClient (public entry point)
-val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
-// Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
-
-val editPlaybackPayload : EditPlaybackPayload = {"mediaId":"MV_550","progress":75,"updatedAt":"2023-01-20T14:00:00.000Z"} // EditPlaybackPayload | 
-try {
-    val result : SuccessMessage = discovr.updatePlaybackItem(editPlaybackPayload)
-    println(result)
-} catch (e: ClientException) {
-    println("4xx response calling DiscovrApi#updatePlaybackItem")
-    e.printStackTrace()
-} catch (e: ServerException) {
-    println("5xx response calling DiscovrApi#updatePlaybackItem")
-    e.printStackTrace()
-}
-```
-
-### Parameters
-| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |
-| **editPlaybackPayload** | [**EditPlaybackPayload**](EditPlaybackPayload.md)|  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-
-Configure BearerAuth:
-    ApiClient.accessToken = ""
 
 ### HTTP request headers
 

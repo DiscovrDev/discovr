@@ -1,12 +1,14 @@
 import api.discovr.DiscovrClient
-import api.discovr.models.EpisodeRef
 
 private suspend fun sample(client: DiscovrClient, mediaId: String) {
     // docs:start
-    // A movie.
-    client.scrobble(mediaId, 100.0)
+    // A movie, or every aired episode of a show.
+    val state = client.markWatched(mediaId)
 
-    // One episode of a show.
-    client.scrobble(mediaId, 100.0, tv = EpisodeRef(season = 2, episode = 5))
+    // One season of a show.
+    client.markWatched(mediaId, season = 2)
+
+    // One episode.
+    client.markWatched(mediaId, season = 2, episode = 5)
     // docs:end
 }

@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 **mediaType** | **String** | Whether this is a movie or TV show. | 
 **movie** | [**MediaResponseMovie**](MediaResponseMovie.md) |  | [optional] 
 **tv** | [**MediaResponseTv**](MediaResponseTv.md) |  | [optional] 
-**watchProviders** | [ProviderInfo] | Full list of where this title is available, not filtered to any profile&#39;s preferences. Use &#x60;profile_meta&#x60; with &#x60;providers&#x3D;true&#x60; for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.  | [optional] 
+**watchProviders** | [ProviderInfo] | Full list of where this title is available, not filtered to any profile&#39;s preferences. Use &#x60;GET /profile/titles/{mediaId}&#x60; with &#x60;providers&#x3D;true&#x60; for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.  | [optional] 
 **credits** | [**MediaCredits**](MediaCredits.md) |  | [optional] 
 **externalIds** | [**MediaExternalIds**](MediaExternalIds.md) |  | [optional] 
 

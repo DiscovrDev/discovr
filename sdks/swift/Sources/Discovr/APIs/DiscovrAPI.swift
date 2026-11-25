@@ -10,249 +10,47 @@ import Foundation
 open class DiscovrAPI {
 
     /**
-     Add an item to disliked list
+     Add a title to the watchlist
      
-     - parameter addSimpleListItemPayload: (body)  
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
+     - returns: TitleState
      */
     @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func addDislikedItem(addSimpleListItemPayload: AddSimpleListItemPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await addDislikedItemWithRequestBuilder(addSimpleListItemPayload: addSimpleListItemPayload, apiConfiguration: apiConfiguration).execute().body
+    open class func addToWatchlist(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> TitleState {
+        return try await addToWatchlistWithRequestBuilder(mediaId: mediaId, apiConfiguration: apiConfiguration).execute().body
     }
 
     /**
-     Add an item to disliked list
-     - POST /profile/disliked
-     - Adds a title to the disliked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Liked, disliked, and super-liked are exclusive — disliking something automatically removes any existing like or super-like for the same title.  Returns `201` if the item was newly added, `200` if it was already disliked. 
+     Add a title to the watchlist
+     - PUT /profile/titles/{mediaId}/watchlist
+     - Adds a title to the active profile's watchlist. Safe to call if it is already on the watchlist.  Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter addSimpleListItemPayload: (body)  
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
+     - returns: RequestBuilder<TitleState> 
      */
-    open class func addDislikedItemWithRequestBuilder(addSimpleListItemPayload: AddSimpleListItemPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        let localVariablePath = "/profile/disliked"
+    open class func addToWatchlistWithRequestBuilder(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<TitleState> {
+        var localVariablePath = "/profile/titles/{mediaId}/watchlist"
+        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
+        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
         let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: addSimpleListItemPayload, codableHelper: apiConfiguration.codableHelper)
+        let localVariableParameters: [String: any Sendable]? = nil
 
         let localVariableUrlComponents = URLComponents(string: localVariableURLString)
 
         let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            "Content-Type": "application/json",
+            :
         ]
 
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+        let localVariableRequestBuilder: RequestBuilder<TitleState>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Add an item to history list
-     
-     - parameter addHistoryPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func addHistoryItem(addHistoryPayload: AddHistoryPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await addHistoryItemWithRequestBuilder(addHistoryPayload: addHistoryPayload, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Add an item to history list
-     - POST /profile/history
-     - Records a watch history entry. Unlike other lists, history allows multiple entries for the same title — each completed viewing is tracked separately.  - `mediaId`: the title to record. Use `MV_<number>` for movies, `TV_<number>` for TV shows. - `progress`: how far through the title the user watched, as a percentage (0–100). Optional. - `updatedAt`: the ISO 8601 timestamp of when the viewing was recorded. Defaults to now if omitted.  **TV Shows:** Include `season` (required for TV shows) and optionally `episode` to track per-episode history. Omitting `episode` records a season-level entry — clients can use this to mark all episodes in a season as watched in a single call. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter addHistoryPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func addHistoryItemWithRequestBuilder(addHistoryPayload: AddHistoryPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        let localVariablePath = "/profile/history"
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: addHistoryPayload, codableHelper: apiConfiguration.codableHelper)
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            "Content-Type": "application/json",
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Add an item to liked list
-     
-     - parameter addSimpleListItemPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func addLikedItem(addSimpleListItemPayload: AddSimpleListItemPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await addLikedItemWithRequestBuilder(addSimpleListItemPayload: addSimpleListItemPayload, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Add an item to liked list
-     - POST /profile/liked
-     - Adds a title to the liked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Liked, disliked, and super-liked are exclusive — liking something automatically removes any existing dislike or super-like for the same title.  Returns `201` if the item was newly added, `200` if it was already liked. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter addSimpleListItemPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func addLikedItemWithRequestBuilder(addSimpleListItemPayload: AddSimpleListItemPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        let localVariablePath = "/profile/liked"
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: addSimpleListItemPayload, codableHelper: apiConfiguration.codableHelper)
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            "Content-Type": "application/json",
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Add an item to playback list
-     
-     - parameter addPlaybackPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func addPlaybackItem(addPlaybackPayload: AddPlaybackPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await addPlaybackItemWithRequestBuilder(addPlaybackPayload: addPlaybackPayload, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Add an item to playback list
-     - POST /profile/playback
-     - Records a new playback position for a title. If the title is already being tracked, returns 409 — use PATCH to update an existing entry.  - `mediaId`: the title to track. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). - `progress`: how far through the title the user is, as a percentage (0–100). Optional — omit if you don't have a position yet. - `updatedAt`: the ISO 8601 timestamp of when this progress was recorded. Defaults to now. Send the actual client time so resume positions stay accurate if the user is offline. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter addPlaybackPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func addPlaybackItemWithRequestBuilder(addPlaybackPayload: AddPlaybackPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        let localVariablePath = "/profile/playback"
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: addPlaybackPayload, codableHelper: apiConfiguration.codableHelper)
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            "Content-Type": "application/json",
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Add an item to the super-liked list
-     
-     - parameter addSimpleListItemPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func addSuperLikedItem(addSimpleListItemPayload: AddSimpleListItemPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await addSuperLikedItemWithRequestBuilder(addSimpleListItemPayload: addSimpleListItemPayload, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Add an item to the super-liked list
-     - POST /profile/super_liked
-     - Adds a title to the super-liked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Super-liking a title says the viewer loves it. Like the liked list, adding a super-like automatically removes any existing dislike or like for the same title.  Returns `201` if the item was newly added, `200` if it was already super-liked. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter addSimpleListItemPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func addSuperLikedItemWithRequestBuilder(addSimpleListItemPayload: AddSimpleListItemPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        let localVariablePath = "/profile/super_liked"
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: addSimpleListItemPayload, codableHelper: apiConfiguration.codableHelper)
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            "Content-Type": "application/json",
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Add an item to watchlist
-     
-     - parameter addSimpleListItemPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func addWatchlistItem(addSimpleListItemPayload: AddSimpleListItemPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await addWatchlistItemWithRequestBuilder(addSimpleListItemPayload: addSimpleListItemPayload, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Add an item to watchlist
-     - POST /profile/watchlist
-     - Adds a title to the watchlist.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Unlike liked/disliked/super-liked, the watchlist is non-exclusive — you can watchlist something regardless of how it's rated. Titles are automatically removed from the watchlist when the user starts watching via `scrobble`. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter addSimpleListItemPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func addWatchlistItemWithRequestBuilder(addSimpleListItemPayload: AddSimpleListItemPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        let localVariablePath = "/profile/watchlist"
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: addSimpleListItemPayload, codableHelper: apiConfiguration.codableHelper)
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            "Content-Type": "application/json",
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -325,6 +123,50 @@ open class DiscovrAPI {
         let localVariableRequestBuilder: RequestBuilder<Void>.Type = apiConfiguration.requestBuilderFactory.getNonDecodableBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     Clear a title's rating
+     
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: TitleState
+     */
+    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+    open class func clearRating(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> TitleState {
+        return try await clearRatingWithRequestBuilder(mediaId: mediaId, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Clear a title's rating
+     - DELETE /profile/titles/{mediaId}/rating
+     - Clears the active profile's rating for a title. Safe to call if the title has no rating.  Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<TitleState> 
+     */
+    open class func clearRatingWithRequestBuilder(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<TitleState> {
+        var localVariablePath = "/profile/titles/{mediaId}/rating"
+        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
+        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<TitleState>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -410,147 +252,7 @@ open class DiscovrAPI {
     }
 
     /**
-     Delete an item from disliked list
-     
-     - parameter mediaId: (path) Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func deleteDislikedItem(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await deleteDislikedItemWithRequestBuilder(mediaId: mediaId, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Delete an item from disliked list
-     - DELETE /profile/disliked/{mediaId}
-     - Removes a title from the disliked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func deleteDislikedItemWithRequestBuilder(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        var localVariablePath = "/profile/disliked/{mediaId}"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Delete an item from history list
-     
-     - parameter mediaId: (path) The media ID of the title to delete. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter season: (query) Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. (optional)
-     - parameter episode: (query) Episode number. Optional — omit to delete the season-level entries (those recorded without an episode); include to delete a specific episode&#39;s entries only. (optional)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func deleteHistoryItem(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await deleteHistoryItemWithRequestBuilder(mediaId: mediaId, season: season, episode: episode, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Delete an item from history list
-     - DELETE /profile/history/{mediaId}
-     - Deletes history entries for a title. Because history allows duplicates, this removes all matching entries for the specified media (and episode, if provided).  For TV shows, pass `season` as a query parameter (required) and optionally `episode`. Include `episode` to delete that episode's entries. Omit it to delete the entries that were recorded for the season as a whole, without an episode (for example, marking a season watched in one go); entries for individual episodes are kept.  To take a title back to unwatched, use [`DELETE /profile/watched/{mediaId}`](/api-reference/discovr/mark-unwatched) instead. This call removes history entries and nothing else: it doesn't touch the in-progress list, and a TV show's `completed` state is brought up to date from whatever history is left. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) The media ID of the title to delete. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter season: (query) Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. (optional)
-     - parameter episode: (query) Episode number. Optional — omit to delete the season-level entries (those recorded without an episode); include to delete a specific episode&#39;s entries only. (optional)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func deleteHistoryItemWithRequestBuilder(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        var localVariablePath = "/profile/history/{mediaId}"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
-        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
-            "season": (wrappedValue: season?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-            "episode": (wrappedValue: episode?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-        ])
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Delete an item from liked list
-     
-     - parameter mediaId: (path) Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func deleteLikedItem(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await deleteLikedItemWithRequestBuilder(mediaId: mediaId, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Delete an item from liked list
-     - DELETE /profile/liked/{mediaId}
-     - Removes a title from the liked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func deleteLikedItemWithRequestBuilder(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        var localVariablePath = "/profile/liked/{mediaId}"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Delete an item from playback list
+     Remove a title from Continue Watching
      
      - parameter mediaId: (path) The media ID of the title to remove. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
      - parameter apiConfiguration: The configuration for the http request.
@@ -562,9 +264,9 @@ open class DiscovrAPI {
     }
 
     /**
-     Delete an item from playback list
+     Remove a title from Continue Watching
      - DELETE /profile/playback/{mediaId}
-     - Removes a title from the in-progress list. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). 
+     - Removes a title from the in-progress Continue Watching list without changing its watched history. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). 
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -638,94 +340,6 @@ open class DiscovrAPI {
     }
 
     /**
-     Delete an item from the super-liked list
-     
-     - parameter mediaId: (path) Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func deleteSuperLikedItem(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await deleteSuperLikedItemWithRequestBuilder(mediaId: mediaId, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Delete an item from the super-liked list
-     - DELETE /profile/super_liked/{mediaId}
-     - Removes a title from the super-liked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func deleteSuperLikedItemWithRequestBuilder(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        var localVariablePath = "/profile/super_liked/{mediaId}"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Delete an item from watchlist
-     
-     - parameter mediaId: (path) Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func deleteWatchlistItem(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await deleteWatchlistItemWithRequestBuilder(mediaId: mediaId, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Delete an item from watchlist
-     - DELETE /profile/watchlist/{mediaId}
-     - Removes a title from the watchlist. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func deleteWatchlistItemWithRequestBuilder(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        var localVariablePath = "/profile/watchlist/{mediaId}"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
      Redeem a web sign-in code
      
      - parameter webTokenPayload: (body)  
@@ -761,205 +375,6 @@ open class DiscovrAPI {
         let localVariableRequestBuilder: RequestBuilder<RefreshTokenResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Get disliked items
-     
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SimpleListResponse
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func getDislikedItems(nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SimpleListResponse {
-        return try await getDislikedItemsWithRequestBuilder(nextPageToken: nextPageToken, limit: limit, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Get disliked items
-     - GET /profile/disliked
-     - Returns the disliked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SimpleListResponse> 
-     */
-    open class func getDislikedItemsWithRequestBuilder(nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SimpleListResponse> {
-        let localVariablePath = "/profile/disliked"
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
-        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
-            "nextPageToken": (wrappedValue: nextPageToken?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-            "limit": (wrappedValue: limit?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-        ])
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SimpleListResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Get history items
-     
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: HistoryListResponse
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func getHistoryItems(nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> HistoryListResponse {
-        return try await getHistoryItemsWithRequestBuilder(nextPageToken: nextPageToken, limit: limit, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Get history items
-     - GET /profile/history
-     - Returns the profile's full watch history, newest entries first.  History allows multiple entries for the same title — every completed viewing is tracked separately, so you may see the same `mediaId` more than once.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<HistoryListResponse> 
-     */
-    open class func getHistoryItemsWithRequestBuilder(nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<HistoryListResponse> {
-        let localVariablePath = "/profile/history"
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
-        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
-            "nextPageToken": (wrappedValue: nextPageToken?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-            "limit": (wrappedValue: limit?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-        ])
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<HistoryListResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Get history items for a specific media
-     
-     - parameter mediaId: (path) The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter season: (query) Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. (optional)
-     - parameter episode: (query) Episode number. Optional — omit to return all entries for the season; include to filter to a specific episode. (optional)
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: HistoryListResponse
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func getHistoryItemsByMediaId(mediaId: String, season: Int? = nil, episode: Int? = nil, nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> HistoryListResponse {
-        return try await getHistoryItemsByMediaIdWithRequestBuilder(mediaId: mediaId, season: season, episode: episode, nextPageToken: nextPageToken, limit: limit, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Get history items for a specific media
-     - GET /profile/history/{mediaId}
-     - Returns history entries for a specific title. Newest entries first.  For TV shows, pass `season` as a query parameter (required) and optionally `episode` to filter by episode. Omitting `episode` returns all entries for the whole season.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter season: (query) Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. (optional)
-     - parameter episode: (query) Episode number. Optional — omit to return all entries for the season; include to filter to a specific episode. (optional)
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<HistoryListResponse> 
-     */
-    open class func getHistoryItemsByMediaIdWithRequestBuilder(mediaId: String, season: Int? = nil, episode: Int? = nil, nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<HistoryListResponse> {
-        var localVariablePath = "/profile/history/{mediaId}"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
-        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
-            "season": (wrappedValue: season?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-            "episode": (wrappedValue: episode?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-            "nextPageToken": (wrappedValue: nextPageToken?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-            "limit": (wrappedValue: limit?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-        ])
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<HistoryListResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Get liked items
-     
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SimpleListResponse
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func getLikedItems(nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SimpleListResponse {
-        return try await getLikedItemsWithRequestBuilder(nextPageToken: nextPageToken, limit: limit, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Get liked items
-     - GET /profile/liked
-     - Returns the liked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SimpleListResponse> 
-     */
-    open class func getLikedItemsWithRequestBuilder(nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SimpleListResponse> {
-        let localVariablePath = "/profile/liked"
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
-        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
-            "nextPageToken": (wrappedValue: nextPageToken?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-            "limit": (wrappedValue: limit?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-        ])
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SimpleListResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -1051,55 +466,6 @@ open class DiscovrAPI {
     }
 
     /**
-     Get profile interaction data for a title
-     
-     - parameter mediaId: (path) The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter providers: (query) Set to &#x60;true&#x60; to include streaming provider availability in the response. (optional, default to false)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: MediaProfileMeta
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func getMediaProfileMeta(mediaId: String, providers: Bool? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> MediaProfileMeta {
-        return try await getMediaProfileMetaWithRequestBuilder(mediaId: mediaId, providers: providers, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Get profile interaction data for a title
-     - GET /media/{mediaId}/profile_meta
-     - Returns the current profile's interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile's selected region. Pass `providers=true` to include this. - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).  **This call directly affects the profile's recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn't open registers similarly to liking those titles and will skew their recommendations. Pass the item's `ref` when you have one.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter providers: (query) Set to &#x60;true&#x60; to include streaming provider availability in the response. (optional, default to false)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<MediaProfileMeta> 
-     */
-    open class func getMediaProfileMetaWithRequestBuilder(mediaId: String, providers: Bool? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<MediaProfileMeta> {
-        var localVariablePath = "/media/{mediaId}/profile_meta"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
-
-        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
-        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
-            "providers": (wrappedValue: providers?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-        ])
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<MediaProfileMeta>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
      Get a page
      
      - parameter pageId: (path) The page to retrieve. Accepts either a page id or the &#x60;ref&#x60; from the navigation or provider tile you&#39;re opening — both resolve to the same page.  
@@ -1159,7 +525,7 @@ open class DiscovrAPI {
     /**
      Get playback items
      - GET /profile/playback
-     - Returns the profile's in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \"Continue Watching\" row.  Each item includes a `progress` field (0–100) showing how far through the title the user is.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
+     - Returns the profile's in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \"Continue Watching\" row.  Each item includes a `progress` field (0–100) showing how far through the title the user is. To update progress as a viewer watches, call `POST /profile/scrobble/{mediaId}`.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -1530,32 +896,32 @@ open class DiscovrAPI {
     }
 
     /**
-     Get which episodes of a TV season are finished
+     Get which episodes of a TV season are watched
      
-     - parameter mediaId: (path) The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter seasonNumber: (path) The season number. 
+     - parameter mediaId: (path) The TV show&#39;s media ID (&#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter seasonNumber: (path) The season number (0 for specials, 1+ for regular seasons). 
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: SeasonProfileMeta
+     - returns: SeasonState
      */
     @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func getSeasonProfileMeta(mediaId: String, seasonNumber: Int, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SeasonProfileMeta {
-        return try await getSeasonProfileMetaWithRequestBuilder(mediaId: mediaId, seasonNumber: seasonNumber, apiConfiguration: apiConfiguration).execute().body
+    open class func getSeasonState(mediaId: String, seasonNumber: Int, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SeasonState {
+        return try await getSeasonStateWithRequestBuilder(mediaId: mediaId, seasonNumber: seasonNumber, apiConfiguration: apiConfiguration).execute().body
     }
 
     /**
-     Get which episodes of a TV season are finished
-     - GET /media/{mediaId}/seasons/{seasonNumber}/meta
-     - Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.  Pair this with `getSeasonDetails` for episode titles and artwork, and with `getMediaProfileMeta` for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn't tracked, so it won't show a progress bar. The profile's place in the episode it is watching now is `playback` on `getMediaProfileMeta`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     Get which episodes of a TV season are watched
+     - GET /profile/titles/{mediaId}/seasons/{seasonNumber}
+     - Returns which episodes of a single TV season the active profile has finished, plus whether the season as a whole is complete.  A season counts as complete when every aired episode in it is watched. Specials (season `0`) never count toward show completion. Pair this with `getSeasonDetails` for episode titles and artwork, and with `getTitleState` for title-level state and live playback position.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter mediaId: (path) The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter seasonNumber: (path) The season number. 
+     - parameter mediaId: (path) The TV show&#39;s media ID (&#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter seasonNumber: (path) The season number (0 for specials, 1+ for regular seasons). 
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SeasonProfileMeta> 
+     - returns: RequestBuilder<SeasonState> 
      */
-    open class func getSeasonProfileMetaWithRequestBuilder(mediaId: String, seasonNumber: Int, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SeasonProfileMeta> {
-        var localVariablePath = "/media/{mediaId}/seasons/{seasonNumber}/meta"
+    open class func getSeasonStateWithRequestBuilder(mediaId: String, seasonNumber: Int, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SeasonState> {
+        var localVariablePath = "/profile/titles/{mediaId}/seasons/{seasonNumber}"
         let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
         let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
@@ -1573,7 +939,7 @@ open class DiscovrAPI {
 
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
-        let localVariableRequestBuilder: RequestBuilder<SeasonProfileMeta>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+        let localVariableRequestBuilder: RequestBuilder<SeasonState>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
@@ -1631,37 +997,95 @@ open class DiscovrAPI {
     }
 
     /**
-     Get super-liked items
+     Get the active profile's state for a title
      
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; for movies, &#x60;TV_&lt;id&gt;&#x60; for TV shows).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the ID. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens recommendations.  
+     - parameter providers: (query) Set to &#x60;true&#x60; to include streaming provider availability filtered to the account&#39;s selected services. (optional, default to false)
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: SimpleListResponse
+     - returns: TitleState
      */
     @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func getSuperLikedItems(nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SimpleListResponse {
-        return try await getSuperLikedItemsWithRequestBuilder(nextPageToken: nextPageToken, limit: limit, apiConfiguration: apiConfiguration).execute().body
+    open class func getTitleState(mediaId: String, providers: Bool? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> TitleState {
+        return try await getTitleStateWithRequestBuilder(mediaId: mediaId, providers: providers, apiConfiguration: apiConfiguration).execute().body
     }
 
     /**
-     Get super-liked items
-     - GET /profile/super_liked
-     - Returns the super-liked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. Super-liked titles are the ones the viewer loves most. 
+     Get the active profile's state for a title
+     - GET /profile/titles/{mediaId}
+     - Returns everything your UI needs to show the active profile's relationship with a title:  - **Rating**: `liked`, `disliked`, `super_liked`, or `null`. - **Watchlist**: whether the title is saved to the watchlist. - **Watch progress & completion**: whether the profile has started (`watched`) or finished (`completed`) the title, total `plays`, watched `episodes` and `completedSeasons` for TV shows, and the live `playback` resume position when mid-watch. - **Providers** *(optional)*: pass `providers=true` to include streaming availability filtered to the account's chosen services.  **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened the title and directly affects the profile's recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Every state write (`setRating`, `clearRating`, `addToWatchlist`, `removeFromWatchlist`, `markWatched`, `markUnwatched`) returns the updated `TitleState`, so you don't need to refetch this endpoint after a change.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; for movies, &#x60;TV_&lt;id&gt;&#x60; for TV shows).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the ID. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens recommendations.  
+     - parameter providers: (query) Set to &#x60;true&#x60; to include streaming provider availability filtered to the account&#39;s selected services. (optional, default to false)
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SimpleListResponse> 
+     - returns: RequestBuilder<TitleState> 
      */
-    open class func getSuperLikedItemsWithRequestBuilder(nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SimpleListResponse> {
-        let localVariablePath = "/profile/super_liked"
+    open class func getTitleStateWithRequestBuilder(mediaId: String, providers: Bool? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<TitleState> {
+        var localVariablePath = "/profile/titles/{mediaId}"
+        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
+        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
         let localVariableURLString = apiConfiguration.basePath + localVariablePath
         let localVariableParameters: [String: any Sendable]? = nil
 
         var localVariableUrlComponents = URLComponents(string: localVariableURLString)
         localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "providers": (wrappedValue: providers?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<TitleState>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     List titles by rating, watchlist, or watch history
+     
+     - parameter rating: (query) Filter by rating (&#x60;liked&#x60;, &#x60;disliked&#x60;, or &#x60;super_liked&#x60;). (optional)
+     - parameter watchlist: (query) Set to &#x60;true&#x60; to list the profile&#39;s watchlist. (optional)
+     - parameter watched: (query) Set to &#x60;true&#x60; to list the profile&#39;s watch history (one row per title). (optional)
+     - parameter nextPageToken: (query) Opaque cursor token from the previous page. (optional)
+     - parameter limit: (query) Maximum number of titles to return (1–50, default 10). (optional, default to 10)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: TitleListResponse
+     */
+    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+    open class func getTitles(rating: Rating? = nil, watchlist: Bool? = nil, watched: Bool? = nil, nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> TitleListResponse {
+        return try await getTitlesWithRequestBuilder(rating: rating, watchlist: watchlist, watched: watched, nextPageToken: nextPageToken, limit: limit, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     List titles by rating, watchlist, or watch history
+     - GET /profile/titles
+     - Returns a paginated list of titles for the active profile, ordered most recent first.  Pass **exactly one** filter query parameter:  - `rating=liked`, `rating=disliked`, or `rating=super_liked` — titles with that rating, newest rated first. - `watchlist=true` — the profile's watchlist, newest added first. - `watched=true` — the profile's watch history (one entry per title, with `completed`, `plays`, and the last episode for TV shows), most recently watched first.  Each item includes a `ref` alongside its `id`. Pass the `ref` when the viewer opens or acts on the title.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - parameter rating: (query) Filter by rating (&#x60;liked&#x60;, &#x60;disliked&#x60;, or &#x60;super_liked&#x60;). (optional)
+     - parameter watchlist: (query) Set to &#x60;true&#x60; to list the profile&#39;s watchlist. (optional)
+     - parameter watched: (query) Set to &#x60;true&#x60; to list the profile&#39;s watch history (one row per title). (optional)
+     - parameter nextPageToken: (query) Opaque cursor token from the previous page. (optional)
+     - parameter limit: (query) Maximum number of titles to return (1–50, default 10). (optional, default to 10)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<TitleListResponse> 
+     */
+    open class func getTitlesWithRequestBuilder(rating: Rating? = nil, watchlist: Bool? = nil, watched: Bool? = nil, nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<TitleListResponse> {
+        let localVariablePath = "/profile/titles"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "rating": (wrappedValue: rating?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "watchlist": (wrappedValue: watchlist?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "watched": (wrappedValue: watched?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
             "nextPageToken": (wrappedValue: nextPageToken?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
             "limit": (wrappedValue: limit?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
         ])
@@ -1672,87 +1096,81 @@ open class DiscovrAPI {
 
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
-        let localVariableRequestBuilder: RequestBuilder<SimpleListResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+        let localVariableRequestBuilder: RequestBuilder<TitleListResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
-     Get watchlist items
+     Import a watch history entry
      
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
+     - parameter importHistoryPayload: (body)  
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: SimpleListResponse
+     - returns: TitleState
      */
     @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func getWatchlistItems(nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SimpleListResponse {
-        return try await getWatchlistItemsWithRequestBuilder(nextPageToken: nextPageToken, limit: limit, apiConfiguration: apiConfiguration).execute().body
+    open class func importHistory(importHistoryPayload: ImportHistoryPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> TitleState {
+        return try await importHistoryWithRequestBuilder(importHistoryPayload: importHistoryPayload, apiConfiguration: apiConfiguration).execute().body
     }
 
     /**
-     Get watchlist items
-     - GET /profile/watchlist
-     - Returns the profile's watchlist — titles saved to watch later.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Ordered by when they were added (newest first). Supports cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available. 
+     Import a watch history entry
+     - POST /profile/history
+     - Imports a previously watched movie, show, season, or episode from an external source.  - `mediaId`: the title to import (`MV_<number>` for movies, `TV_<number>` for TV shows). - `imported`: required string naming the external source (for example `\"trakt\"`). - `updatedAt`: optional ISO 8601 timestamp of when it was watched. Defaults to now. - `season` / `episode`: optional TV scope. Omit both to import all aired episodes of the show; pass `season` to import that season; pass both to import a single episode.  For live viewing use `scrobble()`, and for interactive \"Mark as watched\" buttons use `markWatched()`. To read watch history, use `GET /profile/titles?watched=true`.  Returns the title's updated `TitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter nextPageToken: (query) Opaque token from previous page for pagination (optional)
-     - parameter limit: (query) Maximum number of items to return (1-50, default: 10) (optional, default to 10)
+     - parameter importHistoryPayload: (body)  
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SimpleListResponse> 
+     - returns: RequestBuilder<TitleState> 
      */
-    open class func getWatchlistItemsWithRequestBuilder(nextPageToken: String? = nil, limit: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SimpleListResponse> {
-        let localVariablePath = "/profile/watchlist"
+    open class func importHistoryWithRequestBuilder(importHistoryPayload: ImportHistoryPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<TitleState> {
+        let localVariablePath = "/profile/history"
         let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters: [String: any Sendable]? = nil
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: importHistoryPayload, codableHelper: apiConfiguration.codableHelper)
 
-        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
-        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
-            "nextPageToken": (wrappedValue: nextPageToken?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-            "limit": (wrappedValue: limit?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-        ])
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
 
         let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            :
+            "Content-Type": "application/json",
         ]
 
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
-        let localVariableRequestBuilder: RequestBuilder<SimpleListResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+        let localVariableRequestBuilder: RequestBuilder<TitleState>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
-     Mark a title as unwatched
+     Mark a title, season, or episode as unwatched
      
-     - parameter mediaId: (path) The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id.  
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
      - parameter season: (query) TV only. Season number. Omit to undo every season of the show. (optional)
      - parameter episode: (query) TV only, and only together with &#x60;season&#x60;. Episode number. Omit to undo the whole season. (optional)
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
+     - returns: TitleState
      */
     @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func markUnwatched(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
+    open class func markUnwatched(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> TitleState {
         return try await markUnwatchedWithRequestBuilder(mediaId: mediaId, season: season, episode: episode, apiConfiguration: apiConfiguration).execute().body
     }
 
     /**
-     Mark a title as unwatched
-     - DELETE /profile/watched/{mediaId}
-     - Takes a movie, a TV show, a season, or an episode back to unwatched, in one call.  It removes the history that made it watched, takes it out of the user's **in-progress** list if that is where it was, and brings a TV show's `completed` state back in line. Use it for a \"Mark as unwatched\" button.  For TV shows, `season` and `episode` choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass `season` to undo **that season**: its episodes, and any entry that counted the whole season as watched. - Pass `season` and `episode` to undo **that episode**.  Calling it for a title that isn't watched changes nothing and still succeeds, so it is safe to retry.  This is not the same as [`DELETE /profile/history/{mediaId}`](/api-reference/discovr/delete-history-item), which removes history entries and nothing else. Marking something unwatched with that call and `DELETE /profile/playback/{mediaId}` leaves a TV show's `completed` out of date unless they run in a particular order; this endpoint does the right thing whichever way you reach it.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     Mark a title, season, or episode as unwatched
+     - DELETE /profile/titles/{mediaId}/watched
+     - Takes a movie, a TV show, a season, or an episode back to unwatched in one atomic call.  It removes the watched state for that scope and clears any in-progress Continue Watching position inside it. Calling it for a title that isn't watched changes nothing and still succeeds, so it's safe to retry.  For TV shows, `season` and `episode` choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass `season` to undo **that season**. - Pass `season` and `episode` to undo **that episode**.  Returns the title's updated `TitleState`, so you don't need to refetch `getTitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter mediaId: (path) The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id.  
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
      - parameter season: (query) TV only. Season number. Omit to undo every season of the show. (optional)
      - parameter episode: (query) TV only, and only together with &#x60;season&#x60;. Episode number. Omit to undo the whole season. (optional)
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
+     - returns: RequestBuilder<TitleState> 
      */
-    open class func markUnwatchedWithRequestBuilder(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        var localVariablePath = "/profile/watched/{mediaId}"
+    open class func markUnwatchedWithRequestBuilder(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<TitleState> {
+        var localVariablePath = "/profile/titles/{mediaId}/watched"
         let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
         let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
@@ -1771,9 +1189,61 @@ open class DiscovrAPI {
 
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+        let localVariableRequestBuilder: RequestBuilder<TitleState>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     Mark a title, season, or episode as watched
+     
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter season: (query) TV only. Season number. Omit to mark every aired season of the show. (optional)
+     - parameter episode: (query) TV only, and only together with &#x60;season&#x60;. Episode number. Omit to mark the whole season. (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: TitleState
+     */
+    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+    open class func markWatched(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> TitleState {
+        return try await markWatchedWithRequestBuilder(mediaId: mediaId, season: season, episode: episode, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Mark a title, season, or episode as watched
+     - PUT /profile/titles/{mediaId}/watched
+     - Marks a movie, an entire TV show, a season, or a single episode as watched in one atomic call.  For TV shows, `season` and `episode` pick the scope:  - Omit both to mark **every aired episode** across all regular seasons (season 1 and up) as watched. Specials (season `0`) are excluded. - Pass `season` to mark every aired episode of **that season**. - Pass `season` and `episode` to mark **that episode**.  Any in-progress Continue Watching position within the marked scope is cleared automatically. Returns the title's updated `TitleState`, so you don't need to refetch `getTitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter season: (query) TV only. Season number. Omit to mark every aired season of the show. (optional)
+     - parameter episode: (query) TV only, and only together with &#x60;season&#x60;. Episode number. Omit to mark the whole season. (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<TitleState> 
+     */
+    open class func markWatchedWithRequestBuilder(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<TitleState> {
+        var localVariablePath = "/profile/titles/{mediaId}/watched"
+        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
+        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "season": (wrappedValue: season?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "episode": (wrappedValue: episode?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<TitleState>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -1818,60 +1288,6 @@ open class DiscovrAPI {
     }
 
     /**
-     Update or create a history item
-     
-     - parameter mediaId: (path) The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter patchHistoryPayload: (body)  
-     - parameter season: (query) Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. (optional)
-     - parameter episode: (query) Episode number. Optional — omit to update the season-level entry; include to target a specific episode. (optional)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func patchHistoryItem(mediaId: String, patchHistoryPayload: PatchHistoryPayload, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await patchHistoryItemWithRequestBuilder(mediaId: mediaId, patchHistoryPayload: patchHistoryPayload, season: season, episode: episode, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Update or create a history item
-     - PATCH /profile/history/{mediaId}
-     - Updates the history entry for a title. If no entry exists, creates one (upsert). This ensures only one entry exists per `mediaId` + `season` + `episode` combination.  For TV shows, `season` is required as a query parameter. Include `episode` to target a specific episode; omit it to update the season-level entry.  - `progress`: how far through the title the user watched, as a percentage (0–100). 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter patchHistoryPayload: (body)  
-     - parameter season: (query) Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. (optional)
-     - parameter episode: (query) Episode number. Optional — omit to update the season-level entry; include to target a specific episode. (optional)
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func patchHistoryItemWithRequestBuilder(mediaId: String, patchHistoryPayload: PatchHistoryPayload, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        var localVariablePath = "/profile/history/{mediaId}"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: patchHistoryPayload, codableHelper: apiConfiguration.codableHelper)
-
-        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
-        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
-            "season": (wrappedValue: season?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-            "episode": (wrappedValue: episode?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
-        ])
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            "Content-Type": "application/json",
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "PATCH", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
      Poll for auth token
      
      - parameter deviceCode: (path) The device code obtained from the request device code endpoint 
@@ -1912,6 +1328,50 @@ open class DiscovrAPI {
         let localVariableRequestBuilder: RequestBuilder<DeviceCodePollResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     Remove a title from the watchlist
+     
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: TitleState
+     */
+    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+    open class func removeFromWatchlist(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> TitleState {
+        return try await removeFromWatchlistWithRequestBuilder(mediaId: mediaId, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Remove a title from the watchlist
+     - DELETE /profile/titles/{mediaId}/watchlist
+     - Removes a title from the active profile's watchlist. Safe to call if it is not on the watchlist.  Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<TitleState> 
+     */
+    open class func removeFromWatchlistWithRequestBuilder(mediaId: String, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<TitleState> {
+        var localVariablePath = "/profile/titles/{mediaId}/watchlist"
+        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
+        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<TitleState>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -1984,7 +1444,7 @@ open class DiscovrAPI {
     /**
      Record playback progress
      - POST /profile/scrobble/{mediaId}
-     - Scrobbling is Discovr's single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don't need to coordinate multiple endpoints.  Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:  - The item stays in the user's **in-progress** list until they finish watching. - Once they've watched 80% or more, it's marked as complete and moves to their **history**. - For movies, the item is removed from the user's watchlist once they've watched more than 20% — so it clears as soon as they're clearly watching it. For TV episodes, it's removed from the watchlist once the episode is complete (≥80%).  For TV shows, include `season` and `episode` in the request body so history is tracked per episode.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     - Scrobbling is Discovr's single-call way to track playback. One call updates live resume progress, watch history, completion, and the watchlist.  Send the viewer's real position when playback starts (not `0` when resuming), about every 30 seconds while watching, and right away on pause, resume, seek, and completion. Discovr handles the rest:  - The title stays in Continue Watching until the movie or episode crosses 80%. - Once progress reaches 20% or more, the title is automatically removed from the watchlist — for both movies and TV shows. - Once progress reaches 80% or more, the movie or episode is marked watched and leaves Continue Watching. Lower progress later (such as a rewind) moves the live position without undoing completion — use `markUnwatched` to undo a watch. - For TV shows, include `season` and `episode` in `tv`. When an episode crosses 80%, the response includes `completedSeasons` listing every season now fully watched.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -2010,52 +1470,6 @@ open class DiscovrAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<ScrobbleResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Record a skip event
-     
-     - parameter mediaId: (path) The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter scrobbleSkipBody: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: ScrobbleSkipResponse
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func scrobbleSkip(mediaId: String, scrobbleSkipBody: ScrobbleSkipBody, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> ScrobbleSkipResponse {
-        return try await scrobbleSkipWithRequestBuilder(mediaId: mediaId, scrobbleSkipBody: scrobbleSkipBody, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Record a skip event
-     - POST /profile/scrobble/{mediaId}/skip
-     - Signals that the user jumped to another point in the content, forward (a skip) or backward (a rewind). Used for watch analytics. Returns immediately — no side effects on lists or history.  `from` and `to` are playback positions as a percentage (0–100) and must differ; `from` higher than `to` is a jump backward. `duration` is how many seconds were jumped. After a jump, also send the position the viewer landed on as a progress update with `POST /profile/scrobble/{mediaId}`. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter scrobbleSkipBody: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<ScrobbleSkipResponse> 
-     */
-    open class func scrobbleSkipWithRequestBuilder(mediaId: String, scrobbleSkipBody: ScrobbleSkipBody, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<ScrobbleSkipResponse> {
-        var localVariablePath = "/profile/scrobble/{mediaId}/skip"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: scrobbleSkipBody, codableHelper: apiConfiguration.codableHelper)
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            "Content-Type": "application/json",
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<ScrobbleSkipResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
@@ -2177,6 +1591,52 @@ open class DiscovrAPI {
     }
 
     /**
+     Set a title's rating
+     
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter setRatingPayload: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: TitleState
+     */
+    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+    open class func setRating(mediaId: String, setRatingPayload: SetRatingPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> TitleState {
+        return try await setRatingWithRequestBuilder(mediaId: mediaId, setRatingPayload: setRatingPayload, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Set a title's rating
+     - PUT /profile/titles/{mediaId}/rating
+     - Sets the active profile's rating for a title to `liked`, `disliked`, or `super_liked`.  Ratings are mutually exclusive: setting a new rating automatically replaces any previous one. Setting the rating the title already has is a safe no-op.  Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter setRatingPayload: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<TitleState> 
+     */
+    open class func setRatingWithRequestBuilder(mediaId: String, setRatingPayload: SetRatingPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<TitleState> {
+        var localVariablePath = "/profile/titles/{mediaId}/rating"
+        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
+        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: setRatingPayload, codableHelper: apiConfiguration.codableHelper)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            "Content-Type": "application/json",
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<TitleState>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      Sign out the current device
      
      - parameter apiConfiguration: The configuration for the http request.
@@ -2251,47 +1711,6 @@ open class DiscovrAPI {
         let localVariableRequestBuilder: RequestBuilder<DemoSessionResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Update playback progress
-     
-     - parameter editPlaybackPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func updatePlaybackItem(editPlaybackPayload: EditPlaybackPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
-        return try await updatePlaybackItemWithRequestBuilder(editPlaybackPayload: editPlaybackPayload, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Update playback progress
-     - PATCH /profile/playback
-     - Updates the playback position for an existing entry. Same fields as the add endpoint. If no entry exists for the `mediaId`, one is created. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter editPlaybackPayload: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
-     */
-    open class func updatePlaybackItemWithRequestBuilder(editPlaybackPayload: EditPlaybackPayload, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        let localVariablePath = "/profile/playback"
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: editPlaybackPayload, codableHelper: apiConfiguration.codableHelper)
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            "Content-Type": "application/json",
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "PATCH", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**

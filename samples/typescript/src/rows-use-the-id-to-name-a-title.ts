@@ -12,9 +12,12 @@ export async function sample(client: DiscovrClient) {
 	const { id } = useParams();
 	const ref = useLocation().state?.ref ?? id; // opened from a shared link? the id works too
 	const details = await client.getMedia(ref);
-	await client.addLikedItem(ref);
+	const state = await client.setRating(ref, "liked");
 
 	// Holding only a ref, like a saved "recently viewed" entry? idOf gets the id back.
 	const cacheKey = idOf(savedRef);
 	// docs:end
+	void details;
+	void state;
+	void cacheKey;
 }

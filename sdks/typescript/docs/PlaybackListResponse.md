@@ -1,7 +1,7 @@
 
 # PlaybackListResponse
 
-Paginated list of items with playback progress.
+Paginated list of items with live playback progress.
 
 ## Properties
 

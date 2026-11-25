@@ -76,7 +76,6 @@ Profile:
       format: date-time
       description: When the profile was created, as an ISO 8601 timestamp.
       example: "2023-01-01T00:00:00.000Z"
-
   additionalProperties: false
 
 UpdateProfilePayload:
@@ -130,6 +129,164 @@ GetProfilesResponse:
           createdAt: "2023-01-02T00:00:00.000Z"
   additionalProperties: false
 
+# Title State & Rating Schemas
+Rating:
+  type: string
+  description: One of the three mutually exclusive ratings a profile can give a title.
+  enum:
+    - liked
+    - disliked
+    - super_liked
+  example: "liked"
+
+SetRatingPayload:
+  type: object
+  description: The rating to set on a title.
+  required:
+    - value
+  properties:
+    value:
+      $ref: "#/Rating"
+  additionalProperties: false
+
+TitlePlayback:
+  type: object
+  description: The active profile's live resume position for an in-progress title.
+  required:
+    - updatedAt
+  properties:
+    progress:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: How far through the movie or episode the viewer is, as a percentage (0–100).
+      example: 45.5
+    season:
+      type: integer
+      minimum: 1
+      description: Season number of the episode currently being watched (TV shows only).
+      example: 2
+    episode:
+      type: integer
+      minimum: 1
+      description: Episode number currently being watched (TV shows only).
+      example: 5
+    updatedAt:
+      type: string
+      format: date-time
+      description: When this position was last recorded.
+      example: "2026-01-15T20:00:00.000Z"
+  additionalProperties: false
+
+TitleState:
+  type: object
+  description: The active profile's complete state for a title — returned by `getTitleState` and by every title state write.
+  required:
+    - mediaId
+    - mediaType
+    - watchlist
+    - watched
+    - completed
+    - plays
+  properties:
+    mediaId:
+      type: string
+      description: The title's media ID (`MV_<id>` or `TV_<id>`).
+      example: "TV_1396"
+    mediaType:
+      type: string
+      enum: [movie, tv]
+      description: Whether this title is a movie or a TV show.
+      example: "tv"
+    rating:
+      $ref: "#/Rating"
+      nullable: true
+      description: The profile's rating (`liked`, `disliked`, `super_liked`), or `null` if unrated.
+    watchlist:
+      type: boolean
+      description: Whether the title is on the profile's watchlist.
+      example: true
+    watched:
+      type: boolean
+      description: Whether the profile has played any of this title, even briefly. Use `completed` for a "Watched" checkmark.
+      example: true
+    completed:
+      type: boolean
+      description: Whether the profile has finished the title (≥ 80% for a movie; every aired episode of every regular season for a TV show; specials excluded).
+      example: false
+    completedSeasons:
+      type: array
+      description: TV shows only — regular season numbers (1 and up) whose aired episodes are all watched.
+      items:
+        type: integer
+      example: [1, 2]
+    episodes:
+      type: object
+      description: TV shows only — map from season number (as string) to sorted watched episode numbers.
+      additionalProperties:
+        type: array
+        items:
+          type: integer
+      example:
+        "1": [1, 2, 3, 4, 5, 6, 7]
+    plays:
+      type: integer
+      minimum: 0
+      description: Number of completed plays (of the movie or of episodes).
+      example: 7
+    playback:
+      $ref: "#/TitlePlayback"
+      nullable: true
+      description: Live resume position if the viewer is currently mid-watch, or `null` otherwise.
+    providers:
+      type: array
+      description: Streaming services where this title is available, filtered to the account's selected providers. Present only when `providers=true` is passed to `getTitleState`.
+      items:
+        $ref: "../media/schemas.yaml#/ProviderInfo"
+  additionalProperties: false
+
+SeasonEpisodeState:
+  type: object
+  description: Whether the active profile has finished one episode of a season.
+  required:
+    - episode
+    - completed
+  properties:
+    episode:
+      type: integer
+      minimum: 1
+      description: Episode number within the season.
+      example: 1
+    completed:
+      type: boolean
+      description: Whether the profile has finished this episode.
+      example: true
+  additionalProperties: false
+
+SeasonState:
+  type: object
+  description: Per-episode completion state for one TV season, plus whether the season as a whole is complete.
+  required:
+    - season
+    - completed
+    - episodes
+  properties:
+    season:
+      type: integer
+      minimum: 0
+      description: The season number.
+      example: 1
+    completed:
+      type: boolean
+      description: Whether every aired episode of this season is watched.
+      example: false
+    episodes:
+      type: array
+      description: Completion state for every episode in the season.
+      items:
+        $ref: "#/SeasonEpisodeState"
+  additionalProperties: false
+
 # Scrobble Schemas
 EpisodeRef:
   type: object
@@ -167,36 +324,6 @@ ScrobbleProgressBody:
       $ref: "#/EpisodeRef"
   additionalProperties: false
 
-ScrobbleSkipBody:
-  type: object
-  description: Body form of a skip report, for the route that already carries the title in its path.
-  required:
-    - from
-    - to
-    - duration
-  properties:
-    from:
-      type: number
-      minimum: 0
-      maximum: 100
-      description: Playback position where the skip started (0–100).
-      example: 10
-    to:
-      type: number
-      minimum: 0
-      maximum: 100
-      description: Playback position where the skip landed (0–100).
-      example: 20
-    duration:
-      type: number
-      minimum: 0
-      description: Number of seconds skipped.
-      example: 20
-    tv:
-      description: Which episode is playing. Required for TV shows, omitted for movies.
-      $ref: "#/EpisodeRef"
-  additionalProperties: false
-
 ScrobbleResponse:
   type: object
   description: Confirms a progress report, echoing what was recorded and whether it counted as watched.
@@ -217,18 +344,12 @@ ScrobbleResponse:
       example: 85.0
     completed:
       type: boolean
-      description: "`true` if the item was marked as watched (progress reached 80% or more)."
+      description: "`true` if the movie or episode reached 80% or more."
       example: true
-  additionalProperties: false
-
-ScrobbleSkipResponse:
-  type: object
-  description: Confirms a skip report was recorded.
-  required:
-    - status
-  properties:
-    status:
-      type: string
-      description: Always `"ok"` on success.
-      example: "ok"
+    completedSeasons:
+      type: array
+      description: Present when a TV episode crosses 80% — lists every regular season now fully watched.
+      items:
+        type: integer
+      example: [1]
   additionalProperties: false

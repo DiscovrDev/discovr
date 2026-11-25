@@ -146,39 +146,32 @@
 								"icon": "list",
 								"pages": [
 									{
-										"group": "Likes",
+										"group": "Titles",
+										"icon": "list",
+										"pages": ["api-reference/discovr/get-titles"]
+									},
+									{
+										"group": "Title State",
 										"icon": "list",
 										"pages": [
-											"api-reference/discovr/get-liked-items",
-											"api-reference/discovr/add-liked-item",
-											"api-reference/discovr/delete-liked-item"
+											"api-reference/discovr/get-title-state",
+											"api-reference/discovr/get-season-state"
 										]
 									},
 									{
-										"group": "Dislikes",
+										"group": "Rating",
 										"icon": "list",
 										"pages": [
-											"api-reference/discovr/get-disliked-items",
-											"api-reference/discovr/add-disliked-item",
-											"api-reference/discovr/delete-disliked-item"
-										]
-									},
-									{
-										"group": "Super Likes",
-										"icon": "list",
-										"pages": [
-											"api-reference/discovr/get-super-liked-items",
-											"api-reference/discovr/add-super-liked-item",
-											"api-reference/discovr/delete-super-liked-item"
+											"api-reference/discovr/set-rating",
+											"api-reference/discovr/clear-rating"
 										]
 									},
 									{
 										"group": "Watchlist",
 										"icon": "list",
 										"pages": [
-											"api-reference/discovr/get-watchlist-items",
-											"api-reference/discovr/add-watchlist-item",
-											"api-reference/discovr/delete-watchlist-item"
+											"api-reference/discovr/add-to-watchlist",
+											"api-reference/discovr/remove-from-watchlist"
 										]
 									},
 									{
@@ -186,21 +179,13 @@
 										"icon": "list",
 										"pages": [
 											"api-reference/discovr/get-playback-items",
-											"api-reference/discovr/add-playback-item",
-											"api-reference/discovr/update-playback-item",
 											"api-reference/discovr/delete-playback-item"
 										]
 									},
 									{
 										"group": "History",
 										"icon": "list",
-										"pages": [
-											"api-reference/discovr/get-history-items",
-											"api-reference/discovr/add-history-item",
-											"api-reference/discovr/get-history-items-by-media-id",
-											"api-reference/discovr/patch-history-item",
-											"api-reference/discovr/delete-history-item"
-										]
+										"pages": ["api-reference/discovr/import-history"]
 									}
 								]
 							},
@@ -208,9 +193,9 @@
 								"group": "Scrobble",
 								"icon": "radio",
 								"pages": [
+									"api-reference/discovr/mark-watched",
 									"api-reference/discovr/mark-unwatched",
-									"api-reference/discovr/scrobble",
-									"api-reference/discovr/scrobble-skip"
+									"api-reference/discovr/scrobble"
 								]
 							},
 							{
@@ -239,15 +224,7 @@
 									"api-reference/discovr/get-media",
 									"api-reference/discovr/get-media-assets",
 									"api-reference/discovr/get-season-details",
-									"api-reference/discovr/get-similar-recommendations",
-									{
-										"group": "Profile Meta",
-										"icon": "list",
-										"pages": [
-											"api-reference/discovr/get-media-profile-meta",
-											"api-reference/discovr/get-season-profile-meta"
-										]
-									}
+									"api-reference/discovr/get-similar-recommendations"
 								]
 							},
 							{
@@ -333,39 +310,32 @@
 						"icon": "list",
 						"pages": [
 							{
-								"group": "Likes",
+								"group": "Titles",
+								"icon": "list",
+								"pages": ["sdk-reference/profile-lists/get-titles"]
+							},
+							{
+								"group": "Title State",
 								"icon": "list",
 								"pages": [
-									"sdk-reference/profile-lists/get-liked-items",
-									"sdk-reference/profile-lists/add-liked-item",
-									"sdk-reference/profile-lists/delete-liked-item"
+									"sdk-reference/profile-lists/get-title-state",
+									"sdk-reference/profile-lists/get-season-state"
 								]
 							},
 							{
-								"group": "Dislikes",
+								"group": "Rating",
 								"icon": "list",
 								"pages": [
-									"sdk-reference/profile-lists/get-disliked-items",
-									"sdk-reference/profile-lists/add-disliked-item",
-									"sdk-reference/profile-lists/delete-disliked-item"
-								]
-							},
-							{
-								"group": "Super Likes",
-								"icon": "list",
-								"pages": [
-									"sdk-reference/profile-lists/get-super-liked-items",
-									"sdk-reference/profile-lists/add-super-liked-item",
-									"sdk-reference/profile-lists/delete-super-liked-item"
+									"sdk-reference/profile-lists/set-rating",
+									"sdk-reference/profile-lists/clear-rating"
 								]
 							},
 							{
 								"group": "Watchlist",
 								"icon": "list",
 								"pages": [
-									"sdk-reference/profile-lists/get-watchlist-items",
-									"sdk-reference/profile-lists/add-watchlist-item",
-									"sdk-reference/profile-lists/delete-watchlist-item"
+									"sdk-reference/profile-lists/add-to-watchlist",
+									"sdk-reference/profile-lists/remove-from-watchlist"
 								]
 							},
 							{
@@ -373,21 +343,13 @@
 								"icon": "list",
 								"pages": [
 									"sdk-reference/profile-lists/get-playback-items",
-									"sdk-reference/profile-lists/add-playback-item",
-									"sdk-reference/profile-lists/update-playback-item",
 									"sdk-reference/profile-lists/delete-playback-item"
 								]
 							},
 							{
 								"group": "History",
 								"icon": "list",
-								"pages": [
-									"sdk-reference/profile-lists/get-history-items",
-									"sdk-reference/profile-lists/add-history-item",
-									"sdk-reference/profile-lists/get-history-items-by-media-id",
-									"sdk-reference/profile-lists/patch-history-item",
-									"sdk-reference/profile-lists/delete-history-item"
-								]
+								"pages": ["sdk-reference/profile-lists/import-history"]
 							}
 						]
 					},
@@ -395,9 +357,9 @@
 						"group": "Scrobble",
 						"icon": "radio",
 						"pages": [
+							"sdk-reference/scrobble/mark-watched",
 							"sdk-reference/scrobble/mark-unwatched",
-							"sdk-reference/scrobble/scrobble",
-							"sdk-reference/scrobble/scrobble-skip"
+							"sdk-reference/scrobble/scrobble"
 						]
 					},
 					{
@@ -426,15 +388,7 @@
 							"sdk-reference/media/get-media",
 							"sdk-reference/media/get-media-assets",
 							"sdk-reference/media/get-season-details",
-							"sdk-reference/media/get-similar-recommendations",
-							{
-								"group": "Profile Meta",
-								"icon": "list",
-								"pages": [
-									"sdk-reference/media/get-media-profile-meta",
-									"sdk-reference/media/get-season-profile-meta"
-								]
-							}
+							"sdk-reference/media/get-similar-recommendations"
 						]
 					},
 					{

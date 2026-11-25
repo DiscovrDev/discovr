@@ -3,15 +3,14 @@ title: "scrobble()"
 description: "Record playback progress"
 ---
 
-Scrobbling is Discovr's single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don't need to coordinate multiple endpoints.
+Scrobbling is Discovr's single-call way to track playback. One call updates live resume progress, watch history, completion, and the watchlist.
 
-Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:
+Send the viewer's real position when playback starts (not `0` when resuming), about every 30 seconds while watching, and right away on pause, resume, seek, and completion. Discovr handles the rest:
 
-- The item stays in the user's **in-progress** list until they finish watching.
-- Once they've watched 80% or more, it's marked as complete and moves to their **history**.
-- For movies, the item is removed from the user's watchlist once they've watched more than 20% — so it clears as soon as they're clearly watching it. For TV episodes, it's removed from the watchlist once the episode is complete (≥80%).
-
-For TV shows, include `season` and `episode` in the request body so history is tracked per episode.
+- The title stays in Continue Watching until the movie or episode crosses 80%.
+- Once progress reaches 20% or more, the title is automatically removed from the watchlist — for both movies and TV shows.
+- Once progress reaches 80% or more, the movie or episode is marked watched and leaves Continue Watching. Lower progress later (such as a rewind) moves the live position without undoing completion — use `markUnwatched` to undo a watch.
+- For TV shows, include `season` and `episode` in `tv`. When an episode crosses 80%, the response includes `completedSeasons` listing every season now fully watched.
 
 **Auth tier:** session — send your session token in `Authorization: Bearer`.
 
@@ -36,7 +35,7 @@ For TV shows, include `season` and `episode` in the request body so history is t
 
 ## Returns
 
-[`ScrobbleResponse`](/sdk-reference/types/scrobble#scrobbleresponse) — Progress recorded. Check `completed` to know if the item was marked as watched.
+[`ScrobbleResponse`](/sdk-reference/types/scrobble#scrobbleresponse) — Progress recorded. Check `completed` to know if the movie or episode reached 80%.
 
 <AccordionGroup>
 <Accordion title="View response structure">
@@ -44,7 +43,8 @@ For TV shows, include `season` and `episode` in the request body so history is t
 {
   "status": "string",
   "progress": 85,
-  "completed": false
+  "completed": false,
+  "completedSeasons": ["integer"]
 }
 ```
 </Accordion>

@@ -7,7 +7,7 @@
 
 import Foundation
 
-/** A media item with playback progress. &#x60;progress&#x60; is 0–100. */
+/** A media item with live playback progress. &#x60;progress&#x60; is 0–100. */
 public struct PlaybackItem: Sendable, Codable, ParameterConvertible, Hashable {
 
     public enum MediaType: String, Sendable, Codable, CaseIterable {
@@ -17,31 +17,31 @@ public struct PlaybackItem: Sendable, Codable, ParameterConvertible, Hashable {
     public static let progressRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: 100, exclusiveMaximum: false, multipleOf: nil)
     public static let seasonRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let episodeRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
-    /** The DiscovrID (TV_<number> or MV_<number>) */
+    /** The DiscovrID (`TV_<number>` or `MV_<number>`). */
     public var id: String
-    /** This item's `id` with the list it came from attached.  Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, scrobbling it, removing it from a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.  A bare `id` always works; `ref` is never required.  */
+    /** This item's `id` with the list it came from attached.  Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, scrobbling it, or removing it from Continue Watching. A bare `id` always works; `ref` is never required.  */
     public var ref: String?
-    /** The type of media */
+    /** The type of media. */
     public var mediaType: MediaType
-    /** The title of the media */
+    /** The title of the media. */
     public var title: String
     /** Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     public var posterPath: [String: String]
     /** Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     public var backdropPath: [String: String]
-    /** Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Only present for episode-level playback items.  */
+    /** Episode still image URLs keyed by width bucket. Only present for episode-level playback items. */
     public var episodeImage: [String: String]?
-    /** The title of the episode (only present for episode-level playback items) */
+    /** The title of the episode (only present for episode-level playback items). */
     public var episodeTitle: String?
-    /** Playback progress percentage (0-100) */
+    /** Playback progress percentage (0–100). */
     public var progress: Double?
-    /** ISO 8601 timestamp indicating when playback was last updated */
+    /** ISO 8601 timestamp indicating when playback was last updated. */
     public var updatedAt: Date?
-    /** Season number (only for TV shows) */
+    /** Season number (only for TV shows). */
     public var season: Int?
-    /** Episode number (only for TV shows) */
+    /** Episode number (only for TV shows). */
     public var episode: Int?
-    /** ISO 8601 timestamp indicating when the item was first added to the list */
+    /** ISO 8601 timestamp indicating when the item was first added to Continue Watching. */
     public var createdAt: Date
 
     public init(id: String, ref: String? = nil, mediaType: MediaType, title: String, posterPath: [String: String], backdropPath: [String: String], episodeImage: [String: String]? = nil, episodeTitle: String? = nil, progress: Double? = nil, updatedAt: Date? = nil, season: Int? = nil, episode: Int? = nil, createdAt: Date) {

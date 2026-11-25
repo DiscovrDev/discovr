@@ -1,14 +1,14 @@
 package api.discovr
 
-import api.discovr.models.HistoryItem
 import api.discovr.models.KnownForItem
 import api.discovr.models.MediaItem
 import api.discovr.models.NavigationItem
 import api.discovr.models.PlaybackItem
 import api.discovr.models.ProviderItem
+import api.discovr.models.Rating
 import api.discovr.models.SearchResult
 import api.discovr.models.SimilarResult
-import api.discovr.models.SimpleListItem
+import api.discovr.models.TitleListItem
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Instant
@@ -145,13 +145,15 @@ class RefOrIdTest {
         val at = Instant.fromEpochSeconds(0)
         val images = emptyMap<String, String>()
 
-        val simple = SimpleListItem(
+        val titleItem = TitleListItem(
             id = "MV_550",
-            mediaType = SimpleListItem.MediaType.movie,
+            mediaType = TitleListItem.MediaType.movie,
             title = "Fight Club",
             posterPath = images,
             backdropPath = images,
-            createdAt = at,
+            rating = Rating.liked,
+            watchlist = false,
+            updatedAt = at,
             ref = "MV_550@ctx",
         )
         val playback = PlaybackItem(
@@ -163,26 +165,12 @@ class RefOrIdTest {
             createdAt = at,
             ref = "MV_550@ctx",
         )
-        val history = HistoryItem(
-            id = "MV_550",
-            mediaType = HistoryItem.MediaType.movie,
-            title = "Fight Club",
-            posterPath = images,
-            backdropPath = images,
-            updatedAt = at,
-            completed = true,
-            watchedCount = 1,
-            createdAt = at,
-            ref = "MV_550@ctx",
-        )
-        assertEquals("MV_550@ctx", simple.refOrId())
+        assertEquals("MV_550@ctx", titleItem.refOrId())
         assertEquals("MV_550@ctx", playback.refOrId())
-        assertEquals("MV_550@ctx", history.refOrId())
 
         // And with no ref, each falls back to its id.
-        assertEquals("MV_550", simple.copy(ref = null).refOrId())
+        assertEquals("MV_550", titleItem.copy(ref = null).refOrId())
         assertEquals("MV_550", playback.copy(ref = null).refOrId())
-        assertEquals("MV_550", history.copy(ref = null).refOrId())
     }
 
     // The same table is asserted in the TypeScript and Swift SDKs and against the

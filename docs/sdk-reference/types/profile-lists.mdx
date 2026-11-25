@@ -3,158 +3,128 @@ title: "Profile Lists Types"
 description: "Types used by Profile Lists SDK operations."
 ---
 
-## AddHistoryPayload
+## ImportHistoryPayload
 
-<a id="addhistorypayload" />
+<a id="importhistorypayload" />
 
-A watch history entry to record. For TV shows, `season` is required; `episode` is optional.
+A watch history entry to import from an external source.
 
-| Property  | Type      | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| --------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| mediaId   | `string`  | Yes      | Full media ID — `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `TV_1396`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.                                                                                                                                                                                                                                                                                  |
-| updatedAt | `string`  | No       | ISO 8601 timestamp indicating when the history entry was last updated                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| progress  | `number`  | No       | Playback progress percentage (0-100)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| season    | `integer` | No       | Season number (required for TV shows)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| episode   | `integer` | No       | Episode number (optional for TV shows). When omitted, creates a "Default for Episode" entry that applies to all episodes in the season where episode.air_date &lt; historyItem.updatedAt. This allows updating multiple episodes with a single history entry. **Overriding Season Defaults:** When provided, creates an explicit episode entry that takes precedence over any season default entries. To unmark an episode completed via season default, create an explicit entry with progress &lt; 80% (which will not be marked as completed). |
-| imported  | `string`  | No       | Source of import (e.g., "trakt") if this item was imported                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-
-## AddPlaybackPayload
-
-<a id="addplaybackpayload" />
-
-Playback progress to record. `progress` is 0–100. `updatedAt` is an ISO timestamp from the client — use the actual time of the progress update.
-
-| Property  | Type     | Required | Description                                                                                                                                                                                                                                                     |
-| --------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| mediaId   | `string` | Yes      | Full media ID — `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `MV_550`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
-| progress  | `number` | No       | Initial playback progress percentage (0-100)                                                                                                                                                                                                                    |
-| updatedAt | `string` | No       | ISO 8601 timestamp for when playback was last updated                                                                                                                                                                                                           |
-
-## AddSimpleListItemPayload
-
-<a id="addsimplelistitempayload" />
-
-The media item to add. Use the full Discovr media ID — `MV_&lt;id&gt;` for movies, `TV_&lt;id&gt;` for TV shows.
-
-| Property | Type     | Required | Description                                                                                                                                                                                                                                                     |
-| -------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| mediaId  | `string` | Yes      | Full media ID — `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `MV_550`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
-
-## EditPlaybackPayload
-
-<a id="editplaybackpayload" />
-
-Updated playback progress. Provide at least one of `progress` or `updatedAt`. `mediaId` identifies the entry to update.
-
-| Property  | Type     | Required | Description                                                                                                                                                                                                                                                     |
-| --------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| mediaId   | `string` | Yes      | Full media ID — `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `MV_550`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
-| progress  | `number` | No       | New playback progress percentage (0-100)                                                                                                                                                                                                                        |
-| updatedAt | `string` | No       | ISO 8601 timestamp for when playback was last updated                                                                                                                                                                                                           |
-
-## HistoryItem
-
-<a id="historyitem" />
-
-A watch history entry. TV shows include season and episode.
-
-| Property      | Type                | Required | Description                                                                                                                                                                                                                                                                                                                                                                           |
-| ------------- | ------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| id            | `string`            | Yes      | The DiscovrID (TV*&lt;number&gt; or MV*&lt;number&gt;)                                                                                                                                                                                                                                                                                                                                |
-| ref           | `string`            | No       | This entry's `id` with the list it came from attached. Prefer it wherever you'd pass this entry's `id` onward — opening its detail screen, removing it from your history. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`. A bare `id` always works; `ref` is never required. |
-| mediaType     | `"movie"` \| `"tv"` | Yes      | The type of media                                                                                                                                                                                                                                                                                                                                                                     |
-| title         | `string`            | Yes      | The title of the media                                                                                                                                                                                                                                                                                                                                                                |
-| poster_path   | `object`            | Yes      | Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                          |
-| backdrop_path | `object`            | Yes      | Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                        |
-| updatedAt     | `string`            | Yes      | ISO 8601 timestamp indicating when the history entry was last updated                                                                                                                                                                                                                                                                                                                 |
-| progress      | `number`            | No       | Playback progress percentage (0-100)                                                                                                                                                                                                                                                                                                                                                  |
-| completed     | `boolean`           | Yes      | Whether the media is considered completed (progress &gt;= 80%)                                                                                                                                                                                                                                                                                                                        |
-| watched_count | `integer`           | Yes      | How many times the profile has finished this title (or episode). `0` means it has been started but not finished.                                                                                                                                                                                                                                                                      |
-| season        | `integer`           | No       | Season number (required for TV shows)                                                                                                                                                                                                                                                                                                                                                 |
-| episode       | `integer`           | No       | Episode number (required for TV shows)                                                                                                                                                                                                                                                                                                                                                |
-| imported      | `string`            | No       | Source of import (e.g., "trakt") if this item was imported                                                                                                                                                                                                                                                                                                                            |
-| createdAt     | `string`            | Yes      | ISO 8601 timestamp indicating when the item was added to the list                                                                                                                                                                                                                                                                                                                     |
-
-## HistoryListResponse
-
-<a id="historylistresponse" />
-
-Paginated list of watch history entries.
-
-| Property      | Type            | Required | Description                                    |
-| ------------- | --------------- | -------- | ---------------------------------------------- |
-| items         | `HistoryItem[]` | Yes      | Array of history items                         |
-| hasMore       | `boolean`       | Yes      | Whether there are more items available         |
-| nextPageToken | `string`        | No       | Opaque token to fetch the next page of results |
-
-## PatchHistoryPayload
-
-<a id="patchhistorypayload" />
-
-Updates the recorded progress for a title already in the profile's history.
-
-| Property | Type     | Required | Description                                                                                                                                                                                     |
-| -------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| progress | `number` | Yes      | Playback progress percentage (0-100). Values &gt;= 80% are considered completed, values &lt; 80% are not completed. Use progress: 0 to unmark an episode that was completed via season default. |
+| Property  | Type      | Required | Description                                                                                                           |
+| --------- | --------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| mediaId   | `string`  | Yes      | Full media ID (`MV_&lt;number&gt;` or `TV_&lt;number&gt;`), or an item `ref`.                                         |
+| imported  | `string`  | Yes      | Name of the external source being imported from (for example `"trakt"`).                                              |
+| updatedAt | `string`  | No       | ISO 8601 timestamp of when the title was watched. Defaults to now if omitted.                                         |
+| season    | `integer` | No       | TV only. Season number to import. Omit to import every aired episode of the show.                                     |
+| episode   | `integer` | No       | TV only, and only together with `season`. Episode number to import. Omit to import every aired episode of the season. |
 
 ## PlaybackItem
 
 <a id="playbackitem" />
 
-A media item with playback progress. `progress` is 0–100.
+A media item with live playback progress. `progress` is 0–100.
 
-| Property      | Type                | Required | Description                                                                                                                                                                                                                                                                                                                                                                                  |
-| ------------- | ------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| id            | `string`            | Yes      | The DiscovrID (TV*&lt;number&gt; or MV*&lt;number&gt;)                                                                                                                                                                                                                                                                                                                                       |
-| ref           | `string`            | No       | This item's `id` with the list it came from attached. Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, scrobbling it, removing it from a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`. A bare `id` always works; `ref` is never required. |
-| mediaType     | `"movie"` \| `"tv"` | Yes      | The type of media                                                                                                                                                                                                                                                                                                                                                                            |
-| title         | `string`            | Yes      | The title of the media                                                                                                                                                                                                                                                                                                                                                                       |
-| poster_path   | `object`            | Yes      | Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                                 |
-| backdrop_path | `object`            | Yes      | Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                               |
-| episode_image | `object`            | No       | Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Only present for episode-level playback items.                                                                                                                                                                                                           |
-| episode_title | `string`            | No       | The title of the episode (only present for episode-level playback items)                                                                                                                                                                                                                                                                                                                     |
-| progress      | `number`            | No       | Playback progress percentage (0-100)                                                                                                                                                                                                                                                                                                                                                         |
-| updatedAt     | `string`            | No       | ISO 8601 timestamp indicating when playback was last updated                                                                                                                                                                                                                                                                                                                                 |
-| season        | `integer`           | No       | Season number (only for TV shows)                                                                                                                                                                                                                                                                                                                                                            |
-| episode       | `integer`           | No       | Episode number (only for TV shows)                                                                                                                                                                                                                                                                                                                                                           |
-| createdAt     | `string`            | Yes      | ISO 8601 timestamp indicating when the item was first added to the list                                                                                                                                                                                                                                                                                                                      |
+| Property      | Type                | Required | Description                                                                                                                                                                                                                                       |
+| ------------- | ------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id            | `string`            | Yes      | The DiscovrID (`TV_&lt;number&gt;` or `MV_&lt;number&gt;`).                                                                                                                                                                                       |
+| ref           | `string`            | No       | This item's `id` with the list it came from attached. Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, scrobbling it, or removing it from Continue Watching. A bare `id` always works; `ref` is never required. |
+| mediaType     | `"movie"` \| `"tv"` | Yes      | The type of media.                                                                                                                                                                                                                                |
+| title         | `string`            | Yes      | The title of the media.                                                                                                                                                                                                                           |
+| poster_path   | `object`            | Yes      | Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                      |
+| backdrop_path | `object`            | Yes      | Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                    |
+| episode_image | `object`            | No       | Episode still image URLs keyed by width bucket. Only present for episode-level playback items.                                                                                                                                                    |
+| episode_title | `string`            | No       | The title of the episode (only present for episode-level playback items).                                                                                                                                                                         |
+| progress      | `number`            | No       | Playback progress percentage (0–100).                                                                                                                                                                                                             |
+| updatedAt     | `string`            | No       | ISO 8601 timestamp indicating when playback was last updated.                                                                                                                                                                                     |
+| season        | `integer`           | No       | Season number (only for TV shows).                                                                                                                                                                                                                |
+| episode       | `integer`           | No       | Episode number (only for TV shows).                                                                                                                                                                                                               |
+| createdAt     | `string`            | Yes      | ISO 8601 timestamp indicating when the item was first added to Continue Watching.                                                                                                                                                                 |
 
 ## PlaybackListResponse
 
 <a id="playbacklistresponse" />
 
-Paginated list of items with playback progress.
+Paginated list of items with live playback progress.
 
-| Property      | Type             | Required | Description                                    |
-| ------------- | ---------------- | -------- | ---------------------------------------------- |
-| items         | `PlaybackItem[]` | Yes      | Array of playback items                        |
-| hasMore       | `boolean`        | Yes      | Whether there are more items available         |
-| nextPageToken | `string`         | No       | Opaque token to fetch the next page of results |
+| Property      | Type             | Required | Description                                     |
+| ------------- | ---------------- | -------- | ----------------------------------------------- |
+| items         | `PlaybackItem[]` | Yes      | Array of playback items.                        |
+| hasMore       | `boolean`        | Yes      | Whether there are more items available.         |
+| nextPageToken | `string`         | No       | Opaque token to fetch the next page of results. |
 
-## SimpleListItem
+## SeasonEpisodeState
 
-<a id="simplelistitem" />
+<a id="seasonepisodestate" />
 
-A media item in a profile list, with its display metadata (title, poster, backdrop) and when it was added.
+Whether the active profile has finished one episode of a season.
 
-| Property      | Type                | Required | Description                                                                                                                                                                                                                                                                                                                                                                   |
-| ------------- | ------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| id            | `string`            | Yes      | The DiscovrID (TV*&lt;number&gt; or MV*&lt;number&gt;)                                                                                                                                                                                                                                                                                                                        |
-| ref           | `string`            | No       | This item's `id` with the list it came from attached. Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, removing it from a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`. A bare `id` always works; `ref` is never required. |
-| mediaType     | `"movie"` \| `"tv"` | Yes      | The type of media                                                                                                                                                                                                                                                                                                                                                             |
-| title         | `string`            | Yes      | The title of the media                                                                                                                                                                                                                                                                                                                                                        |
-| poster_path   | `object`            | Yes      | Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                  |
-| backdrop_path | `object`            | Yes      | Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                                                                                                                                                                |
-| createdAt     | `string`            | Yes      | ISO 8601 timestamp indicating when the item was added to the list                                                                                                                                                                                                                                                                                                             |
+| Property  | Type      | Required | Description                                    |
+| --------- | --------- | -------- | ---------------------------------------------- |
+| episode   | `integer` | Yes      | Episode number within the season.              |
+| completed | `boolean` | Yes      | Whether the profile has finished this episode. |
 
-## SimpleListResponse
+## SeasonState
 
-<a id="simplelistresponse" />
+<a id="seasonstate" />
 
-Paginated list of items. Use `nextPageToken` with the `nextPageToken` query parameter to get the next page.
+Per-episode completion state for one TV season, plus whether the season as a whole is complete.
 
-| Property      | Type               | Required | Description                                    |
-| ------------- | ------------------ | -------- | ---------------------------------------------- |
-| items         | `SimpleListItem[]` | Yes      | Array of list items                            |
-| hasMore       | `boolean`          | Yes      | Whether there are more items available         |
-| nextPageToken | `string`           | No       | Opaque token to fetch the next page of results |
+| Property  | Type                   | Required | Description                                            |
+| --------- | ---------------------- | -------- | ------------------------------------------------------ |
+| season    | `integer`              | Yes      | The season number.                                     |
+| completed | `boolean`              | Yes      | Whether every aired episode of this season is watched. |
+| episodes  | `SeasonEpisodeState[]` | Yes      | Completion state for every episode in the season.      |
+
+## SetRatingPayload
+
+<a id="setratingpayload" />
+
+The rating to set on a title.
+
+| Property | Type                                         | Required | Description |
+| -------- | -------------------------------------------- | -------- | ----------- |
+| value    | `"liked"` \| `"disliked"` \| `"super_liked"` | Yes      |             |
+
+## SuccessMessage
+
+<a id="successmessage" />
+
+Confirmation response for deletions that do not return a title state object.
+
+| Property | Type     | Required | Description      |
+| -------- | -------- | -------- | ---------------- |
+| message  | `string` | Yes      | Success message. |
+
+## TitleListItem
+
+<a id="titlelistitem" />
+
+A title from a profile's rating, watchlist, or watch-history list, with display artwork and state summary.
+
+| Property      | Type                                         | Required | Description                                                                                                                                                                                                                        |
+| ------------- | -------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id            | `string`                                     | Yes      | The DiscovrID (`TV_&lt;number&gt;` or `MV_&lt;number&gt;`).                                                                                                                                                                        |
+| ref           | `string`                                     | No       | This item's `id` with the list it came from attached. Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, rating it, or removing it from a list. A bare `id` always works; `ref` is never required. |
+| mediaType     | `"movie"` \| `"tv"`                          | Yes      | The type of media.                                                                                                                                                                                                                 |
+| title         | `string`                                     | Yes      | The title of the media.                                                                                                                                                                                                            |
+| poster_path   | `object`                                     | Yes      | Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                       |
+| backdrop_path | `object`                                     | Yes      | Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).                                                                                                     |
+| rating        | `"liked"` \| `"disliked"` \| `"super_liked"` | No       | The profile's rating for this title, or `null` if unrated.                                                                                                                                                                         |
+| watchlist     | `boolean`                                    | Yes      | Whether this title is on the profile's watchlist.                                                                                                                                                                                  |
+| updatedAt     | `string`                                     | Yes      | ISO 8601 timestamp for the active sort dimension (rated time, watchlisted time, or last watched time).                                                                                                                             |
+| completed     | `boolean`                                    | No       | Present on `watched=true` results — whether the title is fully finished.                                                                                                                                                           |
+| plays         | `integer`                                    | No       | Present on `watched=true` results — total completed plays.                                                                                                                                                                         |
+| season        | `integer`                                    | No       | Present on `watched=true` TV results — most recently watched season number.                                                                                                                                                        |
+| episode       | `integer`                                    | No       | Present on `watched=true` TV results — most recently watched episode number.                                                                                                                                                       |
+| imported      | `string`                                     | No       | Present on `watched=true` results when imported from an external source (e.g., `"trakt"`).                                                                                                                                         |
+
+## TitleListResponse
+
+<a id="titlelistresponse" />
+
+Paginated list of titles. Pass `nextPageToken` to fetch the next page.
+
+| Property      | Type              | Required | Description                                     |
+| ------------- | ----------------- | -------- | ----------------------------------------------- |
+| items         | `TitleListItem[]` | Yes      | Array of title list items.                      |
+| hasMore       | `boolean`         | Yes      | Whether more items are available.               |
+| nextPageToken | `string`          | No       | Opaque token to fetch the next page of results. |

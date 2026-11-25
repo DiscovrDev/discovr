@@ -3,7 +3,7 @@ import XCTest
 
 /// Verifies the Swift SDK decodes the API's contract shapes cleanly —
 /// specifically nullable dates (A2 / D11: an unreleased title has `null`
-/// instead of `""`), renamed types (`PlaybackProgress`, `Genre`, `EpisodeRef`),
+/// instead of `""`), renamed types (`TitleState`, `TitlePlayback`, `Genre`, `EpisodeRef`),
 /// and typed episode credits (`EpisodeCrewMember`, `EpisodeGuestStar`).
 final class ContractDecodeTest: XCTestCase {
     private let helper = CodableHelper()
@@ -176,32 +176,30 @@ final class ContractDecodeTest: XCTestCase {
         XCTAssertEqual(guests?.first?.character, "Emilio Koyama")
     }
 
-    func testMediaProfileMetaUsesPlaybackProgressAndEpisodeRefEncodes() throws {
+    func testTitleStateDecodesTitlePlaybackAndEpisodeRefEncodes() throws {
         let json = """
         {
+          "mediaId": "TV_1396",
+          "mediaType": "tv",
+          "rating": "liked",
           "watchlist": false,
-          "liked": true,
-          "disliked": false,
-          "super_liked": false,
-          "history": true,
+          "watched": true,
           "completed": false,
+          "completedSeasons": [1],
+          "episodes": { "1": [1, 2] },
+          "plays": 2,
           "playback": {
-            "inlist": true,
-            "data": {
-              "mediaId": "TV_1396",
-              "mediaType": "tv",
-              "createdAt": "2026-01-01T00:00:00.000Z",
-              "updatedAt": "2026-01-02T00:00:00.000Z",
-              "progress": 42.5,
-              "season": 1,
-              "episode": 2
-            }
+            "updatedAt": "2026-01-02T00:00:00.000Z",
+            "progress": 42.5,
+            "season": 1,
+            "episode": 3
           }
         }
         """
 
-        let meta = try decode(MediaProfileMeta.self, json: json)
-        let progress: PlaybackProgress? = meta.playback.data
+        let state = try decode(TitleState.self, json: json)
+        XCTAssertEqual(state.rating, .liked)
+        let progress: TitlePlayback? = state.playback
         XCTAssertEqual(progress?.progress, 42.5)
         XCTAssertEqual(progress?.season, 1)
 

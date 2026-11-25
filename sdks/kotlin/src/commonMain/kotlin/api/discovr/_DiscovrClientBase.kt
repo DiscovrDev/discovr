@@ -10,9 +10,6 @@ import api.discovr.auth.RateLimitedError
 import api.discovr.auth.retryAfterSeconds
 import api.discovr.auth.typedApiErrorFor
 import api.discovr.infrastructure.HttpResponse
-import api.discovr.models.AddHistoryPayload
-import api.discovr.models.AddPlaybackPayload
-import api.discovr.models.AddSimpleListItemPayload
 import api.discovr.models.AvatarMediaType
 import api.discovr.models.CreatePagePayload
 import api.discovr.models.CreatePageResponse
@@ -25,37 +22,35 @@ import api.discovr.models.DeviceCodePayload
 import api.discovr.models.DeviceCodePollResponse
 import api.discovr.models.DeviceCodeResponse
 import api.discovr.models.DevicePollPayload
-import api.discovr.models.EditPlaybackPayload
 import api.discovr.models.EpisodeRef
 import api.discovr.models.FilterSpec
 import api.discovr.models.GetProfilesResponse
 import api.discovr.models.GetRowItemsResponse
 import api.discovr.models.GetRowsResponse
 import api.discovr.models.GifSearchResponse
-import api.discovr.models.HistoryListResponse
+import api.discovr.models.ImportHistoryPayload
 import api.discovr.models.MediaAssetsResponse
-import api.discovr.models.MediaProfileMeta
 import api.discovr.models.MediaResponse
 import api.discovr.models.MintSessionTokenPayload
 import api.discovr.models.Page
-import api.discovr.models.PatchHistoryPayload
 import api.discovr.models.PlaybackListResponse
 import api.discovr.models.Profile
 import api.discovr.models.ProfileImagesResponse
+import api.discovr.models.Rating
 import api.discovr.models.RefreshTokenResponse
 import api.discovr.models.Row
 import api.discovr.models.ScrobbleProgressBody
 import api.discovr.models.ScrobbleResponse
-import api.discovr.models.ScrobbleSkipBody
-import api.discovr.models.ScrobbleSkipResponse
 import api.discovr.models.SearchResponse
 import api.discovr.models.SeasonDetailsResponse
-import api.discovr.models.SeasonProfileMeta
+import api.discovr.models.SeasonState
 import api.discovr.models.SessionTokenResponse
+import api.discovr.models.SetRatingPayload
 import api.discovr.models.SignOutResponse
 import api.discovr.models.SimilarResponse
-import api.discovr.models.SimpleListResponse
 import api.discovr.models.SuccessMessage
+import api.discovr.models.TitleListResponse
+import api.discovr.models.TitleState
 import api.discovr.models.UpdateProfilePayload
 import api.discovr.models.WebTokenPayload
 import io.ktor.client.statement.bodyAsText
@@ -171,77 +166,44 @@ abstract class _DiscovrClientBase {
     suspend fun getRowItems(pageId: String, rowId: String, nextPageToken: String? = null, limit: Int? = null, bypassCache: Boolean = false): GetRowItemsResponse =
         _cache.wrap("getRowItems", mapOf("pageId" to pageId, "rowId" to rowId, "nextPageToken" to nextPageToken, "limit" to limit), null, bypassCache) { sessionApiCall { getRowItems(pageId, rowId, nextPageToken = nextPageToken, limit = limit) } }
 
-    suspend fun getLikedItems(nextPageToken: String? = null, limit: Int? = null): SimpleListResponse =
-        sessionApiCall { getLikedItems(nextPageToken = nextPageToken, limit = limit) }
+    suspend fun getTitles(rating: Rating? = null, watchlist: Boolean? = false, watched: Boolean? = false, nextPageToken: String? = null, limit: Int? = null): TitleListResponse =
+        sessionApiCall { getTitles(rating = rating, watchlist = watchlist, watched = watched, nextPageToken = nextPageToken, limit = limit) }
 
-    suspend fun addLikedItem(mediaId: String): SuccessMessage =
-        sessionApiCall { addLikedItem(AddSimpleListItemPayload(mediaId = mediaId)) }
+    suspend fun getTitleState(mediaId: String, providers: Boolean? = false): TitleState =
+        sessionApiCall { getTitleState(mediaId, providers = providers) }
 
-    suspend fun deleteLikedItem(mediaId: String): SuccessMessage =
-        sessionApiCall { deleteLikedItem(mediaId) }
+    suspend fun getSeasonState(mediaId: String, seasonNumber: Int): SeasonState =
+        sessionApiCall { getSeasonState(mediaId, seasonNumber) }
 
-    suspend fun getDislikedItems(nextPageToken: String? = null, limit: Int? = null): SimpleListResponse =
-        sessionApiCall { getDislikedItems(nextPageToken = nextPageToken, limit = limit) }
+    suspend fun setRating(mediaId: String, value: Rating): TitleState =
+        sessionApiCall { setRating(mediaId, SetRatingPayload(value = value)) }
 
-    suspend fun addDislikedItem(mediaId: String): SuccessMessage =
-        sessionApiCall { addDislikedItem(AddSimpleListItemPayload(mediaId = mediaId)) }
+    suspend fun clearRating(mediaId: String): TitleState =
+        sessionApiCall { clearRating(mediaId) }
 
-    suspend fun deleteDislikedItem(mediaId: String): SuccessMessage =
-        sessionApiCall { deleteDislikedItem(mediaId) }
+    suspend fun addToWatchlist(mediaId: String): TitleState =
+        sessionApiCall { addToWatchlist(mediaId) }
 
-    suspend fun getSuperLikedItems(nextPageToken: String? = null, limit: Int? = null): SimpleListResponse =
-        sessionApiCall { getSuperLikedItems(nextPageToken = nextPageToken, limit = limit) }
+    suspend fun removeFromWatchlist(mediaId: String): TitleState =
+        sessionApiCall { removeFromWatchlist(mediaId) }
 
-    suspend fun addSuperLikedItem(mediaId: String): SuccessMessage =
-        sessionApiCall { addSuperLikedItem(AddSimpleListItemPayload(mediaId = mediaId)) }
+    suspend fun markWatched(mediaId: String, season: Int? = null, episode: Int? = null): TitleState =
+        sessionApiCall { markWatched(mediaId, season = season, episode = episode) }
 
-    suspend fun deleteSuperLikedItem(mediaId: String): SuccessMessage =
-        sessionApiCall { deleteSuperLikedItem(mediaId) }
-
-    suspend fun getWatchlistItems(nextPageToken: String? = null, limit: Int? = null): SimpleListResponse =
-        sessionApiCall { getWatchlistItems(nextPageToken = nextPageToken, limit = limit) }
-
-    suspend fun addWatchlistItem(mediaId: String): SuccessMessage =
-        sessionApiCall { addWatchlistItem(AddSimpleListItemPayload(mediaId = mediaId)) }
-
-    suspend fun deleteWatchlistItem(mediaId: String): SuccessMessage =
-        sessionApiCall { deleteWatchlistItem(mediaId) }
+    suspend fun markUnwatched(mediaId: String, season: Int? = null, episode: Int? = null): TitleState =
+        sessionApiCall { markUnwatched(mediaId, season = season, episode = episode) }
 
     suspend fun getPlaybackItems(nextPageToken: String? = null, limit: Int? = null): PlaybackListResponse =
         sessionApiCall { getPlaybackItems(nextPageToken = nextPageToken, limit = limit) }
 
-    suspend fun addPlaybackItem(mediaId: String, progress: Double? = null, updatedAt: kotlin.time.Instant? = null): SuccessMessage =
-        sessionApiCall { addPlaybackItem(AddPlaybackPayload(mediaId = mediaId, progress = progress, updatedAt = updatedAt)) }
-
-    suspend fun updatePlaybackItem(mediaId: String, progress: Double? = null, updatedAt: kotlin.time.Instant? = null): SuccessMessage =
-        sessionApiCall { updatePlaybackItem(EditPlaybackPayload(mediaId = mediaId, progress = progress, updatedAt = updatedAt)) }
-
     suspend fun deletePlaybackItem(mediaId: String): SuccessMessage =
         sessionApiCall { deletePlaybackItem(mediaId) }
-
-    suspend fun markUnwatched(mediaId: String, season: Int? = null, episode: Int? = null): SuccessMessage =
-        sessionApiCall { markUnwatched(mediaId, season = season, episode = episode) }
 
     suspend fun scrobble(mediaId: String, progress: Double, tv: EpisodeRef? = null): ScrobbleResponse =
         sessionApiCall { scrobble(mediaId, ScrobbleProgressBody(progress = progress, tv = tv)) }
 
-    suspend fun scrobbleSkip(mediaId: String, from: Double, to: Double, duration: Double, tv: EpisodeRef? = null): ScrobbleSkipResponse =
-        sessionApiCall { scrobbleSkip(mediaId, ScrobbleSkipBody(from = from, to = to, duration = duration, tv = tv)) }
-
-    suspend fun getHistoryItems(nextPageToken: String? = null, limit: Int? = null): HistoryListResponse =
-        sessionApiCall { getHistoryItems(nextPageToken = nextPageToken, limit = limit) }
-
-    suspend fun addHistoryItem(mediaId: String, updatedAt: kotlin.time.Instant? = null, progress: Double? = null, season: Int? = null, episode: Int? = null, imported: String? = null): SuccessMessage =
-        sessionApiCall { addHistoryItem(AddHistoryPayload(mediaId = mediaId, updatedAt = updatedAt, progress = progress, season = season, episode = episode, imported = imported)) }
-
-    suspend fun getHistoryItemsByMediaId(mediaId: String, season: Int? = null, episode: Int? = null, nextPageToken: String? = null, limit: Int? = null): HistoryListResponse =
-        sessionApiCall { getHistoryItemsByMediaId(mediaId, season = season, episode = episode, nextPageToken = nextPageToken, limit = limit) }
-
-    suspend fun patchHistoryItem(mediaId: String, progress: Double, season: Int? = null, episode: Int? = null): SuccessMessage =
-        sessionApiCall { patchHistoryItem(mediaId, PatchHistoryPayload(progress = progress), season = season, episode = episode) }
-
-    suspend fun deleteHistoryItem(mediaId: String, season: Int? = null, episode: Int? = null): SuccessMessage =
-        sessionApiCall { deleteHistoryItem(mediaId, season = season, episode = episode) }
+    suspend fun importHistory(mediaId: String, imported: String, updatedAt: kotlin.time.Instant? = null, season: Int? = null, episode: Int? = null): TitleState =
+        sessionApiCall { importHistory(ImportHistoryPayload(mediaId = mediaId, imported = imported, updatedAt = updatedAt, season = season, episode = episode)) }
 
     suspend fun getMedia(mediaId: String, bypassCache: Boolean = false): MediaResponse =
         _cache.wrap("getMedia", mapOf("mediaId" to mediaId), null, bypassCache) { sessionApiCall { getMedia(mediaId) } }
@@ -249,14 +211,8 @@ abstract class _DiscovrClientBase {
     suspend fun getMediaAssets(mediaId: String, bypassCache: Boolean = false): MediaAssetsResponse =
         _cache.wrap("getMediaAssets", mapOf("mediaId" to mediaId), null, bypassCache) { sessionApiCall { getMediaAssets(mediaId) } }
 
-    suspend fun getMediaProfileMeta(mediaId: String, providers: Boolean? = false): MediaProfileMeta =
-        sessionApiCall { getMediaProfileMeta(mediaId, providers = providers) }
-
     suspend fun getSeasonDetails(mediaId: String, seasonNumber: Int, language: String? = null, bypassCache: Boolean = false): SeasonDetailsResponse =
         _cache.wrap("getSeasonDetails", mapOf("mediaId" to mediaId, "seasonNumber" to seasonNumber, "language" to language), null, bypassCache) { sessionApiCall { getSeasonDetails(mediaId, seasonNumber, language = language) } }
-
-    suspend fun getSeasonProfileMeta(mediaId: String, seasonNumber: Int): SeasonProfileMeta =
-        sessionApiCall { getSeasonProfileMeta(mediaId, seasonNumber) }
 
     suspend fun getSimilarRecommendations(mediaId: String, language: String? = null, page: Int? = null, bypassCache: Boolean = false): SimilarResponse =
         _cache.wrap("getSimilarRecommendations", mapOf("mediaId" to mediaId, "language" to language, "page" to page), 3600000L, bypassCache) { sessionApiCall { getSimilarRecommendations(mediaId, language = language, page = page) } }

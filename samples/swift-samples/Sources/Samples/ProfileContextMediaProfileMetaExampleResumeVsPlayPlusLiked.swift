@@ -8,14 +8,14 @@ struct PrimaryCTA {
 	var progress: Double?
 }
 
-func primaryCTA(from meta: MediaProfileMeta) -> PrimaryCTA {
-	if meta.playback.inlist, let d = meta.playback.data {
-		return PrimaryCTA(label: "Resume", progress: d.progress)
+func primaryCTA(from state: TitleState) -> PrimaryCTA {
+	if let p = state.playback {
+		return PrimaryCTA(label: "Resume", progress: p.progress)
 	}
 	return PrimaryCTA(label: "Play", progress: nil)
 }
 
-func liked(_ meta: MediaProfileMeta) -> Bool {
-	meta.liked
+func liked(_ state: TitleState) -> Bool {
+	state.rating == .liked
 }
 // docs:end

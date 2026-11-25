@@ -1,0 +1,115 @@
+---
+title: "importHistory()"
+description: "Import a watch history entry"
+---
+
+Imports a previously watched movie, show, season, or episode from an external source.
+
+- `mediaId`: the title to import (`MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows).
+- `imported`: required string naming the external source (for example `"trakt"`).
+- `updatedAt`: optional ISO 8601 timestamp of when it was watched. Defaults to now.
+- `season` / `episode`: optional TV scope. Omit both to import all aired episodes of the show; pass `season` to import that season; pass both to import a single episode.
+
+For live viewing use `scrobble()`, and for interactive "Mark as watched" buttons use `markWatched()`. To read watch history, use `GET /profile/titles?watched=true`.
+
+Returns the title's updated `TitleState`.
+
+**Auth tier:** session — send your session token in `Authorization: Bearer`.
+
+## Parameters
+
+| Name      | Type                 | Required | Description                                                                                                           |
+| --------- | -------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| mediaId   | `string`             | Yes      | Full media ID (`MV_&lt;number&gt;` or `TV_&lt;number&gt;`), or an item `ref`.                                         |
+| imported  | `string`             | Yes      | Name of the external source being imported from (for example `"trakt"`).                                              |
+| updatedAt | `string (date-time)` | No       | ISO 8601 timestamp of when the title was watched. Defaults to now if omitted.                                         |
+| season    | `integer`            | No       | TV only. Season number to import. Omit to import every aired episode of the show.                                     |
+| episode   | `integer`            | No       | TV only, and only together with `season`. Episode number to import. Omit to import every aired episode of the season. |
+
+## Returns
+
+[`TitleState`](/sdk-reference/types/common#titlestate) — History imported; returns the title's new state.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "mediaId": "string",
+  "mediaType": "movie" /* enum: "movie", "tv" */,
+  "rating": "liked" /* Rating: "liked", "disliked", "super_liked" */,
+  "watchlist": false,
+  "watched": false,
+  "completed": false,
+  "completedSeasons": ["integer"],
+  "episodes": {
+  "1": [1,2,3,4,5,6,7]
+},
+  "plays": 7,
+  "playback": {
+  "progress": 45.5,
+  "season": 2,
+  "episode": 5,
+  "updatedAt": "string" /* date-time */
+},
+  "providers": [
+{
+  "id": "string",
+  "title": "string",
+  "logos": {
+  "60": "https://is1-ssl.mzstatic.com/image/thumb/.../60x60bb.jpg",
+  "100": "https://is1-ssl.mzstatic.com/image/thumb/.../100x100bb.jpg",
+  "512": "https://is1-ssl.mzstatic.com/image/thumb/.../512x512bb.jpg",
+  "1024": "https://is1-ssl.mzstatic.com/image/thumb/.../1024x1024bb.png"
+},
+  "regions": {
+  "<key>": "object" /* dynamic keys, shape not fixed in OpenAPI */
+}
+}
+]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { ImportHistoryPayload, TitleState } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: TitleState = await discovr.importHistory("TV_1396", "trakt", {
+	updatedAt: "2023-01-15T20:00:00.000Z",
+	season: 1,
+	episode: 5,
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.ImportHistoryPayload
+import api.discovr.models.TitleState
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: TitleState = client.importHistory(mediaId = "TV_1396", imported = "trakt", updatedAt = "2023-01-15T20:00:00.000Z", season = 1, episode = 5)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// ImportHistoryPayload, TitleState
+let response: TitleState = try await client.importHistory(mediaId: "TV_1396", imported: "trakt", updatedAt: "2023-01-15T20:00:00.000Z", season: 1, episode: 5)
+print(response)
+```
+
+</CodeGroup>

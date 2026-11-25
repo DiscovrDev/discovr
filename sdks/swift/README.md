@@ -22,7 +22,7 @@ likes, history, playback, and watchlists. The active profile is carried
 by the session token, so profile-scoped endpoints don't accept a
 `profileId` path parameter — they live under `/profile/_*`.
 
-**Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta`
+**Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}`
 records that the viewer opened a title and directly affects the profile's
 recommendations. Only call it when the title screen actually opens —
 prefetching or calling it on hover/focus registers every loaded tile
@@ -61,30 +61,16 @@ Class | Method | HTTP request | Description
 *AuthenticationAPI* | [**requestDeviceCode**](docs/AuthenticationAPI.md#requestdevicecode) | **POST** /auth/device-codes | Request device code
 *AuthenticationAPI* | [**signOutSession**](docs/AuthenticationAPI.md#signoutsession) | **DELETE** /auth/session | Sign out the current device
 *AuthenticationAPI* | [**startDemoSession**](docs/AuthenticationAPI.md#startdemosession) | **POST** /auth/demo-session | Start a demo session
-*DiscovrAPI* | [**addDislikedItem**](docs/DiscovrAPI.md#adddislikeditem) | **POST** /profile/disliked | Add an item to disliked list
-*DiscovrAPI* | [**addHistoryItem**](docs/DiscovrAPI.md#addhistoryitem) | **POST** /profile/history | Add an item to history list
-*DiscovrAPI* | [**addLikedItem**](docs/DiscovrAPI.md#addlikeditem) | **POST** /profile/liked | Add an item to liked list
-*DiscovrAPI* | [**addPlaybackItem**](docs/DiscovrAPI.md#addplaybackitem) | **POST** /profile/playback | Add an item to playback list
-*DiscovrAPI* | [**addSuperLikedItem**](docs/DiscovrAPI.md#addsuperlikeditem) | **POST** /profile/super_liked | Add an item to the super-liked list
-*DiscovrAPI* | [**addWatchlistItem**](docs/DiscovrAPI.md#addwatchlistitem) | **POST** /profile/watchlist | Add an item to watchlist
+*DiscovrAPI* | [**addToWatchlist**](docs/DiscovrAPI.md#addtowatchlist) | **PUT** /profile/titles/{mediaId}/watchlist | Add a title to the watchlist
 *DiscovrAPI* | [**authorizeClientWeb**](docs/DiscovrAPI.md#authorizeclientweb) | **GET** /auth/web/authorize | Redirect to web authentication
+*DiscovrAPI* | [**clearRating**](docs/DiscovrAPI.md#clearrating) | **DELETE** /profile/titles/{mediaId}/rating | Clear a title&#39;s rating
 *DiscovrAPI* | [**createPage**](docs/DiscovrAPI.md#createpage) | **POST** /pages | Create a recommendation page
 *DiscovrAPI* | [**createProfile**](docs/DiscovrAPI.md#createprofile) | **POST** /profiles | Create a profile
-*DiscovrAPI* | [**deleteDislikedItem**](docs/DiscovrAPI.md#deletedislikeditem) | **DELETE** /profile/disliked/{mediaId} | Delete an item from disliked list
-*DiscovrAPI* | [**deleteHistoryItem**](docs/DiscovrAPI.md#deletehistoryitem) | **DELETE** /profile/history/{mediaId} | Delete an item from history list
-*DiscovrAPI* | [**deleteLikedItem**](docs/DiscovrAPI.md#deletelikeditem) | **DELETE** /profile/liked/{mediaId} | Delete an item from liked list
-*DiscovrAPI* | [**deletePlaybackItem**](docs/DiscovrAPI.md#deleteplaybackitem) | **DELETE** /profile/playback/{mediaId} | Delete an item from playback list
+*DiscovrAPI* | [**deletePlaybackItem**](docs/DiscovrAPI.md#deleteplaybackitem) | **DELETE** /profile/playback/{mediaId} | Remove a title from Continue Watching
 *DiscovrAPI* | [**deleteProfile**](docs/DiscovrAPI.md#deleteprofile) | **DELETE** /profiles/{profileId} | Delete a profile
-*DiscovrAPI* | [**deleteSuperLikedItem**](docs/DiscovrAPI.md#deletesuperlikeditem) | **DELETE** /profile/super_liked/{mediaId} | Delete an item from the super-liked list
-*DiscovrAPI* | [**deleteWatchlistItem**](docs/DiscovrAPI.md#deletewatchlistitem) | **DELETE** /profile/watchlist/{mediaId} | Delete an item from watchlist
 *DiscovrAPI* | [**exchangeWebAuthCode**](docs/DiscovrAPI.md#exchangewebauthcode) | **POST** /auth/web/token | Redeem a web sign-in code
-*DiscovrAPI* | [**getDislikedItems**](docs/DiscovrAPI.md#getdislikeditems) | **GET** /profile/disliked | Get disliked items
-*DiscovrAPI* | [**getHistoryItems**](docs/DiscovrAPI.md#gethistoryitems) | **GET** /profile/history | Get history items
-*DiscovrAPI* | [**getHistoryItemsByMediaId**](docs/DiscovrAPI.md#gethistoryitemsbymediaid) | **GET** /profile/history/{mediaId} | Get history items for a specific media
-*DiscovrAPI* | [**getLikedItems**](docs/DiscovrAPI.md#getlikeditems) | **GET** /profile/liked | Get liked items
 *DiscovrAPI* | [**getMedia**](docs/DiscovrAPI.md#getmedia) | **GET** /media/{mediaId} | Get media details
 *DiscovrAPI* | [**getMediaAssets**](docs/DiscovrAPI.md#getmediaassets) | **GET** /media/{mediaId}/assets | Get media assets
-*DiscovrAPI* | [**getMediaProfileMeta**](docs/DiscovrAPI.md#getmediaprofilemeta) | **GET** /media/{mediaId}/profile_meta | Get profile interaction data for a title
 *DiscovrAPI* | [**getPage**](docs/DiscovrAPI.md#getpage) | **GET** /pages/{pageId} | Get a page
 *DiscovrAPI* | [**getPlaybackItems**](docs/DiscovrAPI.md#getplaybackitems) | **GET** /profile/playback | Get playback items
 *DiscovrAPI* | [**getProfile**](docs/DiscovrAPI.md#getprofile) | **GET** /profiles/{profileId} | Get a profile
@@ -94,54 +80,42 @@ Class | Method | HTTP request | Description
 *DiscovrAPI* | [**getRowItems**](docs/DiscovrAPI.md#getrowitems) | **GET** /pages/{pageId}/rows/{rowId}/items | List row items
 *DiscovrAPI* | [**getRows**](docs/DiscovrAPI.md#getrows) | **GET** /pages/{pageId}/rows | List rows
 *DiscovrAPI* | [**getSeasonDetails**](docs/DiscovrAPI.md#getseasondetails) | **GET** /media/{mediaId}/seasons/{seasonNumber} | Get TV season details
-*DiscovrAPI* | [**getSeasonProfileMeta**](docs/DiscovrAPI.md#getseasonprofilemeta) | **GET** /media/{mediaId}/seasons/{seasonNumber}/meta | Get which episodes of a TV season are finished
+*DiscovrAPI* | [**getSeasonState**](docs/DiscovrAPI.md#getseasonstate) | **GET** /profile/titles/{mediaId}/seasons/{seasonNumber} | Get which episodes of a TV season are watched
 *DiscovrAPI* | [**getSimilarRecommendations**](docs/DiscovrAPI.md#getsimilarrecommendations) | **GET** /media/{mediaId}/similar | Get similar titles
-*DiscovrAPI* | [**getSuperLikedItems**](docs/DiscovrAPI.md#getsuperlikeditems) | **GET** /profile/super_liked | Get super-liked items
-*DiscovrAPI* | [**getWatchlistItems**](docs/DiscovrAPI.md#getwatchlistitems) | **GET** /profile/watchlist | Get watchlist items
-*DiscovrAPI* | [**markUnwatched**](docs/DiscovrAPI.md#markunwatched) | **DELETE** /profile/watched/{mediaId} | Mark a title as unwatched
+*DiscovrAPI* | [**getTitleState**](docs/DiscovrAPI.md#gettitlestate) | **GET** /profile/titles/{mediaId} | Get the active profile&#39;s state for a title
+*DiscovrAPI* | [**getTitles**](docs/DiscovrAPI.md#gettitles) | **GET** /profile/titles | List titles by rating, watchlist, or watch history
+*DiscovrAPI* | [**importHistory**](docs/DiscovrAPI.md#importhistory) | **POST** /profile/history | Import a watch history entry
+*DiscovrAPI* | [**markUnwatched**](docs/DiscovrAPI.md#markunwatched) | **DELETE** /profile/titles/{mediaId}/watched | Mark a title, season, or episode as unwatched
+*DiscovrAPI* | [**markWatched**](docs/DiscovrAPI.md#markwatched) | **PUT** /profile/titles/{mediaId}/watched | Mark a title, season, or episode as watched
 *DiscovrAPI* | [**mintSessionToken**](docs/DiscovrAPI.md#mintsessiontoken) | **POST** /auth/session-token | Mint a session token
-*DiscovrAPI* | [**patchHistoryItem**](docs/DiscovrAPI.md#patchhistoryitem) | **PATCH** /profile/history/{mediaId} | Update or create a history item
 *DiscovrAPI* | [**pollDeviceCode**](docs/DiscovrAPI.md#polldevicecode) | **POST** /auth/device-codes/{deviceCode}/poll | Poll for auth token
+*DiscovrAPI* | [**removeFromWatchlist**](docs/DiscovrAPI.md#removefromwatchlist) | **DELETE** /profile/titles/{mediaId}/watchlist | Remove a title from the watchlist
 *DiscovrAPI* | [**requestDeviceCode**](docs/DiscovrAPI.md#requestdevicecode) | **POST** /auth/device-codes | Request device code
 *DiscovrAPI* | [**scrobble**](docs/DiscovrAPI.md#scrobble) | **POST** /profile/scrobble/{mediaId} | Record playback progress
-*DiscovrAPI* | [**scrobbleSkip**](docs/DiscovrAPI.md#scrobbleskip) | **POST** /profile/scrobble/{mediaId}/skip | Record a skip event
 *DiscovrAPI* | [**searchGifs**](docs/DiscovrAPI.md#searchgifs) | **GET** /gif-search | Search GIFs
 *DiscovrAPI* | [**searchMedia**](docs/DiscovrAPI.md#searchmedia) | **GET** /search | Search media
+*DiscovrAPI* | [**setRating**](docs/DiscovrAPI.md#setrating) | **PUT** /profile/titles/{mediaId}/rating | Set a title&#39;s rating
 *DiscovrAPI* | [**signOutSession**](docs/DiscovrAPI.md#signoutsession) | **DELETE** /auth/session | Sign out the current device
 *DiscovrAPI* | [**startDemoSession**](docs/DiscovrAPI.md#startdemosession) | **POST** /auth/demo-session | Start a demo session
-*DiscovrAPI* | [**updatePlaybackItem**](docs/DiscovrAPI.md#updateplaybackitem) | **PATCH** /profile/playback | Update playback progress
 *DiscovrAPI* | [**updateProfile**](docs/DiscovrAPI.md#updateprofile) | **PATCH** /profiles/{profileId} | Update a profile
 *MediaAPI* | [**getMedia**](docs/MediaAPI.md#getmedia) | **GET** /media/{mediaId} | Get media details
 *MediaAPI* | [**getMediaAssets**](docs/MediaAPI.md#getmediaassets) | **GET** /media/{mediaId}/assets | Get media assets
-*MediaAPI* | [**getMediaProfileMeta**](docs/MediaAPI.md#getmediaprofilemeta) | **GET** /media/{mediaId}/profile_meta | Get profile interaction data for a title
 *MediaAPI* | [**getSeasonDetails**](docs/MediaAPI.md#getseasondetails) | **GET** /media/{mediaId}/seasons/{seasonNumber} | Get TV season details
-*MediaAPI* | [**getSeasonProfileMeta**](docs/MediaAPI.md#getseasonprofilemeta) | **GET** /media/{mediaId}/seasons/{seasonNumber}/meta | Get which episodes of a TV season are finished
 *MediaAPI* | [**getSimilarRecommendations**](docs/MediaAPI.md#getsimilarrecommendations) | **GET** /media/{mediaId}/similar | Get similar titles
 *MiscAPI* | [**getProfileImages**](docs/MiscAPI.md#getprofileimages) | **GET** /profile-images | List avatar images
 *MiscAPI* | [**searchGifs**](docs/MiscAPI.md#searchgifs) | **GET** /gif-search | Search GIFs
 *PagesAPI* | [**createPage**](docs/PagesAPI.md#createpage) | **POST** /pages | Create a recommendation page
 *PagesAPI* | [**getPage**](docs/PagesAPI.md#getpage) | **GET** /pages/{pageId} | Get a page
-*ProfileListsAPI* | [**addDislikedItem**](docs/ProfileListsAPI.md#adddislikeditem) | **POST** /profile/disliked | Add an item to disliked list
-*ProfileListsAPI* | [**addHistoryItem**](docs/ProfileListsAPI.md#addhistoryitem) | **POST** /profile/history | Add an item to history list
-*ProfileListsAPI* | [**addLikedItem**](docs/ProfileListsAPI.md#addlikeditem) | **POST** /profile/liked | Add an item to liked list
-*ProfileListsAPI* | [**addPlaybackItem**](docs/ProfileListsAPI.md#addplaybackitem) | **POST** /profile/playback | Add an item to playback list
-*ProfileListsAPI* | [**addSuperLikedItem**](docs/ProfileListsAPI.md#addsuperlikeditem) | **POST** /profile/super_liked | Add an item to the super-liked list
-*ProfileListsAPI* | [**addWatchlistItem**](docs/ProfileListsAPI.md#addwatchlistitem) | **POST** /profile/watchlist | Add an item to watchlist
-*ProfileListsAPI* | [**deleteDislikedItem**](docs/ProfileListsAPI.md#deletedislikeditem) | **DELETE** /profile/disliked/{mediaId} | Delete an item from disliked list
-*ProfileListsAPI* | [**deleteHistoryItem**](docs/ProfileListsAPI.md#deletehistoryitem) | **DELETE** /profile/history/{mediaId} | Delete an item from history list
-*ProfileListsAPI* | [**deleteLikedItem**](docs/ProfileListsAPI.md#deletelikeditem) | **DELETE** /profile/liked/{mediaId} | Delete an item from liked list
-*ProfileListsAPI* | [**deletePlaybackItem**](docs/ProfileListsAPI.md#deleteplaybackitem) | **DELETE** /profile/playback/{mediaId} | Delete an item from playback list
-*ProfileListsAPI* | [**deleteSuperLikedItem**](docs/ProfileListsAPI.md#deletesuperlikeditem) | **DELETE** /profile/super_liked/{mediaId} | Delete an item from the super-liked list
-*ProfileListsAPI* | [**deleteWatchlistItem**](docs/ProfileListsAPI.md#deletewatchlistitem) | **DELETE** /profile/watchlist/{mediaId} | Delete an item from watchlist
-*ProfileListsAPI* | [**getDislikedItems**](docs/ProfileListsAPI.md#getdislikeditems) | **GET** /profile/disliked | Get disliked items
-*ProfileListsAPI* | [**getHistoryItems**](docs/ProfileListsAPI.md#gethistoryitems) | **GET** /profile/history | Get history items
-*ProfileListsAPI* | [**getHistoryItemsByMediaId**](docs/ProfileListsAPI.md#gethistoryitemsbymediaid) | **GET** /profile/history/{mediaId} | Get history items for a specific media
-*ProfileListsAPI* | [**getLikedItems**](docs/ProfileListsAPI.md#getlikeditems) | **GET** /profile/liked | Get liked items
+*ProfileListsAPI* | [**addToWatchlist**](docs/ProfileListsAPI.md#addtowatchlist) | **PUT** /profile/titles/{mediaId}/watchlist | Add a title to the watchlist
+*ProfileListsAPI* | [**clearRating**](docs/ProfileListsAPI.md#clearrating) | **DELETE** /profile/titles/{mediaId}/rating | Clear a title&#39;s rating
+*ProfileListsAPI* | [**deletePlaybackItem**](docs/ProfileListsAPI.md#deleteplaybackitem) | **DELETE** /profile/playback/{mediaId} | Remove a title from Continue Watching
 *ProfileListsAPI* | [**getPlaybackItems**](docs/ProfileListsAPI.md#getplaybackitems) | **GET** /profile/playback | Get playback items
-*ProfileListsAPI* | [**getSuperLikedItems**](docs/ProfileListsAPI.md#getsuperlikeditems) | **GET** /profile/super_liked | Get super-liked items
-*ProfileListsAPI* | [**getWatchlistItems**](docs/ProfileListsAPI.md#getwatchlistitems) | **GET** /profile/watchlist | Get watchlist items
-*ProfileListsAPI* | [**patchHistoryItem**](docs/ProfileListsAPI.md#patchhistoryitem) | **PATCH** /profile/history/{mediaId} | Update or create a history item
-*ProfileListsAPI* | [**updatePlaybackItem**](docs/ProfileListsAPI.md#updateplaybackitem) | **PATCH** /profile/playback | Update playback progress
+*ProfileListsAPI* | [**getSeasonState**](docs/ProfileListsAPI.md#getseasonstate) | **GET** /profile/titles/{mediaId}/seasons/{seasonNumber} | Get which episodes of a TV season are watched
+*ProfileListsAPI* | [**getTitleState**](docs/ProfileListsAPI.md#gettitlestate) | **GET** /profile/titles/{mediaId} | Get the active profile&#39;s state for a title
+*ProfileListsAPI* | [**getTitles**](docs/ProfileListsAPI.md#gettitles) | **GET** /profile/titles | List titles by rating, watchlist, or watch history
+*ProfileListsAPI* | [**importHistory**](docs/ProfileListsAPI.md#importhistory) | **POST** /profile/history | Import a watch history entry
+*ProfileListsAPI* | [**removeFromWatchlist**](docs/ProfileListsAPI.md#removefromwatchlist) | **DELETE** /profile/titles/{mediaId}/watchlist | Remove a title from the watchlist
+*ProfileListsAPI* | [**setRating**](docs/ProfileListsAPI.md#setrating) | **PUT** /profile/titles/{mediaId}/rating | Set a title&#39;s rating
 *ProfilesAPI* | [**createProfile**](docs/ProfilesAPI.md#createprofile) | **POST** /profiles | Create a profile
 *ProfilesAPI* | [**deleteProfile**](docs/ProfilesAPI.md#deleteprofile) | **DELETE** /profiles/{profileId} | Delete a profile
 *ProfilesAPI* | [**getProfile**](docs/ProfilesAPI.md#getprofile) | **GET** /profiles/{profileId} | Get a profile
@@ -150,17 +124,14 @@ Class | Method | HTTP request | Description
 *RowsAPI* | [**getRow**](docs/RowsAPI.md#getrow) | **GET** /pages/{pageId}/rows/{rowId} | Get a row
 *RowsAPI* | [**getRowItems**](docs/RowsAPI.md#getrowitems) | **GET** /pages/{pageId}/rows/{rowId}/items | List row items
 *RowsAPI* | [**getRows**](docs/RowsAPI.md#getrows) | **GET** /pages/{pageId}/rows | List rows
-*ScrobbleAPI* | [**markUnwatched**](docs/ScrobbleAPI.md#markunwatched) | **DELETE** /profile/watched/{mediaId} | Mark a title as unwatched
+*ScrobbleAPI* | [**markUnwatched**](docs/ScrobbleAPI.md#markunwatched) | **DELETE** /profile/titles/{mediaId}/watched | Mark a title, season, or episode as unwatched
+*ScrobbleAPI* | [**markWatched**](docs/ScrobbleAPI.md#markwatched) | **PUT** /profile/titles/{mediaId}/watched | Mark a title, season, or episode as watched
 *ScrobbleAPI* | [**scrobble**](docs/ScrobbleAPI.md#scrobble) | **POST** /profile/scrobble/{mediaId} | Record playback progress
-*ScrobbleAPI* | [**scrobbleSkip**](docs/ScrobbleAPI.md#scrobbleskip) | **POST** /profile/scrobble/{mediaId}/skip | Record a skip event
 *SearchAPI* | [**searchMedia**](docs/SearchAPI.md#searchmedia) | **GET** /search | Search media
 
 
 ## Documentation For Models
 
- - [AddHistoryPayload](docs/AddHistoryPayload.md)
- - [AddPlaybackPayload](docs/AddPlaybackPayload.md)
- - [AddSimpleListItemPayload](docs/AddSimpleListItemPayload.md)
  - [ApiError](docs/ApiError.md)
  - [ApiErrorCode](docs/ApiErrorCode.md)
  - [AvatarMediaType](docs/AvatarMediaType.md)
@@ -178,7 +149,6 @@ Class | Method | HTTP request | Description
  - [DeviceCodePollResponse](docs/DeviceCodePollResponse.md)
  - [DeviceCodeResponse](docs/DeviceCodeResponse.md)
  - [DevicePollPayload](docs/DevicePollPayload.md)
- - [EditPlaybackPayload](docs/EditPlaybackPayload.md)
  - [Episode](docs/Episode.md)
  - [EpisodeCrewMember](docs/EpisodeCrewMember.md)
  - [EpisodeGuestStar](docs/EpisodeGuestStar.md)
@@ -191,8 +161,7 @@ Class | Method | HTTP request | Description
  - [GifItem](docs/GifItem.md)
  - [GifPreview](docs/GifPreview.md)
  - [GifSearchResponse](docs/GifSearchResponse.md)
- - [HistoryItem](docs/HistoryItem.md)
- - [HistoryListResponse](docs/HistoryListResponse.md)
+ - [ImportHistoryPayload](docs/ImportHistoryPayload.md)
  - [KnownForItem](docs/KnownForItem.md)
  - [MediaAssetsResponse](docs/MediaAssetsResponse.md)
  - [MediaAssetsTrailer](docs/MediaAssetsTrailer.md)
@@ -201,8 +170,6 @@ Class | Method | HTTP request | Description
  - [MediaItem](docs/MediaItem.md)
  - [MediaItemTrailer](docs/MediaItemTrailer.md)
  - [MediaItemType](docs/MediaItemType.md)
- - [MediaProfileMeta](docs/MediaProfileMeta.md)
- - [MediaProfileMetaPlayback](docs/MediaProfileMetaPlayback.md)
  - [MediaResponse](docs/MediaResponse.md)
  - [MediaResponseMovie](docs/MediaResponseMovie.md)
  - [MediaResponseTv](docs/MediaResponseTv.md)
@@ -211,10 +178,8 @@ Class | Method | HTTP request | Description
  - [NavigationItem](docs/NavigationItem.md)
  - [NavigationItemType](docs/NavigationItemType.md)
  - [Page](docs/Page.md)
- - [PatchHistoryPayload](docs/PatchHistoryPayload.md)
  - [PlaybackItem](docs/PlaybackItem.md)
  - [PlaybackListResponse](docs/PlaybackListResponse.md)
- - [PlaybackProgress](docs/PlaybackProgress.md)
  - [Profile](docs/Profile.md)
  - [ProfileImagesResponse](docs/ProfileImagesResponse.md)
  - [ProviderInfo](docs/ProviderInfo.md)
@@ -222,26 +187,28 @@ Class | Method | HTTP request | Description
  - [ProviderItem](docs/ProviderItem.md)
  - [ProviderItemType](docs/ProviderItemType.md)
  - [RateLimitedError](docs/RateLimitedError.md)
+ - [Rating](docs/Rating.md)
  - [RefreshTokenResponse](docs/RefreshTokenResponse.md)
  - [Row](docs/Row.md)
  - [RowItem](docs/RowItem.md)
  - [RowType](docs/RowType.md)
  - [ScrobbleProgressBody](docs/ScrobbleProgressBody.md)
  - [ScrobbleResponse](docs/ScrobbleResponse.md)
- - [ScrobbleSkipBody](docs/ScrobbleSkipBody.md)
- - [ScrobbleSkipResponse](docs/ScrobbleSkipResponse.md)
  - [SearchResponse](docs/SearchResponse.md)
  - [SearchResult](docs/SearchResult.md)
  - [SeasonDetailsResponse](docs/SeasonDetailsResponse.md)
- - [SeasonProfileMeta](docs/SeasonProfileMeta.md)
- - [SeasonProfileMetaEpisode](docs/SeasonProfileMetaEpisode.md)
+ - [SeasonEpisodeState](docs/SeasonEpisodeState.md)
+ - [SeasonState](docs/SeasonState.md)
  - [SessionTokenResponse](docs/SessionTokenResponse.md)
+ - [SetRatingPayload](docs/SetRatingPayload.md)
  - [SignOutResponse](docs/SignOutResponse.md)
  - [SimilarResponse](docs/SimilarResponse.md)
  - [SimilarResult](docs/SimilarResult.md)
- - [SimpleListItem](docs/SimpleListItem.md)
- - [SimpleListResponse](docs/SimpleListResponse.md)
  - [SuccessMessage](docs/SuccessMessage.md)
+ - [TitleListItem](docs/TitleListItem.md)
+ - [TitleListResponse](docs/TitleListResponse.md)
+ - [TitlePlayback](docs/TitlePlayback.md)
+ - [TitleState](docs/TitleState.md)
  - [UpdateProfilePayload](docs/UpdateProfilePayload.md)
  - [WebTokenPayload](docs/WebTokenPayload.md)
 

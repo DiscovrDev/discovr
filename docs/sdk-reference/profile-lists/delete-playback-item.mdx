@@ -1,9 +1,9 @@
 ---
 title: "deletePlaybackItem()"
-description: "Delete an item from playback list"
+description: "Remove a title from Continue Watching"
 ---
 
-Removes a title from the in-progress list. Use `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `MV_550`, `TV_1396`).
+Removes a title from the in-progress Continue Watching list without changing its watched history. Use `MV_&lt;number&gt;` for movies, `TV_&lt;number&gt;` for TV shows (e.g., `MV_550`, `TV_1396`).
 
 ## Parameters
 
@@ -13,15 +13,13 @@ Removes a title from the in-progress list. Use `MV_&lt;number&gt;` for movies, `
 
 ## Returns
 
-[`SuccessMessage`](/sdk-reference/types/common#successmessage) — Item deleted successfully
+[`SuccessMessage`](/sdk-reference/types/profile-lists#successmessage) — Item deleted successfully
 
 <AccordionGroup>
 <Accordion title="View response structure">
 ```json
 {
-  "message": "string",
-  "added": "string",
-  "removed": "string"
+  "message": "string"
 }
 ```
 </Accordion>

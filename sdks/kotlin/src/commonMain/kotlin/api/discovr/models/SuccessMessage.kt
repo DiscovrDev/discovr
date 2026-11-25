@@ -21,24 +21,16 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 
 /**
- * Confirmation response with the action taken. For exclusive lists (liked/disliked/super_liked), also includes `added` (which list the item was added to) and optionally `removed` (which list it was removed from).
+ * Confirmation response for deletions that do not return a title state object.
  *
- * @param message Success message
- * @param added The list type the item was added to (for exclusive lists)
- * @param removed The list type the item was removed from, if any (for exclusive lists)
+ * @param message Success message.
  */
 @Serializable
 
 data class SuccessMessage (
 
-    /* Success message */
-    @SerialName(value = "message") @Required val message: kotlin.String,
-
-    /* The list type the item was added to (for exclusive lists) */
-    @SerialName(value = "added") val added: kotlin.String? = null,
-
-    /* The list type the item was removed from, if any (for exclusive lists) */
-    @SerialName(value = "removed") val removed: kotlin.String? = null
+    /* Success message. */
+    @SerialName(value = "message") @Required val message: kotlin.String
 
 ) {
 

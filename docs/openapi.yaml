@@ -24,7 +24,7 @@ info:
     by the session token, so profile-scoped endpoints don't accept a
     `profileId` path parameter — they live under `/profile/*`.
 
-    **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta`
+    **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}`
     records that the viewer opened a title and directly affects the profile's
     recommendations. Only call it when the title screen actually opens —
     prefetching or calling it on hover/focus registers every loaded tile
@@ -1690,41 +1690,58 @@ paths:
             // DeleteProfileResponse
             let response: DeleteProfileResponse = try await client.deleteProfile(profileId: "profile_abc123xyz")
             print(response)
-  /profile/liked:
+  /profile/titles:
     get:
       tags:
         - Discovr
         - Profile Lists
-      x-sdk-group: Likes
-      summary: Get liked items
+      x-sdk-group: Titles
+      summary: List titles by rating, watchlist, or watch history
       description: |
-        Returns the liked list for a specific profile.
+        Returns a paginated list of titles for the active profile, ordered most recent first.
 
-        **Auth tier:** session — send the session token from `POST /auth/session-token`.
+        Pass **exactly one** filter query parameter:
 
-        Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.
+        - `rating=liked`, `rating=disliked`, or `rating=super_liked` — titles with that rating, newest rated first.
+        - `watchlist=true` — the profile's watchlist, newest added first.
+        - `watched=true` — the profile's watch history (one entry per title, with `completed`, `plays`, and the last episode for TV shows), most recently watched first.
 
-        **Pagination:**
-        - Pass `nextPageToken` from a previous response to fetch the next page.
-        - If `hasMore` is `true`, there are more items available.
+        Each item includes a `ref` alongside its `id`. Pass the `ref` when the viewer opens or acts on the title.
 
-        **Exclusive lists:**
-        Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time.
-      operationId: getLikedItems
+        **Auth tier:** session — send your session token in `Authorization: Bearer`.
+      operationId: getTitles
       x-cache-policy: none
       security:
         - BearerAuth: []
       parameters:
+        - name: rating
+          in: query
+          required: false
+          description: Filter by rating (`liked`, `disliked`, or `super_liked`).
+          schema:
+            $ref: "#/components/schemas/Rating"
+        - name: watchlist
+          in: query
+          required: false
+          description: Set to `true` to list the profile's watchlist.
+          schema:
+            type: boolean
+        - name: watched
+          in: query
+          required: false
+          description: Set to `true` to list the profile's watch history (one row per title).
+          schema:
+            type: boolean
         - name: nextPageToken
           in: query
           required: false
-          description: Opaque token from previous page for pagination
+          description: Opaque cursor token from the previous page.
           schema:
             type: string
         - name: limit
           in: query
           required: false
-          description: "Maximum number of items to return (1-50, default: 10)"
+          description: Maximum number of titles to return (1–50, default 10).
           schema:
             type: integer
             minimum: 1
@@ -1732,17 +1749,15 @@ paths:
             default: 10
       responses:
         "200":
-          description: List of liked items retrieved successfully
+          description: Paginated list of matching titles.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SimpleListResponse"
+                $ref: "#/components/schemas/TitleListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
         "500":
@@ -1754,22 +1769,23 @@ paths:
           label: TypeScript
           source: |-
             import { DiscovrClient } from "discovr";
-            import type { SimpleListResponse } from "discovr";
+            import type { Rating, TitleListResponse } from "discovr";
 
             const discovr = new DiscovrClient("your-client-id");
 
             // After sign-in and profile selection …
-            const response: SimpleListResponse = await discovr.getLikedItems({ nextPageToken: "example", limit: 10 });
+            const response: TitleListResponse = await discovr.getTitles({ rating: "liked", watchlist: true, watched: true, nextPageToken: "example", limit: 10 });
             console.log(response);
         - lang: kotlin
           label: Kotlin
           source: |-
             import api.discovr.DiscovrClient
-            import api.discovr.models.SimpleListResponse
+            import api.discovr.models.Rating
+            import api.discovr.models.TitleListResponse
 
             // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
             suspend fun example(client: DiscovrClient) {
-                val response: SimpleListResponse = client.getLikedItems(nextPageToken = "example", limit = 10)
+                val response: TitleListResponse = client.getTitles(rating = "liked", watchlist = true, watched = true, nextPageToken = "example", limit = 10)
                 println(response)
             }
         - lang: swift
@@ -1779,392 +1795,56 @@ paths:
 
             let client = DiscovrClient(clientId: "your-client-id")
             // Response / argument types:
-            // SimpleListResponse
-            let response: SimpleListResponse = try await client.getLikedItems(nextPageToken: "example", limit: 10)
+            // Rating, TitleListResponse
+            let response: TitleListResponse = try await client.getTitles(rating: "liked", watchlist: true, watched: true, nextPageToken: "example", limit: 10)
             print(response)
-    post:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: Likes
-      summary: Add an item to liked list
-      description: |
-        Adds a title to the liked list.
-
-        **Auth tier:** session — send the session token from `POST /auth/session-token`.
-
-        Liked, disliked, and super-liked are exclusive — liking something automatically removes any existing dislike or super-like for the same title.
-
-        Returns `201` if the item was newly added, `200` if it was already liked.
-      operationId: addLikedItem
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AddSimpleListItemPayload"
-            example:
-              mediaId: MV_550
-      responses:
-        "200":
-          description: Item was already liked — no change made.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Item added to liked list successfully
-                added: liked
-        "201":
-          description: Item added to liked list.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Item added to liked list successfully
-                added: liked
-                removed: disliked
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { AddSimpleListItemPayload, SuccessMessage } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.addLikedItem("MV_550");
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.AddSimpleListItemPayload
-            import api.discovr.models.SuccessMessage
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.addLikedItem(mediaId = "MV_550")
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // AddSimpleListItemPayload, SuccessMessage
-            let response: SuccessMessage = try await client.addLikedItem(mediaId: "MV_550")
-            print(response)
-  /profile/liked/{mediaId}:
-    delete:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: Likes
-      summary: Delete an item from liked list
-      description: |
-        Removes a title from the liked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show).
-      operationId: deleteLikedItem
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: mediaId
-          in: path
-          required: true
-          description: |
-            Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
-          schema:
-            type: string
-          example: MV_550
-      responses:
-        "200":
-          description: Item deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Like deleted successfully
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { SuccessMessage } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.deleteLikedItem("MV_550");
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.SuccessMessage
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.deleteLikedItem(mediaId = "MV_550")
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // SuccessMessage
-            let response: SuccessMessage = try await client.deleteLikedItem(mediaId: "MV_550")
-            print(response)
-  /profile/disliked:
+  /profile/titles/{mediaId}:
     get:
       tags:
         - Discovr
         - Profile Lists
-      x-sdk-group: Dislikes
-      summary: Get disliked items
+      x-sdk-group: Title State
+      summary: Get the active profile's state for a title
       description: |
-        Returns the disliked list for a specific profile.
+        Returns everything your UI needs to show the active profile's relationship with a title:
 
-        **Auth tier:** session — send the session token from `POST /auth/session-token`.
+        - **Rating**: `liked`, `disliked`, `super_liked`, or `null`.
+        - **Watchlist**: whether the title is saved to the watchlist.
+        - **Watch progress & completion**: whether the profile has started (`watched`) or finished (`completed`) the title, total `plays`, watched `episodes` and `completedSeasons` for TV shows, and the live `playback` resume position when mid-watch.
+        - **Providers** *(optional)*: pass `providers=true` to include streaming availability filtered to the account's chosen services.
 
-        Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.
+        **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened the title and directly affects the profile's recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Every state write (`setRating`, `clearRating`, `addToWatchlist`, `removeFromWatchlist`, `markWatched`, `markUnwatched`) returns the updated `TitleState`, so you don't need to refetch this endpoint after a change.
 
-        **Pagination:**
-        - Pass `nextPageToken` from a previous response to fetch the next page.
-        - If `hasMore` is `true`, there are more items available.
-
-        **Exclusive lists:**
-        Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time.
-      operationId: getDislikedItems
+        **Auth tier:** session — send your session token in `Authorization: Bearer`.
+      operationId: getTitleState
       x-cache-policy: none
       security:
         - BearerAuth: []
       parameters:
-        - name: nextPageToken
-          in: query
-          required: false
-          description: Opaque token from previous page for pagination
-          schema:
-            type: string
-        - name: limit
-          in: query
-          required: false
-          description: "Maximum number of items to return (1-50, default: 10)"
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
-      responses:
-        "200":
-          description: List of disliked items retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SimpleListResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { SimpleListResponse } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SimpleListResponse = await discovr.getDislikedItems({ nextPageToken: "example", limit: 10 });
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.SimpleListResponse
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SimpleListResponse = client.getDislikedItems(nextPageToken = "example", limit = 10)
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // SimpleListResponse
-            let response: SimpleListResponse = try await client.getDislikedItems(nextPageToken: "example", limit: 10)
-            print(response)
-    post:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: Dislikes
-      summary: Add an item to disliked list
-      description: |
-        Adds a title to the disliked list.
-
-        **Auth tier:** session — send the session token from `POST /auth/session-token`.
-
-        Liked, disliked, and super-liked are exclusive — disliking something automatically removes any existing like or super-like for the same title.
-
-        Returns `201` if the item was newly added, `200` if it was already disliked.
-      operationId: addDislikedItem
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AddSimpleListItemPayload"
-            example:
-              mediaId: MV_550
-      responses:
-        "200":
-          description: Item was already disliked — no change made.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Item added to disliked list successfully
-                added: disliked
-        "201":
-          description: Item added to disliked list.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Item added to disliked list successfully
-                added: disliked
-                removed: liked
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { AddSimpleListItemPayload, SuccessMessage } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.addDislikedItem("MV_550");
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.AddSimpleListItemPayload
-            import api.discovr.models.SuccessMessage
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.addDislikedItem(mediaId = "MV_550")
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // AddSimpleListItemPayload, SuccessMessage
-            let response: SuccessMessage = try await client.addDislikedItem(mediaId: "MV_550")
-            print(response)
-  /profile/disliked/{mediaId}:
-    delete:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: Dislikes
-      summary: Delete an item from disliked list
-      description: |
-        Removes a title from the disliked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show).
-      operationId: deleteDislikedItem
-      security:
-        - BearerAuth: []
-      parameters:
         - name: mediaId
           in: path
           required: true
           description: |
-            Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).
+            The title's media ID (`MV_<id>` for movies, `TV_<id>` for TV shows).
 
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+            Also accepts an item's `ref` in place of the ID. Prefer the `ref` when you have one — it resolves to the same title and sharpens recommendations.
           schema:
             type: string
           example: MV_550
+        - name: providers
+          in: query
+          required: false
+          description: Set to `true` to include streaming provider availability filtered to the account's selected services.
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
-          description: Item deleted successfully
+          description: Title state returned successfully.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Dislike deleted successfully
+                $ref: "#/components/schemas/TitleState"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2182,22 +1862,22 @@ paths:
           label: TypeScript
           source: |-
             import { DiscovrClient } from "discovr";
-            import type { SuccessMessage } from "discovr";
+            import type { TitleState } from "discovr";
 
             const discovr = new DiscovrClient("your-client-id");
 
             // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.deleteDislikedItem("MV_550");
+            const response: TitleState = await discovr.getTitleState("MV_550", { providers: false });
             console.log(response);
         - lang: kotlin
           label: Kotlin
           source: |-
             import api.discovr.DiscovrClient
-            import api.discovr.models.SuccessMessage
+            import api.discovr.models.TitleState
 
             // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
             suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.deleteDislikedItem(mediaId = "MV_550")
+                val response: TitleState = client.getTitleState(mediaId = "MV_550", providers = false)
                 println(response)
             }
         - lang: swift
@@ -2207,56 +1887,51 @@ paths:
 
             let client = DiscovrClient(clientId: "your-client-id")
             // Response / argument types:
-            // SuccessMessage
-            let response: SuccessMessage = try await client.deleteDislikedItem(mediaId: "MV_550")
+            // TitleState
+            let response: TitleState = try await client.getTitleState(mediaId: "MV_550", providers: false)
             print(response)
-  /profile/super_liked:
+  /profile/titles/{mediaId}/seasons/{seasonNumber}:
     get:
       tags:
         - Discovr
         - Profile Lists
-      x-sdk-group: Super Likes
-      summary: Get super-liked items
+      x-sdk-group: Title State
+      summary: Get which episodes of a TV season are watched
       description: |
-        Returns the super-liked list for a specific profile.
+        Returns which episodes of a single TV season the active profile has finished, plus whether the season as a whole is complete.
 
-        **Auth tier:** session — send the session token from `POST /auth/session-token`.
+        A season counts as complete when every aired episode in it is watched. Specials (season `0`) never count toward show completion. Pair this with `getSeasonDetails` for episode titles and artwork, and with `getTitleState` for title-level state and live playback position.
 
-        Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.
-
-        **Pagination:**
-        - Pass `nextPageToken` from a previous response to fetch the next page.
-        - If `hasMore` is `true`, there are more items available.
-
-        **Exclusive lists:**
-        Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. Super-liked titles are the ones the viewer loves most.
-      operationId: getSuperLikedItems
+        **Auth tier:** session — send your session token in `Authorization: Bearer`.
+      operationId: getSeasonState
       x-cache-policy: none
       security:
         - BearerAuth: []
       parameters:
-        - name: nextPageToken
-          in: query
-          required: false
-          description: Opaque token from previous page for pagination
+        - name: mediaId
+          in: path
+          required: true
+          description: |
+            The TV show's media ID (`TV_<id>`), or an item `ref`.
           schema:
             type: string
-        - name: limit
-          in: query
-          required: false
-          description: "Maximum number of items to return (1-50, default: 10)"
+            pattern: ^(TV)_\d+(@[0-9A-Za-z_-]+)?$
+          example: TV_1396
+        - name: seasonNumber
+          in: path
+          required: true
+          description: The season number (0 for specials, 1+ for regular seasons).
           schema:
             type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
+            minimum: 0
+          example: 1
       responses:
         "200":
-          description: List of super_liked items retrieved successfully
+          description: Season completion state returned successfully.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SimpleListResponse"
+                $ref: "#/components/schemas/SeasonState"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2274,22 +1949,22 @@ paths:
           label: TypeScript
           source: |-
             import { DiscovrClient } from "discovr";
-            import type { SimpleListResponse } from "discovr";
+            import type { SeasonState } from "discovr";
 
             const discovr = new DiscovrClient("your-client-id");
 
             // After sign-in and profile selection …
-            const response: SimpleListResponse = await discovr.getSuperLikedItems({ nextPageToken: "example", limit: 10 });
+            const response: SeasonState = await discovr.getSeasonState("TV_1396", 1);
             console.log(response);
         - lang: kotlin
           label: Kotlin
           source: |-
             import api.discovr.DiscovrClient
-            import api.discovr.models.SimpleListResponse
+            import api.discovr.models.SeasonState
 
             // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
             suspend fun example(client: DiscovrClient) {
-                val response: SimpleListResponse = client.getSuperLikedItems(nextPageToken = "example", limit = 10)
+                val response: SeasonState = client.getSeasonState(mediaId = "TV_1396", seasonNumber = 1)
                 println(response)
             }
         - lang: swift
@@ -2299,110 +1974,26 @@ paths:
 
             let client = DiscovrClient(clientId: "your-client-id")
             // Response / argument types:
-            // SimpleListResponse
-            let response: SimpleListResponse = try await client.getSuperLikedItems(nextPageToken: "example", limit: 10)
+            // SeasonState
+            let response: SeasonState = try await client.getSeasonState(mediaId: "TV_1396", seasonNumber: 1)
             print(response)
-    post:
+  /profile/titles/{mediaId}/rating:
+    put:
       tags:
         - Discovr
         - Profile Lists
-      x-sdk-group: Super Likes
-      summary: Add an item to the super-liked list
+      x-sdk-group: Rating
+      summary: Set a title's rating
       description: |
-        Adds a title to the super-liked list.
+        Sets the active profile's rating for a title to `liked`, `disliked`, or `super_liked`.
 
-        **Auth tier:** session — send the session token from `POST /auth/session-token`.
+        Ratings are mutually exclusive: setting a new rating automatically replaces any previous one. Setting the rating the title already has is a safe no-op.
 
-        Super-liking a title says the viewer loves it. Like the liked list, adding a super-like automatically removes any existing dislike or like for the same title.
+        Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.
 
-        Returns `201` if the item was newly added, `200` if it was already super-liked.
-      operationId: addSuperLikedItem
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AddSimpleListItemPayload"
-            example:
-              mediaId: MV_550
-      responses:
-        "200":
-          description: Item was already super-liked — no change made.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Item added to super_liked list successfully
-                added: super_liked
-        "201":
-          description: Item added to super-liked list.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Item added to super_liked list successfully
-                added: super_liked
-                removed: liked
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { AddSimpleListItemPayload, SuccessMessage } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.addSuperLikedItem("MV_550");
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.AddSimpleListItemPayload
-            import api.discovr.models.SuccessMessage
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.addSuperLikedItem(mediaId = "MV_550")
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // AddSimpleListItemPayload, SuccessMessage
-            let response: SuccessMessage = try await client.addSuperLikedItem(mediaId: "MV_550")
-            print(response)
-  /profile/super_liked/{mediaId}:
-    delete:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: Super Likes
-      summary: Delete an item from the super-liked list
-      description: |
-        Removes a title from the super-liked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show).
-      operationId: deleteSuperLikedItem
+        **Auth tier:** session — send your session token in `Authorization: Bearer`.
+      operationId: setRating
+      x-cache-policy: none
       security:
         - BearerAuth: []
       parameters:
@@ -2410,27 +2001,29 @@ paths:
           in: path
           required: true
           description: |
-            Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+            The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
           schema:
             type: string
           example: MV_550
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetRatingPayload"
+            example:
+              value: liked
       responses:
         "200":
-          description: Item deleted successfully
+          description: Rating updated; returns the title's new state.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Super like deleted successfully
+                $ref: "#/components/schemas/TitleState"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
         "500":
@@ -2442,22 +2035,24 @@ paths:
           label: TypeScript
           source: |-
             import { DiscovrClient } from "discovr";
-            import type { SuccessMessage } from "discovr";
+            import type { Rating, SetRatingPayload, TitleState } from "discovr";
 
             const discovr = new DiscovrClient("your-client-id");
 
             // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.deleteSuperLikedItem("MV_550");
+            const response: TitleState = await discovr.setRating("MV_550", "liked");
             console.log(response);
         - lang: kotlin
           label: Kotlin
           source: |-
             import api.discovr.DiscovrClient
-            import api.discovr.models.SuccessMessage
+            import api.discovr.models.Rating
+            import api.discovr.models.SetRatingPayload
+            import api.discovr.models.TitleState
 
             // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
             suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.deleteSuperLikedItem(mediaId = "MV_550")
+                val response: TitleState = client.setRating(mediaId = "MV_550", value = "liked")
                 println(response)
             }
         - lang: swift
@@ -2467,59 +2062,121 @@ paths:
 
             let client = DiscovrClient(clientId: "your-client-id")
             // Response / argument types:
-            // SuccessMessage
-            let response: SuccessMessage = try await client.deleteSuperLikedItem(mediaId: "MV_550")
+            // Rating, SetRatingPayload, TitleState
+            let response: TitleState = try await client.setRating(mediaId: "MV_550", value: "liked")
             print(response)
-  /profile/watchlist:
-    get:
+    delete:
+      tags:
+        - Discovr
+        - Profile Lists
+      x-sdk-group: Rating
+      summary: Clear a title's rating
+      description: |
+        Clears the active profile's rating for a title. Safe to call if the title has no rating.
+
+        Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.
+
+        **Auth tier:** session — send your session token in `Authorization: Bearer`.
+      operationId: clearRating
+      x-cache-policy: none
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: mediaId
+          in: path
+          required: true
+          description: |
+            The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
+          schema:
+            type: string
+          example: MV_550
+      responses:
+        "200":
+          description: Rating cleared; returns the title's new state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TitleState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      x-codeSamples:
+        - lang: javascript
+          label: TypeScript
+          source: |-
+            import { DiscovrClient } from "discovr";
+            import type { TitleState } from "discovr";
+
+            const discovr = new DiscovrClient("your-client-id");
+
+            // After sign-in and profile selection …
+            const response: TitleState = await discovr.clearRating("MV_550");
+            console.log(response);
+        - lang: kotlin
+          label: Kotlin
+          source: |-
+            import api.discovr.DiscovrClient
+            import api.discovr.models.TitleState
+
+            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+            suspend fun example(client: DiscovrClient) {
+                val response: TitleState = client.clearRating(mediaId = "MV_550")
+                println(response)
+            }
+        - lang: swift
+          label: Swift
+          source: |-
+            import Discovr
+
+            let client = DiscovrClient(clientId: "your-client-id")
+            // Response / argument types:
+            // TitleState
+            let response: TitleState = try await client.clearRating(mediaId: "MV_550")
+            print(response)
+  /profile/titles/{mediaId}/watchlist:
+    put:
       tags:
         - Discovr
         - Profile Lists
       x-sdk-group: Watchlist
-      summary: Get watchlist items
+      summary: Add a title to the watchlist
       description: |
-        Returns the profile's watchlist — titles saved to watch later.
+        Adds a title to the active profile's watchlist. Safe to call if it is already on the watchlist.
 
-        **Auth tier:** session — send the session token from `POST /auth/session-token`.
+        Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.
 
-        Ordered by when they were added (newest first). Supports cursor-based pagination via `nextPageToken`.
-
-        **Pagination:**
-        - Pass `nextPageToken` from a previous response to fetch the next page.
-        - If `hasMore` is `true`, there are more items available.
-      operationId: getWatchlistItems
+        **Auth tier:** session — send your session token in `Authorization: Bearer`.
+      operationId: addToWatchlist
       x-cache-policy: none
       security:
         - BearerAuth: []
       parameters:
-        - name: nextPageToken
-          in: query
-          required: false
-          description: Opaque token from previous page for pagination
+        - name: mediaId
+          in: path
+          required: true
+          description: |
+            The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
           schema:
             type: string
-        - name: limit
-          in: query
-          required: false
-          description: "Maximum number of items to return (1-50, default: 10)"
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
+          example: MV_550
       responses:
         "200":
-          description: List of watchlist items retrieved successfully
+          description: Added to watchlist; returns the title's new state.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SimpleListResponse"
+                $ref: "#/components/schemas/TitleState"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
         "500":
@@ -2531,22 +2188,22 @@ paths:
           label: TypeScript
           source: |-
             import { DiscovrClient } from "discovr";
-            import type { SimpleListResponse } from "discovr";
+            import type { TitleState } from "discovr";
 
             const discovr = new DiscovrClient("your-client-id");
 
             // After sign-in and profile selection …
-            const response: SimpleListResponse = await discovr.getWatchlistItems({ nextPageToken: "example", limit: 10 });
+            const response: TitleState = await discovr.addToWatchlist("MV_550");
             console.log(response);
         - lang: kotlin
           label: Kotlin
           source: |-
             import api.discovr.DiscovrClient
-            import api.discovr.models.SimpleListResponse
+            import api.discovr.models.TitleState
 
             // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
             suspend fun example(client: DiscovrClient) {
-                val response: SimpleListResponse = client.getWatchlistItems(nextPageToken = "example", limit = 10)
+                val response: TitleState = client.addToWatchlist(mediaId = "MV_550")
                 println(response)
             }
         - lang: swift
@@ -2556,97 +2213,23 @@ paths:
 
             let client = DiscovrClient(clientId: "your-client-id")
             // Response / argument types:
-            // SimpleListResponse
-            let response: SimpleListResponse = try await client.getWatchlistItems(nextPageToken: "example", limit: 10)
+            // TitleState
+            let response: TitleState = try await client.addToWatchlist(mediaId: "MV_550")
             print(response)
-    post:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: Watchlist
-      summary: Add an item to watchlist
-      description: |
-        Adds a title to the watchlist.
-
-        **Auth tier:** session — send the session token from `POST /auth/session-token`.
-
-        Unlike liked/disliked/super-liked, the watchlist is non-exclusive — you can watchlist something regardless of how it's rated. Titles are automatically removed from the watchlist when the user starts watching via `scrobble`.
-      operationId: addWatchlistItem
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AddSimpleListItemPayload"
-            example:
-              mediaId: MV_550
-      responses:
-        "201":
-          description: Item added to watchlist.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Watchlist item added successfully
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { AddSimpleListItemPayload, SuccessMessage } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.addWatchlistItem("MV_550");
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.AddSimpleListItemPayload
-            import api.discovr.models.SuccessMessage
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.addWatchlistItem(mediaId = "MV_550")
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // AddSimpleListItemPayload, SuccessMessage
-            let response: SuccessMessage = try await client.addWatchlistItem(mediaId: "MV_550")
-            print(response)
-  /profile/watchlist/{mediaId}:
     delete:
       tags:
         - Discovr
         - Profile Lists
       x-sdk-group: Watchlist
-      summary: Delete an item from watchlist
+      summary: Remove a title from the watchlist
       description: |
-        Removes a title from the watchlist. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show).
-      operationId: deleteWatchlistItem
+        Removes a title from the active profile's watchlist. Safe to call if it is not on the watchlist.
+
+        Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.
+
+        **Auth tier:** session — send your session token in `Authorization: Bearer`.
+      operationId: removeFromWatchlist
+      x-cache-policy: none
       security:
         - BearerAuth: []
       parameters:
@@ -2654,21 +2237,114 @@ paths:
           in: path
           required: true
           description: |
-            Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
+            The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
           schema:
             type: string
           example: MV_550
       responses:
         "200":
-          description: Item deleted successfully
+          description: Removed from watchlist; returns the title's new state.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Watchlist item deleted successfully
+                $ref: "#/components/schemas/TitleState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      x-codeSamples:
+        - lang: javascript
+          label: TypeScript
+          source: |-
+            import { DiscovrClient } from "discovr";
+            import type { TitleState } from "discovr";
+
+            const discovr = new DiscovrClient("your-client-id");
+
+            // After sign-in and profile selection …
+            const response: TitleState = await discovr.removeFromWatchlist("MV_550");
+            console.log(response);
+        - lang: kotlin
+          label: Kotlin
+          source: |-
+            import api.discovr.DiscovrClient
+            import api.discovr.models.TitleState
+
+            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+            suspend fun example(client: DiscovrClient) {
+                val response: TitleState = client.removeFromWatchlist(mediaId = "MV_550")
+                println(response)
+            }
+        - lang: swift
+          label: Swift
+          source: |-
+            import Discovr
+
+            let client = DiscovrClient(clientId: "your-client-id")
+            // Response / argument types:
+            // TitleState
+            let response: TitleState = try await client.removeFromWatchlist(mediaId: "MV_550")
+            print(response)
+  /profile/titles/{mediaId}/watched:
+    put:
+      tags:
+        - Discovr
+        - Scrobble
+      summary: Mark a title, season, or episode as watched
+      description: |
+        Marks a movie, an entire TV show, a season, or a single episode as watched in one atomic call.
+
+        For TV shows, `season` and `episode` pick the scope:
+
+        - Omit both to mark **every aired episode** across all regular seasons (season 1 and up) as watched. Specials (season `0`) are excluded.
+        - Pass `season` to mark every aired episode of **that season**.
+        - Pass `season` and `episode` to mark **that episode**.
+
+        Any in-progress Continue Watching position within the marked scope is cleared automatically. Returns the title's updated `TitleState`, so you don't need to refetch `getTitleState`.
+
+        **Auth tier:** session — send your session token in `Authorization: Bearer`.
+      operationId: markWatched
+      x-cache-policy: none
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: mediaId
+          in: path
+          required: true
+          description: |
+            The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
+          schema:
+            type: string
+          example: TV_1396
+        - name: season
+          in: query
+          required: false
+          description: TV only. Season number. Omit to mark every aired season of the show.
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+        - name: episode
+          in: query
+          required: false
+          description: TV only, and only together with `season`. Episode number. Omit to mark the whole season.
+          schema:
+            type: integer
+            minimum: 1
+          example: 5
+      responses:
+        "200":
+          description: Marked as watched; returns the title's new state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TitleState"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2686,22 +2362,22 @@ paths:
           label: TypeScript
           source: |-
             import { DiscovrClient } from "discovr";
-            import type { SuccessMessage } from "discovr";
+            import type { TitleState } from "discovr";
 
             const discovr = new DiscovrClient("your-client-id");
 
             // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.deleteWatchlistItem("MV_550");
+            const response: TitleState = await discovr.markWatched("TV_1396", { season: 1, episode: 5 });
             console.log(response);
         - lang: kotlin
           label: Kotlin
           source: |-
             import api.discovr.DiscovrClient
-            import api.discovr.models.SuccessMessage
+            import api.discovr.models.TitleState
 
             // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
             suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.deleteWatchlistItem(mediaId = "MV_550")
+                val response: TitleState = client.markWatched(mediaId = "TV_1396", season = 1, episode = 5)
                 println(response)
             }
         - lang: swift
@@ -2711,8 +2387,106 @@ paths:
 
             let client = DiscovrClient(clientId: "your-client-id")
             // Response / argument types:
-            // SuccessMessage
-            let response: SuccessMessage = try await client.deleteWatchlistItem(mediaId: "MV_550")
+            // TitleState
+            let response: TitleState = try await client.markWatched(mediaId: "TV_1396", season: 1, episode: 5)
+            print(response)
+    delete:
+      tags:
+        - Discovr
+        - Scrobble
+      summary: Mark a title, season, or episode as unwatched
+      description: |
+        Takes a movie, a TV show, a season, or an episode back to unwatched in one atomic call.
+
+        It removes the watched state for that scope and clears any in-progress Continue Watching position inside it. Calling it for a title that isn't watched changes nothing and still succeeds, so it's safe to retry.
+
+        For TV shows, `season` and `episode` choose how much to undo:
+
+        - Omit both to undo **the whole show**, every season.
+        - Pass `season` to undo **that season**.
+        - Pass `season` and `episode` to undo **that episode**.
+
+        Returns the title's updated `TitleState`, so you don't need to refetch `getTitleState`.
+
+        **Auth tier:** session — send your session token in `Authorization: Bearer`.
+      operationId: markUnwatched
+      x-cache-policy: none
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: mediaId
+          in: path
+          required: true
+          description: |
+            The title's media ID (`MV_<id>` or `TV_<id>`), or an item `ref`.
+          schema:
+            type: string
+          example: TV_1396
+        - name: season
+          in: query
+          required: false
+          description: TV only. Season number. Omit to undo every season of the show.
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+        - name: episode
+          in: query
+          required: false
+          description: TV only, and only together with `season`. Episode number. Omit to undo the whole season.
+          schema:
+            type: integer
+            minimum: 1
+          example: 5
+      responses:
+        "200":
+          description: Marked as unwatched; returns the title's new state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TitleState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      x-codeSamples:
+        - lang: javascript
+          label: TypeScript
+          source: |-
+            import { DiscovrClient } from "discovr";
+            import type { TitleState } from "discovr";
+
+            const discovr = new DiscovrClient("your-client-id");
+
+            // After sign-in and profile selection …
+            const response: TitleState = await discovr.markUnwatched("TV_1396", { season: 1, episode: 5 });
+            console.log(response);
+        - lang: kotlin
+          label: Kotlin
+          source: |-
+            import api.discovr.DiscovrClient
+            import api.discovr.models.TitleState
+
+            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+            suspend fun example(client: DiscovrClient) {
+                val response: TitleState = client.markUnwatched(mediaId = "TV_1396", season = 1, episode = 5)
+                println(response)
+            }
+        - lang: swift
+          label: Swift
+          source: |-
+            import Discovr
+
+            let client = DiscovrClient(clientId: "your-client-id")
+            // Response / argument types:
+            // TitleState
+            let response: TitleState = try await client.markUnwatched(mediaId: "TV_1396", season: 1, episode: 5)
             print(response)
   /profile/playback:
     get:
@@ -2724,7 +2498,7 @@ paths:
       description: |
         Returns the profile's in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a "Continue Watching" row.
 
-        Each item includes a `progress` field (0–100) showing how far through the title the user is.
+        Each item includes a `progress` field (0–100) showing how far through the title the user is. To update progress as a viewer watches, call `POST /profile/scrobble/{mediaId}`.
 
         **Pagination:**
         Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available.
@@ -2800,171 +2574,15 @@ paths:
             // PlaybackListResponse
             let response: PlaybackListResponse = try await client.getPlaybackItems(nextPageToken: "example", limit: 10)
             print(response)
-    post:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: Playback
-      summary: Add an item to playback list
-      description: |
-        Records a new playback position for a title. If the title is already being tracked, returns 409 — use PATCH to update an existing entry.
-
-        - `mediaId`: the title to track. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`).
-        - `progress`: how far through the title the user is, as a percentage (0–100). Optional — omit if you don't have a position yet.
-        - `updatedAt`: the ISO 8601 timestamp of when this progress was recorded. Defaults to now. Send the actual client time so resume positions stay accurate if the user is offline.
-      operationId: addPlaybackItem
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AddPlaybackPayload"
-            example:
-              mediaId: MV_550
-              progress: 25
-              updatedAt: "2023-01-15T10:30:00.000Z"
-      responses:
-        "201":
-          description: Item added successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Item added to playback list successfully
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { AddPlaybackPayload, SuccessMessage } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.addPlaybackItem("MV_550", { progress: 25.5, updatedAt: "2023-01-15T00:00:00.000Z" });
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.AddPlaybackPayload
-            import api.discovr.models.SuccessMessage
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.addPlaybackItem(mediaId = "MV_550", progress = 25.5, updatedAt = "2023-01-15T00:00:00.000Z")
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // AddPlaybackPayload, SuccessMessage
-            let response: SuccessMessage = try await client.addPlaybackItem(mediaId: "MV_550", progress: 25.5, updatedAt: "2023-01-15T00:00:00.000Z")
-            print(response)
-    patch:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: Playback
-      summary: Update playback progress
-      description: |
-        Updates the playback position for an existing entry. Same fields as the add endpoint. If no entry exists for the `mediaId`, one is created.
-      operationId: updatePlaybackItem
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/EditPlaybackPayload"
-            example:
-              mediaId: MV_550
-              progress: 75
-              updatedAt: "2023-01-20T14:00:00.000Z"
-      responses:
-        "200":
-          description: Item updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Playback item updated successfully
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { EditPlaybackPayload, SuccessMessage } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.updatePlaybackItem("MV_550", { progress: 75, updatedAt: "2023-01-15T00:00:00.000Z" });
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.EditPlaybackPayload
-            import api.discovr.models.SuccessMessage
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.updatePlaybackItem(mediaId = "MV_550", progress = 75, updatedAt = "2023-01-15T00:00:00.000Z")
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // EditPlaybackPayload, SuccessMessage
-            let response: SuccessMessage = try await client.updatePlaybackItem(mediaId: "MV_550", progress: 75, updatedAt: "2023-01-15T00:00:00.000Z")
-            print(response)
   /profile/playback/{mediaId}:
     delete:
       tags:
         - Discovr
         - Profile Lists
       x-sdk-group: Playback
-      summary: Delete an item from playback list
+      summary: Remove a title from Continue Watching
       description: |
-        Removes a title from the in-progress list. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`).
+        Removes a title from the in-progress Continue Watching list without changing its watched history. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`).
       operationId: deletePlaybackItem
       security:
         - BearerAuth: []
@@ -3033,110 +2651,6 @@ paths:
             // SuccessMessage
             let response: SuccessMessage = try await client.deletePlaybackItem(mediaId: "MV_550")
             print(response)
-  /profile/watched/{mediaId}:
-    delete:
-      tags:
-        - Discovr
-        - Scrobble
-      summary: Mark a title as unwatched
-      description: |
-        Takes a movie, a TV show, a season, or an episode back to unwatched, in one call.
-
-        It removes the history that made it watched, takes it out of the user's **in-progress** list if that is where it was, and brings a TV show's `completed` state back in line. Use it for a "Mark as unwatched" button.
-
-        For TV shows, `season` and `episode` choose how much to undo:
-
-        - Omit both to undo **the whole show**, every season.
-        - Pass `season` to undo **that season**: its episodes, and any entry that counted the whole season as watched.
-        - Pass `season` and `episode` to undo **that episode**.
-
-        Calling it for a title that isn't watched changes nothing and still succeeds, so it is safe to retry.
-
-        This is not the same as [`DELETE /profile/history/{mediaId}`](/api-reference/discovr/delete-history-item), which removes history entries and nothing else. Marking something unwatched with that call and `DELETE /profile/playback/{mediaId}` leaves a TV show's `completed` out of date unless they run in a particular order; this endpoint does the right thing whichever way you reach it.
-
-        **Auth tier:** session — send your session token in `Authorization: Bearer`.
-      operationId: markUnwatched
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: mediaId
-          in: path
-          required: true
-          description: |
-            The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).
-
-            Also accepts an item's `ref` in place of the id.
-          schema:
-            type: string
-          example: TV_1396
-        - name: season
-          in: query
-          required: false
-          description: TV only. Season number. Omit to undo every season of the show.
-          schema:
-            type: integer
-            minimum: 1
-          example: 1
-        - name: episode
-          in: query
-          required: false
-          description: TV only, and only together with `season`. Episode number. Omit to undo the whole season.
-          schema:
-            type: integer
-            minimum: 1
-          example: 5
-      responses:
-        "200":
-          description: The title is unwatched.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Marked as unwatched
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { SuccessMessage } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.markUnwatched("TV_1396", { season: 1, episode: 5 });
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.SuccessMessage
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.markUnwatched(mediaId = "TV_1396", season = 1, episode = 5)
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // SuccessMessage
-            let response: SuccessMessage = try await client.markUnwatched(mediaId: "TV_1396", season: 1, episode: 5)
-            print(response)
   /profile/scrobble/{mediaId}:
     post:
       tags:
@@ -3144,15 +2658,14 @@ paths:
         - Scrobble
       summary: Record playback progress
       description: |
-        Scrobbling is Discovr's single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don't need to coordinate multiple endpoints.
+        Scrobbling is Discovr's single-call way to track playback. One call updates live resume progress, watch history, completion, and the watchlist.
 
-        Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:
+        Send the viewer's real position when playback starts (not `0` when resuming), about every 30 seconds while watching, and right away on pause, resume, seek, and completion. Discovr handles the rest:
 
-        - The item stays in the user's **in-progress** list until they finish watching.
-        - Once they've watched 80% or more, it's marked as complete and moves to their **history**.
-        - For movies, the item is removed from the user's watchlist once they've watched more than 20% — so it clears as soon as they're clearly watching it. For TV episodes, it's removed from the watchlist once the episode is complete (≥80%).
-
-        For TV shows, include `season` and `episode` in the request body so history is tracked per episode.
+        - The title stays in Continue Watching until the movie or episode crosses 80%.
+        - Once progress reaches 20% or more, the title is automatically removed from the watchlist — for both movies and TV shows.
+        - Once progress reaches 80% or more, the movie or episode is marked watched and leaves Continue Watching. Lower progress later (such as a rewind) moves the live position without undoing completion — use `markUnwatched` to undo a watch.
+        - For TV shows, include `season` and `episode` in `tv`. When an episode crosses 80%, the response includes `completedSeasons` listing every season now fully watched.
 
         **Auth tier:** session — send your session token in `Authorization: Bearer`.
       operationId: scrobble
@@ -3183,7 +2696,7 @@ paths:
                 episode: 2
       responses:
         "200":
-          description: Progress recorded. Check `completed` to know if the item was marked as watched.
+          description: Progress recorded. Check `completed` to know if the movie or episode reached 80%.
           content:
             application/json:
               schema:
@@ -3239,225 +2752,49 @@ paths:
             // EpisodeRef, ScrobbleProgressBody, ScrobbleResponse
             let response: ScrobbleResponse = try await client.scrobble(mediaId: "TV_1396", progress: 42.5, tv: EpisodeRef(season: 2, episode: 5))
             print(response)
-  /profile/scrobble/{mediaId}/skip:
-    post:
-      tags:
-        - Discovr
-        - Scrobble
-      summary: Record a skip event
-      description: |
-        Signals that the user jumped to another point in the content, forward (a skip) or backward (a rewind). Used for watch analytics. Returns immediately — no side effects on lists or history.
-
-        `from` and `to` are playback positions as a percentage (0–100) and must differ; `from` higher than `to` is a jump backward. `duration` is how many seconds were jumped. After a jump, also send the position the viewer landed on as a progress update with `POST /profile/scrobble/{mediaId}`.
-      operationId: scrobbleSkip
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: mediaId
-          in: path
-          required: true
-          description: |
-            The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
-          schema:
-            type: string
-            pattern: ^(MV|TV)_\d+(@[0-9A-Za-z_-]+)?$
-          example: TV_1396
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ScrobbleSkipBody"
-            example:
-              from: 10
-              to: 20
-              duration: 45
-              tv:
-                season: 1
-                episode: 4
-      responses:
-        "200":
-          description: Skip event recorded.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ScrobbleSkipResponse"
-              example:
-                status: ok
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { EpisodeRef, ScrobbleSkipBody, ScrobbleSkipResponse } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: ScrobbleSkipResponse = await discovr.scrobbleSkip("TV_1396", 10, 20, 20, { tv: { "season": 2, "episode": 5 } });
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.EpisodeRef
-            import api.discovr.models.ScrobbleSkipBody
-            import api.discovr.models.ScrobbleSkipResponse
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: ScrobbleSkipResponse = client.scrobbleSkip(mediaId = "TV_1396", from = 10, to = 20, duration = 20, tv = EpisodeRef(season = 2, episode = 5))
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // EpisodeRef, ScrobbleSkipBody, ScrobbleSkipResponse
-            let response: ScrobbleSkipResponse = try await client.scrobbleSkip(mediaId: "TV_1396", from: 10, to: 20, duration: 20, tv: EpisodeRef(season: 2, episode: 5))
-            print(response)
   /profile/history:
-    get:
+    post:
       tags:
         - Discovr
         - Profile Lists
       x-sdk-group: History
-      summary: Get history items
+      summary: Import a watch history entry
       description: |
-        Returns the profile's full watch history, newest entries first.
+        Imports a previously watched movie, show, season, or episode from an external source.
 
-        History allows multiple entries for the same title — every completed viewing is tracked separately, so you may see the same `mediaId` more than once.
+        - `mediaId`: the title to import (`MV_<number>` for movies, `TV_<number>` for TV shows).
+        - `imported`: required string naming the external source (for example `"trakt"`).
+        - `updatedAt`: optional ISO 8601 timestamp of when it was watched. Defaults to now.
+        - `season` / `episode`: optional TV scope. Omit both to import all aired episodes of the show; pass `season` to import that season; pass both to import a single episode.
 
-        **Pagination:**
-        Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available.
-      operationId: getHistoryItems
+        For live viewing use `scrobble()`, and for interactive "Mark as watched" buttons use `markWatched()`. To read watch history, use `GET /profile/titles?watched=true`.
+
+        Returns the title's updated `TitleState`.
+
+        **Auth tier:** session — send your session token in `Authorization: Bearer`.
+      operationId: importHistory
       x-cache-policy: none
       security:
         - BearerAuth: []
-      parameters:
-        - name: nextPageToken
-          in: query
-          required: false
-          description: Opaque token from previous page for pagination
-          schema:
-            type: string
-        - name: limit
-          in: query
-          required: false
-          description: "Maximum number of items to return (1-50, default: 10)"
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
-      responses:
-        "200":
-          description: List of history items retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HistoryListResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { HistoryListResponse } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: HistoryListResponse = await discovr.getHistoryItems({ nextPageToken: "example", limit: 10 });
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.HistoryListResponse
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: HistoryListResponse = client.getHistoryItems(nextPageToken = "example", limit = 10)
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // HistoryListResponse
-            let response: HistoryListResponse = try await client.getHistoryItems(nextPageToken: "example", limit: 10)
-            print(response)
-    post:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: History
-      summary: Add an item to history list
-      description: |
-        Records a watch history entry. Unlike other lists, history allows multiple entries for the same title — each completed viewing is tracked separately.
-
-        - `mediaId`: the title to record. Use `MV_<number>` for movies, `TV_<number>` for TV shows.
-        - `progress`: how far through the title the user watched, as a percentage (0–100). Optional.
-        - `updatedAt`: the ISO 8601 timestamp of when the viewing was recorded. Defaults to now if omitted.
-
-        **TV Shows:**
-        Include `season` (required for TV shows) and optionally `episode` to track per-episode history. Omitting `episode` records a season-level entry — clients can use this to mark all episodes in a season as watched in a single call.
-      operationId: addHistoryItem
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AddHistoryPayload"
+              $ref: "#/components/schemas/ImportHistoryPayload"
             example:
               mediaId: TV_1396
+              imported: trakt
               updatedAt: "2023-01-15T20:00:00.000Z"
-              progress: 100
               season: 1
               episode: 5
       responses:
         "201":
-          description: Item added successfully
+          description: History imported; returns the title's new state.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: Item added to history list successfully
+                $ref: "#/components/schemas/TitleState"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3475,23 +2812,23 @@ paths:
           label: TypeScript
           source: |-
             import { DiscovrClient } from "discovr";
-            import type { AddHistoryPayload, SuccessMessage } from "discovr";
+            import type { ImportHistoryPayload, TitleState } from "discovr";
 
             const discovr = new DiscovrClient("your-client-id");
 
             // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.addHistoryItem("TV_1396", { updatedAt: "2023-01-15T00:00:00.000Z", progress: 45.5, season: 1, episode: 5, imported: "trakt" });
+            const response: TitleState = await discovr.importHistory("TV_1396", "trakt", { updatedAt: "2023-01-15T20:00:00.000Z", season: 1, episode: 5 });
             console.log(response);
         - lang: kotlin
           label: Kotlin
           source: |-
             import api.discovr.DiscovrClient
-            import api.discovr.models.AddHistoryPayload
-            import api.discovr.models.SuccessMessage
+            import api.discovr.models.ImportHistoryPayload
+            import api.discovr.models.TitleState
 
             // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
             suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.addHistoryItem(mediaId = "TV_1396", updatedAt = "2023-01-15T00:00:00.000Z", progress = 45.5, season = 1, episode = 5, imported = "trakt")
+                val response: TitleState = client.importHistory(mediaId = "TV_1396", imported = "trakt", updatedAt = "2023-01-15T20:00:00.000Z", season = 1, episode = 5)
                 println(response)
             }
         - lang: swift
@@ -3501,321 +2838,8 @@ paths:
 
             let client = DiscovrClient(clientId: "your-client-id")
             // Response / argument types:
-            // AddHistoryPayload, SuccessMessage
-            let response: SuccessMessage = try await client.addHistoryItem(mediaId: "TV_1396", updatedAt: "2023-01-15T00:00:00.000Z", progress: 45.5, season: 1, episode: 5, imported: "trakt")
-            print(response)
-  /profile/history/{mediaId}:
-    get:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: History
-      summary: Get history items for a specific media
-      description: |
-        Returns history entries for a specific title. Newest entries first.
-
-        For TV shows, pass `season` as a query parameter (required) and optionally `episode` to filter by episode. Omitting `episode` returns all entries for the whole season.
-
-        **Pagination:**
-        Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available.
-      operationId: getHistoryItemsByMediaId
-      x-cache-policy: none
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: mediaId
-          in: path
-          required: true
-          description: |
-            The media ID of the title. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
-          schema:
-            type: string
-          example: TV_1396
-        - name: season
-          in: query
-          required: false
-          description: Season number. Required for TV shows (`TV_` mediaId); ignored for movies.
-          schema:
-            type: integer
-            minimum: 1
-          example: 1
-        - name: episode
-          in: query
-          required: false
-          description: Episode number. Optional — omit to return all entries for the season; include to filter to a specific episode.
-          schema:
-            type: integer
-            minimum: 1
-          example: 5
-        - name: nextPageToken
-          in: query
-          required: false
-          description: Opaque token from previous page for pagination
-          schema:
-            type: string
-        - name: limit
-          in: query
-          required: false
-          description: "Maximum number of items to return (1-50, default: 10)"
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
-      responses:
-        "200":
-          description: List of history items retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HistoryListResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { HistoryListResponse } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: HistoryListResponse = await discovr.getHistoryItemsByMediaId("TV_1396", { season: 1, episode: 5, nextPageToken: "example", limit: 10 });
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.HistoryListResponse
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: HistoryListResponse = client.getHistoryItemsByMediaId(mediaId = "TV_1396", season = 1, episode = 5, nextPageToken = "example", limit = 10)
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // HistoryListResponse
-            let response: HistoryListResponse = try await client.getHistoryItemsByMediaId(mediaId: "TV_1396", season: 1, episode: 5, nextPageToken: "example", limit: 10)
-            print(response)
-    patch:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: History
-      summary: Update or create a history item
-      description: |
-        Updates the history entry for a title. If no entry exists, creates one (upsert). This ensures only one entry exists per `mediaId` + `season` + `episode` combination.
-
-        For TV shows, `season` is required as a query parameter. Include `episode` to target a specific episode; omit it to update the season-level entry.
-
-        - `progress`: how far through the title the user watched, as a percentage (0–100).
-      operationId: patchHistoryItem
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: mediaId
-          in: path
-          required: true
-          description: |
-            The media ID of the title. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
-          schema:
-            type: string
-          example: TV_1396
-        - name: season
-          in: query
-          required: false
-          description: Season number. Required for TV shows (`TV_` mediaId); ignored for movies.
-          schema:
-            type: integer
-            minimum: 1
-          example: 1
-        - name: episode
-          in: query
-          required: false
-          description: Episode number. Optional — omit to update the season-level entry; include to target a specific episode.
-          schema:
-            type: integer
-            minimum: 1
-          example: 5
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PatchHistoryPayload"
-            example:
-              progress: 0
-      responses:
-        "200":
-          description: History item updated or created successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: History item updated or created successfully
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { PatchHistoryPayload, SuccessMessage } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.patchHistoryItem("TV_1396", 0, { season: 1, episode: 5 });
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.PatchHistoryPayload
-            import api.discovr.models.SuccessMessage
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.patchHistoryItem(mediaId = "TV_1396", progress = 0, season = 1, episode = 5)
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // PatchHistoryPayload, SuccessMessage
-            let response: SuccessMessage = try await client.patchHistoryItem(mediaId: "TV_1396", progress: 0, season: 1, episode: 5)
-            print(response)
-    delete:
-      tags:
-        - Discovr
-        - Profile Lists
-      x-sdk-group: History
-      summary: Delete an item from history list
-      description: |
-        Deletes history entries for a title. Because history allows duplicates, this removes all matching entries for the specified media (and episode, if provided).
-
-        For TV shows, pass `season` as a query parameter (required) and optionally `episode`. Include `episode` to delete that episode's entries. Omit it to delete the entries that were recorded for the season as a whole, without an episode (for example, marking a season watched in one go); entries for individual episodes are kept.
-
-        To take a title back to unwatched, use [`DELETE /profile/watched/{mediaId}`](/api-reference/discovr/mark-unwatched) instead. This call removes history entries and nothing else: it doesn't touch the in-progress list, and a TV show's `completed` state is brought up to date from whatever history is left.
-      operationId: deleteHistoryItem
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: mediaId
-          in: path
-          required: true
-          description: |
-            The media ID of the title to delete. Format: `MV_<number>` for movies, `TV_<number>` for TV shows.
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
-          schema:
-            type: string
-          example: TV_1396
-        - name: season
-          in: query
-          required: false
-          description: Season number. Required for TV shows (`TV_` mediaId); ignored for movies.
-          schema:
-            type: integer
-            minimum: 1
-          example: 1
-        - name: episode
-          in: query
-          required: false
-          description: Episode number. Optional — omit to delete the season-level entries (those recorded without an episode); include to delete a specific episode's entries only.
-          schema:
-            type: integer
-            minimum: 1
-          example: 5
-      responses:
-        "200":
-          description: Item deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessMessage"
-              example:
-                message: History deleted successfully
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { SuccessMessage } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SuccessMessage = await discovr.deleteHistoryItem("TV_1396", { season: 1, episode: 5 });
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.SuccessMessage
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SuccessMessage = client.deleteHistoryItem(mediaId = "TV_1396", season = 1, episode = 5)
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // SuccessMessage
-            let response: SuccessMessage = try await client.deleteHistoryItem(mediaId: "TV_1396", season: 1, episode: 5)
+            // ImportHistoryPayload, TitleState
+            let response: TitleState = try await client.importHistory(mediaId: "TV_1396", imported: "trakt", updatedAt: "2023-01-15T20:00:00.000Z", season: 1, episode: 5)
             print(response)
   /media/{mediaId}:
     get:
@@ -3979,100 +3003,6 @@ paths:
             // MediaAssetsResponse
             let response: MediaAssetsResponse = try await client.getMediaAssets(mediaId: "example")
             print(response)
-  /media/{mediaId}/profile_meta:
-    get:
-      tags:
-        - Discovr
-        - Media
-      summary: Get profile interaction data for a title
-      description: |
-        Returns the current profile's interaction data for a title — everything you need to render the right UI state for that title.
-
-        Response includes:
-        - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each).
-        - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows).
-        - **Providers** *(optional)*: the streaming services where this title is available for the profile's selected region. Pass `providers=true` to include this.
-        - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).
-
-        **This call directly affects the profile's recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn't open registers similarly to liking those titles and will skew their recommendations. Pass the item's `ref` when you have one.
-
-        **Auth tier:** session — send your session token in `Authorization: Bearer`.
-      operationId: getMediaProfileMeta
-      x-sdk-group: Profile Meta
-      x-cache-policy: none
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: mediaId
-          in: path
-          required: true
-          description: |
-            The unique identifier of the media item. Use `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
-          schema:
-            type: string
-        - name: providers
-          in: query
-          required: false
-          description: Set to `true` to include streaming provider availability in the response.
-          schema:
-            type: boolean
-            default: false
-      responses:
-        "200":
-          description: Profile interaction data returned successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MediaProfileMeta"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { MediaProfileMeta } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: MediaProfileMeta = await discovr.getMediaProfileMeta("example", { providers: false });
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.MediaProfileMeta
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: MediaProfileMeta = client.getMediaProfileMeta(mediaId = "example", providers = false)
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // MediaProfileMeta
-            let response: MediaProfileMeta = try await client.getMediaProfileMeta(mediaId: "example", providers: false)
-            print(response)
   /media/{mediaId}/seasons/{seasonNumber}:
     get:
       tags:
@@ -4166,97 +3096,6 @@ paths:
             // Response / argument types:
             // SeasonDetailsResponse
             let response: SeasonDetailsResponse = try await client.getSeasonDetails(mediaId: "example", seasonNumber: 1, language: "en")
-            print(response)
-  /media/{mediaId}/seasons/{seasonNumber}/meta:
-    get:
-      tags:
-        - Discovr
-        - Media
-      summary: Get which episodes of a TV season are finished
-      description: |
-        Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.
-
-        Pair this with `getSeasonDetails` for episode titles and artwork, and with `getMediaProfileMeta` for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn't tracked, so it won't show a progress bar. The profile's place in the episode it is watching now is `playback` on `getMediaProfileMeta`.
-
-        **Auth tier:** session — send your session token in `Authorization: Bearer`.
-      operationId: getSeasonProfileMeta
-      x-tier: session
-      x-sdk-group: Profile Meta
-      x-cache-policy: none
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: mediaId
-          in: path
-          required: true
-          description: |
-            The unique identifier of the TV show (e.g., `TV_1396`).
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
-          schema:
-            type: string
-            pattern: ^(TV)_\d+(@[0-9A-Za-z_-]+)?$
-        - name: seasonNumber
-          in: path
-          required: true
-          description: The season number.
-          schema:
-            type: integer
-            minimum: 0
-            example: 1
-      responses:
-        "200":
-          description: Season progress returned successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SeasonProfileMeta"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      x-codeSamples:
-        - lang: javascript
-          label: TypeScript
-          source: |-
-            import { DiscovrClient } from "discovr";
-            import type { SeasonProfileMeta } from "discovr";
-
-            const discovr = new DiscovrClient("your-client-id");
-
-            // After sign-in and profile selection …
-            const response: SeasonProfileMeta = await discovr.getSeasonProfileMeta("example", 1);
-            console.log(response);
-        - lang: kotlin
-          label: Kotlin
-          source: |-
-            import api.discovr.DiscovrClient
-            import api.discovr.models.SeasonProfileMeta
-
-            // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
-            suspend fun example(client: DiscovrClient) {
-                val response: SeasonProfileMeta = client.getSeasonProfileMeta(mediaId = "example", seasonNumber = 1)
-                println(response)
-            }
-        - lang: swift
-          label: Swift
-          source: |-
-            import Discovr
-
-            let client = DiscovrClient(clientId: "your-client-id")
-            // Response / argument types:
-            // SeasonProfileMeta
-            let response: SeasonProfileMeta = try await client.getSeasonProfileMeta(mediaId: "example", seasonNumber: 1)
             print(response)
   /media/{mediaId}/similar:
     get:
@@ -5102,8 +3941,170 @@ components:
           description: A confirmation message.
           example: Profile deleted successfully
       additionalProperties: false
-    SimpleListItem:
-      description: A media item in a profile list, with its display metadata (title, poster, backdrop) and when it was added.
+    Rating:
+      type: string
+      description: One of the three mutually exclusive ratings a profile can give a title.
+      enum:
+        - liked
+        - disliked
+        - super_liked
+      example: liked
+    SetRatingPayload:
+      type: object
+      description: The rating to set on a title.
+      required:
+        - value
+      properties:
+        value:
+          $ref: "#/components/schemas/Rating"
+      additionalProperties: false
+    TitlePlayback:
+      type: object
+      description: The active profile's live resume position for an in-progress title.
+      required:
+        - updatedAt
+      properties:
+        progress:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: How far through the movie or episode the viewer is, as a percentage (0–100).
+          example: 45.5
+        season:
+          type: integer
+          minimum: 1
+          description: Season number of the episode currently being watched (TV shows only).
+          example: 2
+        episode:
+          type: integer
+          minimum: 1
+          description: Episode number currently being watched (TV shows only).
+          example: 5
+        updatedAt:
+          type: string
+          format: date-time
+          description: When this position was last recorded.
+          example: "2026-01-15T20:00:00.000Z"
+      additionalProperties: false
+    TitleState:
+      type: object
+      description: The active profile's complete state for a title — returned by `getTitleState` and by every title state write.
+      required:
+        - mediaId
+        - mediaType
+        - watchlist
+        - watched
+        - completed
+        - plays
+      properties:
+        mediaId:
+          type: string
+          description: The title's media ID (`MV_<id>` or `TV_<id>`).
+          example: TV_1396
+        mediaType:
+          type: string
+          enum:
+            - movie
+            - tv
+          description: Whether this title is a movie or a TV show.
+          example: tv
+        rating:
+          $ref: "#/components/schemas/Rating"
+          nullable: true
+          description: The profile's rating (`liked`, `disliked`, `super_liked`), or `null` if unrated.
+        watchlist:
+          type: boolean
+          description: Whether the title is on the profile's watchlist.
+          example: true
+        watched:
+          type: boolean
+          description: Whether the profile has played any of this title, even briefly. Use `completed` for a "Watched" checkmark.
+          example: true
+        completed:
+          type: boolean
+          description: Whether the profile has finished the title (≥ 80% for a movie; every aired episode of every regular season for a TV show; specials excluded).
+          example: false
+        completedSeasons:
+          type: array
+          description: TV shows only — regular season numbers (1 and up) whose aired episodes are all watched.
+          items:
+            type: integer
+          example:
+            - 1
+            - 2
+        episodes:
+          type: object
+          description: TV shows only — map from season number (as string) to sorted watched episode numbers.
+          additionalProperties:
+            type: array
+            items:
+              type: integer
+          example:
+            "1":
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+              - 6
+              - 7
+        plays:
+          type: integer
+          minimum: 0
+          description: Number of completed plays (of the movie or of episodes).
+          example: 7
+        playback:
+          $ref: "#/components/schemas/TitlePlayback"
+          nullable: true
+          description: Live resume position if the viewer is currently mid-watch, or `null` otherwise.
+        providers:
+          type: array
+          description: Streaming services where this title is available, filtered to the account's selected providers. Present only when `providers=true` is passed to `getTitleState`.
+          items:
+            $ref: "#/components/schemas/ProviderInfo"
+      additionalProperties: false
+    SeasonEpisodeState:
+      type: object
+      description: Whether the active profile has finished one episode of a season.
+      required:
+        - episode
+        - completed
+      properties:
+        episode:
+          type: integer
+          minimum: 1
+          description: Episode number within the season.
+          example: 1
+        completed:
+          type: boolean
+          description: Whether the profile has finished this episode.
+          example: true
+      additionalProperties: false
+    SeasonState:
+      type: object
+      description: Per-episode completion state for one TV season, plus whether the season as a whole is complete.
+      required:
+        - season
+        - completed
+        - episodes
+      properties:
+        season:
+          type: integer
+          minimum: 0
+          description: The season number.
+          example: 1
+        completed:
+          type: boolean
+          description: Whether every aired episode of this season is watched.
+          example: false
+        episodes:
+          type: array
+          description: Completion state for every episode in the season.
+          items:
+            $ref: "#/components/schemas/SeasonEpisodeState"
+      additionalProperties: false
+    TitleListItem:
+      description: A title from a profile's rating, watchlist, or watch-history list, with display artwork and state summary.
       type: object
       required:
         - id
@@ -5111,31 +4112,30 @@ components:
         - title
         - poster_path
         - backdrop_path
-        - createdAt
+        - watchlist
+        - updatedAt
       properties:
         id:
           type: string
-          description: The DiscovrID (TV_<number> or MV_<number>)
+          description: The DiscovrID (`TV_<number>` or `MV_<number>`).
           example: MV_550
         ref:
           type: string
           description: |
             This item's `id` with the list it came from attached.
 
-            Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, removing it from a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.
-
-            A bare `id` always works; `ref` is never required.
+            Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, rating it, or removing it from a list. A bare `id` always works; `ref` is never required.
           example: MV_550@Pc1tD7vKj3NxU6eO
         mediaType:
           type: string
           enum:
             - movie
             - tv
-          description: The type of media
+          description: The type of media.
           example: movie
         title:
           type: string
-          description: The title of the media
+          description: The title of the media.
           example: Fight Club
         poster_path:
           type: object
@@ -5159,14 +4159,65 @@ components:
             w500: https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg
             original: https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg
           nullable: true
-        createdAt:
+        rating:
+          $ref: "#/components/schemas/Rating"
+          nullable: true
+          description: The profile's rating for this title, or `null` if unrated.
+        watchlist:
+          type: boolean
+          description: Whether this title is on the profile's watchlist.
+          example: false
+        updatedAt:
           type: string
           format: date-time
-          description: ISO 8601 timestamp indicating when the item was added to the list
-          example: "2023-01-01T00:00:00.000Z"
+          description: ISO 8601 timestamp for the active sort dimension (rated time, watchlisted time, or last watched time).
+          example: "2026-01-15T20:00:00.000Z"
+        completed:
+          type: boolean
+          description: Present on `watched=true` results — whether the title is fully finished.
+          example: true
+        plays:
+          type: integer
+          minimum: 0
+          description: Present on `watched=true` results — total completed plays.
+          example: 1
+        season:
+          type: integer
+          minimum: 1
+          description: Present on `watched=true` TV results — most recently watched season number.
+          example: 2
+        episode:
+          type: integer
+          minimum: 1
+          description: Present on `watched=true` TV results — most recently watched episode number.
+          example: 5
+        imported:
+          type: string
+          description: Present on `watched=true` results when imported from an external source (e.g., `"trakt"`).
+          example: trakt
+      additionalProperties: false
+    TitleListResponse:
+      description: Paginated list of titles. Pass `nextPageToken` to fetch the next page.
+      type: object
+      required:
+        - items
+        - hasMore
+      properties:
+        items:
+          type: array
+          description: Array of title list items.
+          items:
+            $ref: "#/components/schemas/TitleListItem"
+        hasMore:
+          type: boolean
+          description: Whether more items are available.
+          example: true
+        nextPageToken:
+          type: string
+          description: Opaque token to fetch the next page of results.
       additionalProperties: false
     PlaybackItem:
-      description: A media item with playback progress. `progress` is 0–100.
+      description: A media item with live playback progress. `progress` is 0–100.
       type: object
       required:
         - id
@@ -5178,27 +4229,25 @@ components:
       properties:
         id:
           type: string
-          description: The DiscovrID (TV_<number> or MV_<number>)
+          description: The DiscovrID (`TV_<number>` or `MV_<number>`).
           example: MV_550
         ref:
           type: string
           description: |
             This item's `id` with the list it came from attached.
 
-            Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, scrobbling it, removing it from a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.
-
-            A bare `id` always works; `ref` is never required.
+            Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, scrobbling it, or removing it from Continue Watching. A bare `id` always works; `ref` is never required.
           example: MV_550@Zi9bF4wSm0QaT2hC
         mediaType:
           type: string
           enum:
             - movie
             - tv
-          description: The type of media
+          description: The type of media.
           example: movie
         title:
           type: string
-          description: The title of the media
+          description: The title of the media.
           example: Fight Club
         poster_path:
           type: object
@@ -5224,8 +4273,7 @@ components:
           nullable: true
         episode_image:
           type: object
-          description: |
-            Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Only present for episode-level playback items.
+          description: Episode still image URLs keyed by width bucket. Only present for episode-level playback items.
           additionalProperties:
             type: string
             format: uri
@@ -5236,287 +4284,38 @@ components:
           nullable: true
         episode_title:
           type: string
-          description: The title of the episode (only present for episode-level playback items)
+          description: The title of the episode (only present for episode-level playback items).
           nullable: true
           example: Winter Is Coming
         progress:
           type: number
           minimum: 0
           maximum: 100
-          description: Playback progress percentage (0-100)
+          description: Playback progress percentage (0–100).
           example: 45.5
         updatedAt:
           type: string
           format: date-time
-          description: ISO 8601 timestamp indicating when playback was last updated
+          description: ISO 8601 timestamp indicating when playback was last updated.
           example: "2023-01-15T00:00:00.000Z"
         season:
           type: integer
           minimum: 1
-          description: Season number (only for TV shows)
+          description: Season number (only for TV shows).
           example: 2
         episode:
           type: integer
           minimum: 1
-          description: Episode number (only for TV shows)
+          description: Episode number (only for TV shows).
           example: 5
         createdAt:
           type: string
           format: date-time
-          description: ISO 8601 timestamp indicating when the item was first added to the list
+          description: ISO 8601 timestamp indicating when the item was first added to Continue Watching.
           example: "2023-01-01T00:00:00.000Z"
-      additionalProperties: false
-    HistoryItem:
-      description: A watch history entry. TV shows include season and episode.
-      type: object
-      required:
-        - id
-        - mediaType
-        - title
-        - poster_path
-        - backdrop_path
-        - updatedAt
-        - completed
-        - watched_count
-        - createdAt
-      properties:
-        id:
-          type: string
-          description: The DiscovrID (TV_<number> or MV_<number>)
-          example: TV_1396
-        ref:
-          type: string
-          description: |
-            This entry's `id` with the list it came from attached.
-
-            Prefer it wherever you'd pass this entry's `id` onward — opening its detail screen, removing it from your history. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.
-
-            A bare `id` always works; `ref` is never required.
-          example: TV_1396@Ae8sG5qRb2WmH9yL
-        mediaType:
-          type: string
-          enum:
-            - movie
-            - tv
-          description: The type of media
-          example: tv
-        title:
-          type: string
-          description: The title of the media
-          example: Breaking Bad
-        poster_path:
-          type: object
-          description: Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
-          additionalProperties:
-            type: string
-            format: uri
-          example:
-            w185: https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg
-            w500: https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg
-            original: https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg
-          nullable: true
-        backdrop_path:
-          type: object
-          description: Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
-          additionalProperties:
-            type: string
-            format: uri
-          example:
-            w185: https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg
-            w500: https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg
-            original: https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg
-          nullable: true
-        updatedAt:
-          type: string
-          format: date-time
-          description: ISO 8601 timestamp indicating when the history entry was last updated
-          example: "2023-01-15T00:00:00.000Z"
-        progress:
-          type: number
-          minimum: 0
-          maximum: 100
-          description: Playback progress percentage (0-100)
-          nullable: true
-          example: 45.5
-        completed:
-          type: boolean
-          description: Whether the media is considered completed (progress >= 80%)
-          example: false
-        watched_count:
-          type: integer
-          minimum: 0
-          description: How many times the profile has finished this title (or episode). `0` means it has been started but not finished.
-          example: 3
-        season:
-          type: integer
-          minimum: 1
-          description: Season number (required for TV shows)
-          example: 1
-        episode:
-          type: integer
-          minimum: 1
-          description: Episode number (required for TV shows)
-          example: 5
-        imported:
-          type: string
-          description: Source of import (e.g., "trakt") if this item was imported
-          nullable: true
-          example: trakt
-        createdAt:
-          type: string
-          format: date-time
-          description: ISO 8601 timestamp indicating when the item was added to the list
-          example: "2023-01-01T00:00:00.000Z"
-      additionalProperties: false
-    AddSimpleListItemPayload:
-      description: The media item to add. Use the full Discovr media ID — `MV_<id>` for movies, `TV_<id>` for TV shows.
-      type: object
-      required:
-        - mediaId
-      properties:
-        mediaId:
-          type: string
-          description: |
-            Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
-          example: MV_550
-      additionalProperties: false
-    AddPlaybackPayload:
-      description: Playback progress to record. `progress` is 0–100. `updatedAt` is an ISO timestamp from the client — use the actual time of the progress update.
-      type: object
-      required:
-        - mediaId
-      properties:
-        mediaId:
-          type: string
-          description: |
-            Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
-          example: MV_550
-        progress:
-          type: number
-          minimum: 0
-          maximum: 100
-          description: Initial playback progress percentage (0-100)
-          example: 25.5
-        updatedAt:
-          type: string
-          format: date-time
-          description: ISO 8601 timestamp for when playback was last updated
-          example: "2023-01-15T00:00:00.000Z"
-      additionalProperties: false
-    EditPlaybackPayload:
-      description: Updated playback progress. Provide at least one of `progress` or `updatedAt`. `mediaId` identifies the entry to update.
-      type: object
-      required:
-        - mediaId
-      properties:
-        mediaId:
-          type: string
-          description: |
-            Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`).
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
-          example: MV_550
-        progress:
-          type: number
-          minimum: 0
-          maximum: 100
-          description: New playback progress percentage (0-100)
-          example: 75
-        updatedAt:
-          type: string
-          format: date-time
-          description: ISO 8601 timestamp for when playback was last updated
-          example: "2023-01-15T00:00:00.000Z"
-      additionalProperties: false
-    AddHistoryPayload:
-      description: A watch history entry to record. For TV shows, `season` is required; `episode` is optional.
-      type: object
-      required:
-        - mediaId
-      properties:
-        mediaId:
-          type: string
-          description: |
-            Full media ID — `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `TV_1396`).
-
-            Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations.
-          example: TV_1396
-        updatedAt:
-          type: string
-          format: date-time
-          description: ISO 8601 timestamp indicating when the history entry was last updated
-          example: "2023-01-15T00:00:00.000Z"
-        progress:
-          type: number
-          minimum: 0
-          maximum: 100
-          description: Playback progress percentage (0-100)
-          example: 45.5
-        season:
-          type: integer
-          minimum: 1
-          description: Season number (required for TV shows)
-          example: 1
-        episode:
-          type: integer
-          minimum: 1
-          description: |
-            Episode number (optional for TV shows). When omitted, creates a "Default for Episode" entry
-            that applies to all episodes in the season where episode.air_date < historyItem.updatedAt.
-            This allows updating multiple episodes with a single history entry.
-
-            **Overriding Season Defaults:** When provided, creates an explicit episode entry that takes
-            precedence over any season default entries. To unmark an episode completed via season default,
-            create an explicit entry with progress < 80% (which will not be marked as completed).
-          example: 5
-        imported:
-          type: string
-          description: Source of import (e.g., "trakt") if this item was imported
-          example: trakt
-      additionalProperties: false
-    PatchHistoryPayload:
-      type: object
-      description: Updates the recorded progress for a title already in the profile's history.
-      required:
-        - progress
-      properties:
-        progress:
-          type: number
-          minimum: 0
-          maximum: 100
-          description: |
-            Playback progress percentage (0-100). 
-
-            Values >= 80% are considered completed, values < 80% are not completed.
-            Use progress: 0 to unmark an episode that was completed via season default.
-          example: 0
-      additionalProperties: false
-    SimpleListResponse:
-      description: Paginated list of items. Use `nextPageToken` with the `nextPageToken` query parameter to get the next page.
-      type: object
-      required:
-        - items
-        - hasMore
-      properties:
-        items:
-          type: array
-          description: Array of list items
-          items:
-            $ref: "#/components/schemas/SimpleListItem"
-        hasMore:
-          type: boolean
-          description: Whether there are more items available
-          example: true
-        nextPageToken:
-          type: string
-          description: Opaque token to fetch the next page of results
       additionalProperties: false
     PlaybackListResponse:
-      description: Paginated list of items with playback progress.
+      description: Paginated list of items with live playback progress.
       type: object
       required:
         - items
@@ -5524,56 +4323,59 @@ components:
       properties:
         items:
           type: array
-          description: Array of playback items
+          description: Array of playback items.
           items:
             $ref: "#/components/schemas/PlaybackItem"
         hasMore:
           type: boolean
-          description: Whether there are more items available
+          description: Whether there are more items available.
           example: true
         nextPageToken:
           type: string
-          description: Opaque token to fetch the next page of results
+          description: Opaque token to fetch the next page of results.
       additionalProperties: false
-    HistoryListResponse:
-      description: Paginated list of watch history entries.
+    ImportHistoryPayload:
+      description: A watch history entry to import from an external source.
       type: object
       required:
-        - items
-        - hasMore
+        - mediaId
+        - imported
       properties:
-        items:
-          type: array
-          description: Array of history items
-          items:
-            $ref: "#/components/schemas/HistoryItem"
-        hasMore:
-          type: boolean
-          description: Whether there are more items available
-          example: true
-        nextPageToken:
+        mediaId:
           type: string
-          description: Opaque token to fetch the next page of results
+          description: Full media ID (`MV_<number>` or `TV_<number>`), or an item `ref`.
+          example: TV_1396
+        imported:
+          type: string
+          minLength: 1
+          description: Name of the external source being imported from (for example `"trakt"`).
+          example: trakt
+        updatedAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of when the title was watched. Defaults to now if omitted.
+          example: "2023-01-15T20:00:00.000Z"
+        season:
+          type: integer
+          minimum: 1
+          description: TV only. Season number to import. Omit to import every aired episode of the show.
+          example: 1
+        episode:
+          type: integer
+          minimum: 1
+          description: TV only, and only together with `season`. Episode number to import. Omit to import every aired episode of the season.
+          example: 5
       additionalProperties: false
     SuccessMessage:
-      description: Confirmation response with the action taken. For exclusive lists (liked/disliked/super_liked), also includes `added` (which list the item was added to) and optionally `removed` (which list it was removed from).
+      description: Confirmation response for deletions that do not return a title state object.
       type: object
       required:
         - message
       properties:
         message:
           type: string
-          description: Success message
-          example: Item added successfully
-        added:
-          type: string
-          description: The list type the item was added to (for exclusive lists)
-          example: liked
-        removed:
-          type: string
-          nullable: true
-          description: The list type the item was removed from, if any (for exclusive lists)
-          example: disliked
+          description: Success message.
+          example: Playback deleted successfully
       additionalProperties: false
     EpisodeRef:
       type: object
@@ -5609,35 +4411,6 @@ components:
           description: Which episode is playing. Required for TV shows, omitted for movies.
           $ref: "#/components/schemas/EpisodeRef"
       additionalProperties: false
-    ScrobbleSkipBody:
-      type: object
-      description: Body form of a skip report, for the route that already carries the title in its path.
-      required:
-        - from
-        - to
-        - duration
-      properties:
-        from:
-          type: number
-          minimum: 0
-          maximum: 100
-          description: Playback position where the skip started (0–100).
-          example: 10
-        to:
-          type: number
-          minimum: 0
-          maximum: 100
-          description: Playback position where the skip landed (0–100).
-          example: 20
-        duration:
-          type: number
-          minimum: 0
-          description: Number of seconds skipped.
-          example: 20
-        tv:
-          description: Which episode is playing. Required for TV shows, omitted for movies.
-          $ref: "#/components/schemas/EpisodeRef"
-      additionalProperties: false
     ScrobbleResponse:
       type: object
       description: Confirms a progress report, echoing what was recorded and whether it counted as watched.
@@ -5658,19 +4431,15 @@ components:
           example: 85
         completed:
           type: boolean
-          description: "`true` if the item was marked as watched (progress reached 80% or more)."
+          description: "`true` if the movie or episode reached 80% or more."
           example: true
-      additionalProperties: false
-    ScrobbleSkipResponse:
-      type: object
-      description: Confirms a skip report was recorded.
-      required:
-        - status
-      properties:
-        status:
-          type: string
-          description: Always `"ok"` on success.
-          example: ok
+        completedSeasons:
+          type: array
+          description: Present when a TV episode crosses 80% — lists every regular season now fully watched.
+          items:
+            type: integer
+          example:
+            - 1
       additionalProperties: false
     ApiErrorCode:
       type: string
@@ -6235,7 +5004,7 @@ components:
         watch_providers:
           type: array
           description: |
-            Full list of where this title is available, not filtered to any profile's preferences. Use `profile_meta` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.
+            Full list of where this title is available, not filtered to any profile's preferences. Use `GET /profile/titles/{mediaId}` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.
           items:
             $ref: "#/components/schemas/ProviderInfo"
         credits:
@@ -6549,106 +5318,6 @@ components:
           nullable: true
           description: TheTVDB identifier. TV only; `null` for movies and for shows with none.
           example: 81189
-      additionalProperties: false
-    MediaProfileMeta:
-      type: object
-      description: The current profile's interaction data for a title.
-      properties:
-        watchlist:
-          type: boolean
-          description: Whether the title is on the profile's watchlist.
-        liked:
-          type: boolean
-          description: Whether the profile has liked the title.
-        disliked:
-          type: boolean
-          description: Whether the profile has disliked the title.
-        super_liked:
-          type: boolean
-          description: Whether the profile has super-liked the title.
-        playback:
-          $ref: "#/components/schemas/MediaProfileMetaPlayback"
-        history:
-          type: boolean
-          description: Whether the profile has played any of this title before, even briefly. It does not mean they finished it; use `completed` for that.
-        completed:
-          type: boolean
-          description: |
-            Whether the profile has completed this title (progress ≥ 80% for movies; all seasons complete for TV shows).
-        completedSeasons:
-          type: array
-          description: |
-            TV shows only — the season numbers the profile has fully completed. Not present for movies.
-          items:
-            type: integer
-        providers:
-          type: array
-          description: |
-            Streaming services where this title is available, filtered to the profile's selected providers. Only included when `providers=true` is passed. For the full, unfiltered list see `watch_providers` on the base `GET /media/{id}` response.
-          items:
-            $ref: "#/components/schemas/ProviderInfo"
-      required:
-        - watchlist
-        - liked
-        - disliked
-        - super_liked
-        - playback
-        - history
-        - completed
-      additionalProperties: false
-    MediaProfileMetaPlayback:
-      type: object
-      description: Where the profile is up to in this title. Drives a progress bar and a Resume button.
-      required:
-        - inlist
-      properties:
-        inlist:
-          type: boolean
-          description: Whether the profile has started this title. When `false`, `data` is null and there's no progress to show.
-        data:
-          $ref: "#/components/schemas/PlaybackProgress"
-          nullable: true
-      additionalProperties: false
-    PlaybackProgress:
-      type: object
-      description: A profile's saved playback position for a title, returned inside `MediaProfileMeta.playback.data`.
-      required:
-        - mediaId
-        - mediaType
-        - createdAt
-      properties:
-        mediaId:
-          type: string
-          description: The title being tracked, as `MV_<id>` or `TV_<id>`.
-        mediaType:
-          type: string
-          enum:
-            - movie
-            - tv
-          description: Whether this is a movie or TV show.
-        createdAt:
-          type: string
-          format: date-time
-          description: When the profile first started this title.
-        progress:
-          type: number
-          minimum: 0
-          maximum: 100
-          description: How far through the title the profile is, as a percentage. Use it to position a progress bar.
-        updatedAt:
-          type: string
-          format: date-time
-          description: When progress was last recorded. Sort by this to order a Continue Watching row.
-        season:
-          type: integer
-          minimum: 1
-          description: Season number (only for TV shows)
-          example: 2
-        episode:
-          type: integer
-          minimum: 1
-          description: Episode number (only for TV shows)
-          example: 5
       additionalProperties: false
     ProviderInfo:
       type: object
@@ -7150,42 +5819,6 @@ components:
           description: List of episodes in the season
           items:
             $ref: "#/components/schemas/Episode"
-      additionalProperties: false
-    SeasonProfileMeta:
-      type: object
-      description: The current profile's state for a TV season — which episodes it has finished, plus the season's own aggregate completion state.
-      required:
-        - season
-        - completed
-        - episodes
-      properties:
-        season:
-          type: integer
-          description: The season number this meta is for.
-          example: 1
-        completed:
-          type: boolean
-          description: Whether the profile has completed the entire season.
-        episodes:
-          type: array
-          description: Which episodes of this season the profile has finished.
-          items:
-            $ref: "#/components/schemas/SeasonProfileMetaEpisode"
-      additionalProperties: false
-    SeasonProfileMetaEpisode:
-      type: object
-      description: Whether the current profile has finished a single episode.
-      required:
-        - episode
-        - completed
-      properties:
-        episode:
-          type: integer
-          description: The episode number within the season.
-          example: 5
-        completed:
-          type: boolean
-          description: Whether the profile has finished this episode (watched at least 80% of it).
       additionalProperties: false
     Episode:
       type: object

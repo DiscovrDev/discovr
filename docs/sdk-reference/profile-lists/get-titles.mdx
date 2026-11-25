@@ -1,0 +1,112 @@
+---
+title: "getTitles()"
+description: "List titles by rating, watchlist, or watch history"
+---
+
+Returns a paginated list of titles for the active profile, ordered most recent first.
+
+Pass **exactly one** filter query parameter:
+
+- `rating=liked`, `rating=disliked`, or `rating=super_liked` — titles with that rating, newest rated first.
+- `watchlist=true` — the profile's watchlist, newest added first.
+- `watched=true` — the profile's watch history (one entry per title, with `completed`, `plays`, and the last episode for TV shows), most recently watched first.
+
+Each item includes a `ref` alongside its `id`. Pass the `ref` when the viewer opens or acts on the title.
+
+**Auth tier:** session — send your session token in `Authorization: Bearer`.
+
+## Parameters
+
+| Name          | Type                                     | Required | Description                                                            |
+| ------------- | ---------------------------------------- | -------- | ---------------------------------------------------------------------- |
+| rating        | `"liked" \| "disliked" \| "super_liked"` | No       | Filter by rating (`liked`, `disliked`, or `super_liked`).              |
+| watchlist     | `boolean`                                | No       | Set to `true` to list the profile's watchlist.                         |
+| watched       | `boolean`                                | No       | Set to `true` to list the profile's watch history (one row per title). |
+| nextPageToken | `string`                                 | No       | Opaque cursor token from the previous page.                            |
+| limit         | `integer`                                | No       | Maximum number of titles to return (1–50, default 10).                 |
+
+## Returns
+
+[`TitleListResponse`](/sdk-reference/types/profile-lists#titlelistresponse) — Paginated list of matching titles.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "items": [
+{
+  "id": "string",
+  "ref": "string",
+  "mediaType": "movie" /* enum: "movie", "tv" */,
+  "title": "string",
+  "poster_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "backdrop_path": {
+  "w185": "https://cdn.example.com/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "w500": "https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg",
+  "original": "https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg"
+},
+  "rating": "liked" /* Rating: "liked", "disliked", "super_liked" */,
+  "watchlist": false,
+  "updatedAt": "string" /* date-time */,
+  "completed": false,
+  "plays": 1,
+  "season": 2,
+  "episode": 5,
+  "imported": "string"
+}
+],
+  "hasMore": false,
+  "nextPageToken": "string"
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { Rating, TitleListResponse } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: TitleListResponse = await discovr.getTitles({
+	rating: "liked",
+	watchlist: true,
+	watched: true,
+	nextPageToken: "example",
+	limit: 10,
+});
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.Rating
+import api.discovr.models.TitleListResponse
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: TitleListResponse = client.getTitles(rating = "liked", watchlist = true, watched = true, nextPageToken = "example", limit = 10)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// Rating, TitleListResponse
+let response: TitleListResponse = try await client.getTitles(rating: "liked", watchlist: true, watched: true, nextPageToken: "example", limit: 10)
+print(response)
+```
+
+</CodeGroup>

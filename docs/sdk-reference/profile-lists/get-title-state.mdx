@@ -1,0 +1,105 @@
+---
+title: "getTitleState()"
+description: "Get the active profile's state for a title"
+---
+
+Returns everything your UI needs to show the active profile's relationship with a title:
+
+- **Rating**: `liked`, `disliked`, `super_liked`, or `null`.
+- **Watchlist**: whether the title is saved to the watchlist.
+- **Watch progress & completion**: whether the profile has started (`watched`) or finished (`completed`) the title, total `plays`, watched `episodes` and `completedSeasons` for TV shows, and the live `playback` resume position when mid-watch.
+- **Providers** _(optional)_: pass `providers=true` to include streaming availability filtered to the account's chosen services.
+
+**Title opens & recommendations.** Calling `GET /profile/titles/&#123;mediaId&#125;` records that the viewer opened the title and directly affects the profile's recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Every state write (`setRating`, `clearRating`, `addToWatchlist`, `removeFromWatchlist`, `markWatched`, `markUnwatched`) returns the updated `TitleState`, so you don't need to refetch this endpoint after a change.
+
+**Auth tier:** session — send your session token in `Authorization: Bearer`.
+
+## Parameters
+
+| Name      | Type      | Required | Description                                                                                                                                                                                                                        |
+| --------- | --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId   | `string`  | Yes      | The title's media ID (`MV_&lt;id&gt;` for movies, `TV_&lt;id&gt;` for TV shows). Also accepts an item's `ref` in place of the ID. Prefer the `ref` when you have one — it resolves to the same title and sharpens recommendations. |
+| providers | `boolean` | No       | Set to `true` to include streaming provider availability filtered to the account's selected services.                                                                                                                              |
+
+## Returns
+
+[`TitleState`](/sdk-reference/types/common#titlestate) — Title state returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "mediaId": "string",
+  "mediaType": "movie" /* enum: "movie", "tv" */,
+  "rating": "liked" /* Rating: "liked", "disliked", "super_liked" */,
+  "watchlist": false,
+  "watched": false,
+  "completed": false,
+  "completedSeasons": ["integer"],
+  "episodes": {
+  "1": [1,2,3,4,5,6,7]
+},
+  "plays": 7,
+  "playback": {
+  "progress": 45.5,
+  "season": 2,
+  "episode": 5,
+  "updatedAt": "string" /* date-time */
+},
+  "providers": [
+{
+  "id": "string",
+  "title": "string",
+  "logos": {
+  "60": "https://is1-ssl.mzstatic.com/image/thumb/.../60x60bb.jpg",
+  "100": "https://is1-ssl.mzstatic.com/image/thumb/.../100x100bb.jpg",
+  "512": "https://is1-ssl.mzstatic.com/image/thumb/.../512x512bb.jpg",
+  "1024": "https://is1-ssl.mzstatic.com/image/thumb/.../1024x1024bb.png"
+},
+  "regions": {
+  "<key>": "object" /* dynamic keys, shape not fixed in OpenAPI */
+}
+}
+]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { TitleState } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: TitleState = await discovr.getTitleState("MV_550", { providers: false });
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.TitleState
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: TitleState = client.getTitleState(mediaId = "MV_550", providers = false)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// TitleState
+let response: TitleState = try await client.getTitleState(mediaId: "MV_550", providers: false)
+print(response)
+```
+
+</CodeGroup>

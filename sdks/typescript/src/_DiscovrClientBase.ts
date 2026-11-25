@@ -15,26 +15,25 @@ import type {
   GetRowItemsResponse,
   GetRowsResponse,
   GifSearchResponse,
-  HistoryListResponse,
   MediaAssetsResponse,
-  MediaProfileMeta,
   MediaResponse,
   Page,
   PlaybackListResponse,
   Profile,
   ProfileImagesResponse,
+  Rating,
   RefreshTokenResponse,
   Row,
   ScrobbleResponse,
-  ScrobbleSkipResponse,
   SearchResponse,
   SeasonDetailsResponse,
-  SeasonProfileMeta,
+  SeasonState,
   SessionTokenResponse,
   SignOutResponse,
   SimilarResponse,
-  SimpleListResponse,
-  SuccessMessage
+  SuccessMessage,
+  TitleListResponse,
+  TitleState
 } from './models/index';
 import type { _DiscovrAuth } from './auth';
 import type { _DiscovrCache } from './_DiscovrCache';
@@ -144,100 +143,56 @@ export abstract class _DiscovrClientBase {
     );
   }
 
-  getLikedItems(options?: { nextPageToken?: string; limit?: number }): Promise<SimpleListResponse> {
-    return this._auth.sessionApi().getLikedItems(options?.nextPageToken, options?.limit);
+  getTitles(options?: { rating?: Rating; watchlist?: boolean; watched?: boolean; nextPageToken?: string; limit?: number }): Promise<TitleListResponse> {
+    return this._auth.sessionApi().getTitles(options?.rating, options?.watchlist, options?.watched, options?.nextPageToken, options?.limit);
   }
 
-  addLikedItem(mediaId: string): Promise<SuccessMessage> {
-    return this._auth.sessionApi().addLikedItem({ mediaId });
+  getTitleState(mediaId: string, options?: { providers?: boolean }): Promise<TitleState> {
+    return this._auth.sessionApi().getTitleState(mediaId, options?.providers);
   }
 
-  deleteLikedItem(mediaId: string): Promise<SuccessMessage> {
-    return this._auth.sessionApi().deleteLikedItem(mediaId);
+  getSeasonState(mediaId: string, seasonNumber: number): Promise<SeasonState> {
+    return this._auth.sessionApi().getSeasonState(mediaId, seasonNumber);
   }
 
-  getDislikedItems(options?: { nextPageToken?: string; limit?: number }): Promise<SimpleListResponse> {
-    return this._auth.sessionApi().getDislikedItems(options?.nextPageToken, options?.limit);
+  setRating(mediaId: string, value: Rating): Promise<TitleState> {
+    return this._auth.sessionApi().setRating(mediaId, { value });
   }
 
-  addDislikedItem(mediaId: string): Promise<SuccessMessage> {
-    return this._auth.sessionApi().addDislikedItem({ mediaId });
+  clearRating(mediaId: string): Promise<TitleState> {
+    return this._auth.sessionApi().clearRating(mediaId);
   }
 
-  deleteDislikedItem(mediaId: string): Promise<SuccessMessage> {
-    return this._auth.sessionApi().deleteDislikedItem(mediaId);
+  addToWatchlist(mediaId: string): Promise<TitleState> {
+    return this._auth.sessionApi().addToWatchlist(mediaId);
   }
 
-  getSuperLikedItems(options?: { nextPageToken?: string; limit?: number }): Promise<SimpleListResponse> {
-    return this._auth.sessionApi().getSuperLikedItems(options?.nextPageToken, options?.limit);
+  removeFromWatchlist(mediaId: string): Promise<TitleState> {
+    return this._auth.sessionApi().removeFromWatchlist(mediaId);
   }
 
-  addSuperLikedItem(mediaId: string): Promise<SuccessMessage> {
-    return this._auth.sessionApi().addSuperLikedItem({ mediaId });
+  markWatched(mediaId: string, options?: { season?: number; episode?: number }): Promise<TitleState> {
+    return this._auth.sessionApi().markWatched(mediaId, options?.season, options?.episode);
   }
 
-  deleteSuperLikedItem(mediaId: string): Promise<SuccessMessage> {
-    return this._auth.sessionApi().deleteSuperLikedItem(mediaId);
-  }
-
-  getWatchlistItems(options?: { nextPageToken?: string; limit?: number }): Promise<SimpleListResponse> {
-    return this._auth.sessionApi().getWatchlistItems(options?.nextPageToken, options?.limit);
-  }
-
-  addWatchlistItem(mediaId: string): Promise<SuccessMessage> {
-    return this._auth.sessionApi().addWatchlistItem({ mediaId });
-  }
-
-  deleteWatchlistItem(mediaId: string): Promise<SuccessMessage> {
-    return this._auth.sessionApi().deleteWatchlistItem(mediaId);
+  markUnwatched(mediaId: string, options?: { season?: number; episode?: number }): Promise<TitleState> {
+    return this._auth.sessionApi().markUnwatched(mediaId, options?.season, options?.episode);
   }
 
   getPlaybackItems(options?: { nextPageToken?: string; limit?: number }): Promise<PlaybackListResponse> {
     return this._auth.sessionApi().getPlaybackItems(options?.nextPageToken, options?.limit);
   }
 
-  addPlaybackItem(mediaId: string, options?: { progress?: number; updatedAt?: Date }): Promise<SuccessMessage> {
-    return this._auth.sessionApi().addPlaybackItem({ mediaId, progress: options?.progress, updatedAt: options?.updatedAt });
-  }
-
-  updatePlaybackItem(mediaId: string, options?: { progress?: number; updatedAt?: Date }): Promise<SuccessMessage> {
-    return this._auth.sessionApi().updatePlaybackItem({ mediaId, progress: options?.progress, updatedAt: options?.updatedAt });
-  }
-
   deletePlaybackItem(mediaId: string): Promise<SuccessMessage> {
     return this._auth.sessionApi().deletePlaybackItem(mediaId);
-  }
-
-  markUnwatched(mediaId: string, options?: { season?: number; episode?: number }): Promise<SuccessMessage> {
-    return this._auth.sessionApi().markUnwatched(mediaId, options?.season, options?.episode);
   }
 
   scrobble(mediaId: string, progress: number, options?: { tv?: EpisodeRef }): Promise<ScrobbleResponse> {
     return this._auth.sessionApi().scrobble(mediaId, { progress, tv: options?.tv });
   }
 
-  scrobbleSkip(mediaId: string, from: number, to: number, duration: number, options?: { tv?: EpisodeRef }): Promise<ScrobbleSkipResponse> {
-    return this._auth.sessionApi().scrobbleSkip(mediaId, { from, to, duration, tv: options?.tv });
-  }
-
-  getHistoryItems(options?: { nextPageToken?: string; limit?: number }): Promise<HistoryListResponse> {
-    return this._auth.sessionApi().getHistoryItems(options?.nextPageToken, options?.limit);
-  }
-
-  addHistoryItem(mediaId: string, options?: { updatedAt?: Date; progress?: number; season?: number; episode?: number; imported?: string }): Promise<SuccessMessage> {
-    return this._auth.sessionApi().addHistoryItem({ mediaId, updatedAt: options?.updatedAt, progress: options?.progress, season: options?.season, episode: options?.episode, imported: options?.imported });
-  }
-
-  getHistoryItemsByMediaId(mediaId: string, options?: { season?: number; episode?: number; nextPageToken?: string; limit?: number }): Promise<HistoryListResponse> {
-    return this._auth.sessionApi().getHistoryItemsByMediaId(mediaId, options?.season, options?.episode, options?.nextPageToken, options?.limit);
-  }
-
-  patchHistoryItem(mediaId: string, progress: number, options?: { season?: number; episode?: number }): Promise<SuccessMessage> {
-    return this._auth.sessionApi().patchHistoryItem(mediaId, { progress }, options?.season, options?.episode);
-  }
-
-  deleteHistoryItem(mediaId: string, options?: { season?: number; episode?: number }): Promise<SuccessMessage> {
-    return this._auth.sessionApi().deleteHistoryItem(mediaId, options?.season, options?.episode);
+  importHistory(mediaId: string, imported: string, options?: { updatedAt?: Date; season?: number; episode?: number }): Promise<TitleState> {
+    return this._auth.sessionApi().importHistory({ mediaId, imported, updatedAt: options?.updatedAt, season: options?.season, episode: options?.episode });
   }
 
   getMedia(mediaId: string, options?: { bypassCache?: boolean }): Promise<MediaResponse> {
@@ -260,10 +215,6 @@ export abstract class _DiscovrClientBase {
     );
   }
 
-  getMediaProfileMeta(mediaId: string, options?: { providers?: boolean }): Promise<MediaProfileMeta> {
-    return this._auth.sessionApi().getMediaProfileMeta(mediaId, options?.providers);
-  }
-
   getSeasonDetails(mediaId: string, seasonNumber: number, options?: { language?: string; bypassCache?: boolean }): Promise<SeasonDetailsResponse> {
     return this._cache.wrap(
       "getSeasonDetails",
@@ -272,10 +223,6 @@ export abstract class _DiscovrClientBase {
       options?.bypassCache,
       () => this._auth.sessionApi().getSeasonDetails(mediaId, seasonNumber, options?.language),
     );
-  }
-
-  getSeasonProfileMeta(mediaId: string, seasonNumber: number): Promise<SeasonProfileMeta> {
-    return this._auth.sessionApi().getSeasonProfileMeta(mediaId, seasonNumber);
   }
 
   getSimilarRecommendations(mediaId: string, options?: { language?: string; page?: number; bypassCache?: boolean }): Promise<SimilarResponse> {

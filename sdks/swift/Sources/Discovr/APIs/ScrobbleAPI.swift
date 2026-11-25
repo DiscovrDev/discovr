@@ -10,34 +10,34 @@ import Foundation
 open class ScrobbleAPI {
 
     /**
-     Mark a title as unwatched
+     Mark a title, season, or episode as unwatched
      
-     - parameter mediaId: (path) The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id.  
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
      - parameter season: (query) TV only. Season number. Omit to undo every season of the show. (optional)
      - parameter episode: (query) TV only, and only together with &#x60;season&#x60;. Episode number. Omit to undo the whole season. (optional)
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: SuccessMessage
+     - returns: TitleState
      */
     @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func markUnwatched(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SuccessMessage {
+    open class func markUnwatched(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> TitleState {
         return try await markUnwatchedWithRequestBuilder(mediaId: mediaId, season: season, episode: episode, apiConfiguration: apiConfiguration).execute().body
     }
 
     /**
-     Mark a title as unwatched
-     - DELETE /profile/watched/{mediaId}
-     - Takes a movie, a TV show, a season, or an episode back to unwatched, in one call.  It removes the history that made it watched, takes it out of the user's **in-progress** list if that is where it was, and brings a TV show's `completed` state back in line. Use it for a \"Mark as unwatched\" button.  For TV shows, `season` and `episode` choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass `season` to undo **that season**: its episodes, and any entry that counted the whole season as watched. - Pass `season` and `episode` to undo **that episode**.  Calling it for a title that isn't watched changes nothing and still succeeds, so it is safe to retry.  This is not the same as [`DELETE /profile/history/{mediaId}`](/api-reference/discovr/delete-history-item), which removes history entries and nothing else. Marking something unwatched with that call and `DELETE /profile/playback/{mediaId}` leaves a TV show's `completed` out of date unless they run in a particular order; this endpoint does the right thing whichever way you reach it.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     Mark a title, season, or episode as unwatched
+     - DELETE /profile/titles/{mediaId}/watched
+     - Takes a movie, a TV show, a season, or an episode back to unwatched in one atomic call.  It removes the watched state for that scope and clears any in-progress Continue Watching position inside it. Calling it for a title that isn't watched changes nothing and still succeeds, so it's safe to retry.  For TV shows, `season` and `episode` choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass `season` to undo **that season**. - Pass `season` and `episode` to undo **that episode**.  Returns the title's updated `TitleState`, so you don't need to refetch `getTitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter mediaId: (path) The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id.  
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
      - parameter season: (query) TV only. Season number. Omit to undo every season of the show. (optional)
      - parameter episode: (query) TV only, and only together with &#x60;season&#x60;. Episode number. Omit to undo the whole season. (optional)
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SuccessMessage> 
+     - returns: RequestBuilder<TitleState> 
      */
-    open class func markUnwatchedWithRequestBuilder(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SuccessMessage> {
-        var localVariablePath = "/profile/watched/{mediaId}"
+    open class func markUnwatchedWithRequestBuilder(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<TitleState> {
+        var localVariablePath = "/profile/titles/{mediaId}/watched"
         let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
         let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
@@ -56,9 +56,61 @@ open class ScrobbleAPI {
 
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
-        let localVariableRequestBuilder: RequestBuilder<SuccessMessage>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+        let localVariableRequestBuilder: RequestBuilder<TitleState>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     Mark a title, season, or episode as watched
+     
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter season: (query) TV only. Season number. Omit to mark every aired season of the show. (optional)
+     - parameter episode: (query) TV only, and only together with &#x60;season&#x60;. Episode number. Omit to mark the whole season. (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: TitleState
+     */
+    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+    open class func markWatched(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> TitleState {
+        return try await markWatchedWithRequestBuilder(mediaId: mediaId, season: season, episode: episode, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Mark a title, season, or episode as watched
+     - PUT /profile/titles/{mediaId}/watched
+     - Marks a movie, an entire TV show, a season, or a single episode as watched in one atomic call.  For TV shows, `season` and `episode` pick the scope:  - Omit both to mark **every aired episode** across all regular seasons (season 1 and up) as watched. Specials (season `0`) are excluded. - Pass `season` to mark every aired episode of **that season**. - Pass `season` and `episode` to mark **that episode**.  Any in-progress Continue Watching position within the marked scope is cleared automatically. Returns the title's updated `TitleState`, so you don't need to refetch `getTitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - parameter mediaId: (path) The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  
+     - parameter season: (query) TV only. Season number. Omit to mark every aired season of the show. (optional)
+     - parameter episode: (query) TV only, and only together with &#x60;season&#x60;. Episode number. Omit to mark the whole season. (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<TitleState> 
+     */
+    open class func markWatchedWithRequestBuilder(mediaId: String, season: Int? = nil, episode: Int? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<TitleState> {
+        var localVariablePath = "/profile/titles/{mediaId}/watched"
+        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
+        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "season": (wrappedValue: season?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "episode": (wrappedValue: episode?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<TitleState>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -77,7 +129,7 @@ open class ScrobbleAPI {
     /**
      Record playback progress
      - POST /profile/scrobble/{mediaId}
-     - Scrobbling is Discovr's single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don't need to coordinate multiple endpoints.  Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:  - The item stays in the user's **in-progress** list until they finish watching. - Once they've watched 80% or more, it's marked as complete and moves to their **history**. - For movies, the item is removed from the user's watchlist once they've watched more than 20% — so it clears as soon as they're clearly watching it. For TV episodes, it's removed from the watchlist once the episode is complete (≥80%).  For TV shows, include `season` and `episode` in the request body so history is tracked per episode.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     - Scrobbling is Discovr's single-call way to track playback. One call updates live resume progress, watch history, completion, and the watchlist.  Send the viewer's real position when playback starts (not `0` when resuming), about every 30 seconds while watching, and right away on pause, resume, seek, and completion. Discovr handles the rest:  - The title stays in Continue Watching until the movie or episode crosses 80%. - Once progress reaches 20% or more, the title is automatically removed from the watchlist — for both movies and TV shows. - Once progress reaches 80% or more, the movie or episode is marked watched and leaves Continue Watching. Lower progress later (such as a rewind) moves the live position without undoing completion — use `markUnwatched` to undo a watch. - For TV shows, include `season` and `episode` in `tv`. When an episode crosses 80%, the response includes `completedSeasons` listing every season now fully watched.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -103,52 +155,6 @@ open class ScrobbleAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<ScrobbleResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
-
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
-    }
-
-    /**
-     Record a skip event
-     
-     - parameter mediaId: (path) The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter scrobbleSkipBody: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: ScrobbleSkipResponse
-     */
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func scrobbleSkip(mediaId: String, scrobbleSkipBody: ScrobbleSkipBody, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> ScrobbleSkipResponse {
-        return try await scrobbleSkipWithRequestBuilder(mediaId: mediaId, scrobbleSkipBody: scrobbleSkipBody, apiConfiguration: apiConfiguration).execute().body
-    }
-
-    /**
-     Record a skip event
-     - POST /profile/scrobble/{mediaId}/skip
-     - Signals that the user jumped to another point in the content, forward (a skip) or backward (a rewind). Used for watch analytics. Returns immediately — no side effects on lists or history.  `from` and `to` are playback positions as a percentage (0–100) and must differ; `from` higher than `to` is a jump backward. `duration` is how many seconds were jumped. After a jump, also send the position the viewer landed on as a progress update with `POST /profile/scrobble/{mediaId}`. 
-     - Bearer Token:
-       - type: http
-       - name: BearerAuth
-     - parameter mediaId: (path) The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
-     - parameter scrobbleSkipBody: (body)  
-     - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<ScrobbleSkipResponse> 
-     */
-    open class func scrobbleSkipWithRequestBuilder(mediaId: String, scrobbleSkipBody: ScrobbleSkipBody, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<ScrobbleSkipResponse> {
-        var localVariablePath = "/profile/scrobble/{mediaId}/skip"
-        let mediaIdPreEscape = "\(APIHelper.mapValueToPathItem(mediaId))"
-        let mediaIdPostEscape = mediaIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        localVariablePath = localVariablePath.replacingOccurrences(of: "{mediaId}", with: mediaIdPostEscape, options: .literal, range: nil)
-        let localVariableURLString = apiConfiguration.basePath + localVariablePath
-        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: scrobbleSkipBody, codableHelper: apiConfiguration.codableHelper)
-
-        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
-
-        let localVariableNillableHeaders: [String: (any Sendable)?] = [
-            "Content-Type": "application/json",
-        ]
-
-        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
-
-        let localVariableRequestBuilder: RequestBuilder<ScrobbleSkipResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }

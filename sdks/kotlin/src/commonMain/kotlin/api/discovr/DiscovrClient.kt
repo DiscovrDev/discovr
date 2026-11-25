@@ -24,22 +24,23 @@
  * // API calls
  * val page = client.createPage()
  * val rows = client.getRows(page.id)
- * client.addLikedItem("MV_550")
+ * client.setRating("MV_550", Rating.liked)
  * ```
  */
 
 package api.discovr
 
 import api.discovr.apis.DiscovrApi
-import api.discovr.models.HistoryItem
 import api.discovr.models.KnownForItem
 import api.discovr.models.MediaItem
 import api.discovr.models.NavigationItem
 import api.discovr.models.PlaybackItem
 import api.discovr.models.ProviderItem
+import api.discovr.models.Rating
 import api.discovr.models.SearchResult
 import api.discovr.models.SimilarResult
-import api.discovr.models.SimpleListItem
+import api.discovr.models.TitleListItem
+import api.discovr.models.TitleListResponse
 import api.discovr.auth.AuthConfig
 import api.discovr.auth.AuthState
 import api.discovr.auth.AuthStorage
@@ -275,6 +276,28 @@ class DiscovrClient(
         cacheScope.cancel()
         _auth.close()
     }
+
+    // ── Convenience title-list wrappers ───────────────────────────────────────
+
+    /** List titles rated `liked` by the active profile, newest rated first. */
+    suspend fun getLiked(nextPageToken: String? = null, limit: Int? = null): TitleListResponse =
+        getTitles(rating = Rating.liked, nextPageToken = nextPageToken, limit = limit)
+
+    /** List titles rated `disliked` by the active profile, newest rated first. */
+    suspend fun getDisliked(nextPageToken: String? = null, limit: Int? = null): TitleListResponse =
+        getTitles(rating = Rating.disliked, nextPageToken = nextPageToken, limit = limit)
+
+    /** List titles rated `super_liked` by the active profile, newest rated first. */
+    suspend fun getSuperLiked(nextPageToken: String? = null, limit: Int? = null): TitleListResponse =
+        getTitles(rating = Rating.super_liked, nextPageToken = nextPageToken, limit = limit)
+
+    /** List titles on the active profile's watchlist, newest added first. */
+    suspend fun getWatchlist(nextPageToken: String? = null, limit: Int? = null): TitleListResponse =
+        getTitles(watchlist = true, nextPageToken = nextPageToken, limit = limit)
+
+    /** List the active profile's watch history (one entry per title), most recently watched first. */
+    suspend fun getHistory(nextPageToken: String? = null, limit: Int? = null): TitleListResponse =
+        getTitles(watched = true, nextPageToken = nextPageToken, limit = limit)
 }
 
 
@@ -315,13 +338,10 @@ public fun SimilarResult.refOrId(): String = ref ?: id
 public fun KnownForItem.refOrId(): String = ref ?: id
 
 /** @see refOrId */
-public fun SimpleListItem.refOrId(): String = ref ?: id
+public fun TitleListItem.refOrId(): String = ref ?: id
 
 /** @see refOrId */
 public fun PlaybackItem.refOrId(): String = ref ?: id
-
-/** @see refOrId */
-public fun HistoryItem.refOrId(): String = ref ?: id
 
 /**
  * The plain id behind a `ref`, or the id itself if that's what you were given.

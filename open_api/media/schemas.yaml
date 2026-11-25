@@ -249,7 +249,7 @@ MediaResponse:
     watch_providers:
       type: array
       description: |
-        Full list of where this title is available, not filtered to any profile's preferences. Use `profile_meta` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.
+        Full list of where this title is available, not filtered to any profile's preferences. Use `GET /profile/titles/{mediaId}` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.
       items:
         $ref: "#/ProviderInfo"
     credits:
@@ -357,67 +357,6 @@ MediaExternalIds:
       example: 81189
   additionalProperties: false
 
-MediaProfileMetaPlayback:
-  type: object
-  description: Where the profile is up to in this title. Drives a progress bar and a Resume button.
-  required:
-    - inlist
-  properties:
-    inlist:
-      type: boolean
-      description: Whether the profile has started this title. When `false`, `data` is null and there's no progress to show.
-    data:
-      $ref: "#/PlaybackProgress"
-      nullable: true
-  additionalProperties: false
-
-MediaProfileMeta:
-  type: object
-  description: The current profile's interaction data for a title.
-  properties:
-    watchlist:
-      type: boolean
-      description: Whether the title is on the profile's watchlist.
-    liked:
-      type: boolean
-      description: Whether the profile has liked the title.
-    disliked:
-      type: boolean
-      description: Whether the profile has disliked the title.
-    super_liked:
-      type: boolean
-      description: Whether the profile has super-liked the title.
-    playback:
-      $ref: "#/MediaProfileMetaPlayback"
-    history:
-      type: boolean
-      description: Whether the profile has played any of this title before, even briefly. It does not mean they finished it; use `completed` for that.
-    completed:
-      type: boolean
-      description: |
-        Whether the profile has completed this title (progress ≥ 80% for movies; all seasons complete for TV shows).
-    completedSeasons:
-      type: array
-      description: |
-        TV shows only — the season numbers the profile has fully completed. Not present for movies.
-      items:
-        type: integer
-    providers:
-      type: array
-      description: |
-        Streaming services where this title is available, filtered to the profile's selected providers. Only included when `providers=true` is passed. For the full, unfiltered list see `watch_providers` on the base `GET /media/{id}` response.
-      items:
-        $ref: "#/ProviderInfo"
-  required:
-    - watchlist
-    - liked
-    - disliked
-    - super_liked
-    - playback
-    - history
-    - completed
-  additionalProperties: false
-
 ProviderInfoRegion:
   type: object
   description: Availability of a title on a streaming provider in a single region.
@@ -475,46 +414,6 @@ ProviderInfo:
         Regions where this provider has the title available, keyed by ISO 3166-1 alpha-2 country code.
       additionalProperties:
         $ref: "#/ProviderInfoRegion"
-  additionalProperties: false
-
-PlaybackProgress:
-  type: object
-  description: A profile's saved playback position for a title, returned inside `MediaProfileMeta.playback.data`.
-  required:
-    - mediaId
-    - mediaType
-    - createdAt
-  properties:
-    mediaId:
-      type: string
-      description: The title being tracked, as `MV_<id>` or `TV_<id>`.
-    mediaType:
-      type: string
-      enum: [movie, tv]
-      description: Whether this is a movie or TV show.
-    createdAt:
-      type: string
-      format: date-time
-      description: When the profile first started this title.
-    progress:
-      type: number
-      minimum: 0
-      maximum: 100
-      description: How far through the title the profile is, as a percentage. Use it to position a progress bar.
-    updatedAt:
-      type: string
-      format: date-time
-      description: When progress was last recorded. Sort by this to order a Continue Watching row.
-    season:
-      type: integer
-      minimum: 1
-      description: Season number (only for TV shows)
-      example: 2
-    episode:
-      type: integer
-      minimum: 1
-      description: Episode number (only for TV shows)
-      example: 5
   additionalProperties: false
 
 SearchResult:
@@ -960,44 +859,6 @@ SeasonDetailsResponse:
       description: List of episodes in the season
       items:
         $ref: "#/Episode"
-  additionalProperties: false
-
-SeasonProfileMeta:
-  type: object
-  description: The current profile's state for a TV season — which episodes it has finished, plus the season's own aggregate completion state.
-  required:
-    - season
-    - completed
-    - episodes
-  properties:
-    season:
-      type: integer
-      description: The season number this meta is for.
-      example: 1
-    completed:
-      type: boolean
-      description: Whether the profile has completed the entire season.
-    episodes:
-      type: array
-      description: Which episodes of this season the profile has finished.
-      items:
-        $ref: "#/SeasonProfileMetaEpisode"
-  additionalProperties: false
-
-SeasonProfileMetaEpisode:
-  type: object
-  description: Whether the current profile has finished a single episode.
-  required:
-    - episode
-    - completed
-  properties:
-    episode:
-      type: integer
-      description: The episode number within the season.
-      example: 5
-    completed:
-      type: boolean
-      description: Whether the profile has finished this episode (watched at least 80% of it).
   additionalProperties: false
 
 EpisodeCrewMember:

@@ -4,30 +4,16 @@ All URIs are relative to *https://api.discovr.media*
 
 | Method | HTTP request | Description |
 |------------- | ------------- | -------------|
-| [**addDislikedItem**](DiscovrApi.md#adddislikeditem) | **POST** /profile/disliked | Add an item to disliked list |
-| [**addHistoryItem**](DiscovrApi.md#addhistoryitem) | **POST** /profile/history | Add an item to history list |
-| [**addLikedItem**](DiscovrApi.md#addlikeditem) | **POST** /profile/liked | Add an item to liked list |
-| [**addPlaybackItem**](DiscovrApi.md#addplaybackitem) | **POST** /profile/playback | Add an item to playback list |
-| [**addSuperLikedItem**](DiscovrApi.md#addsuperlikeditem) | **POST** /profile/super_liked | Add an item to the super-liked list |
-| [**addWatchlistItem**](DiscovrApi.md#addwatchlistitem) | **POST** /profile/watchlist | Add an item to watchlist |
+| [**addToWatchlist**](DiscovrApi.md#addtowatchlist) | **PUT** /profile/titles/{mediaId}/watchlist | Add a title to the watchlist |
 | [**authorizeClientWeb**](DiscovrApi.md#authorizeclientweb) | **GET** /auth/web/authorize | Redirect to web authentication |
+| [**clearRating**](DiscovrApi.md#clearrating) | **DELETE** /profile/titles/{mediaId}/rating | Clear a title\&#39;s rating |
 | [**createPage**](DiscovrApi.md#createpage) | **POST** /pages | Create a recommendation page |
 | [**createProfile**](DiscovrApi.md#createprofile) | **POST** /profiles | Create a profile |
-| [**deleteDislikedItem**](DiscovrApi.md#deletedislikeditem) | **DELETE** /profile/disliked/{mediaId} | Delete an item from disliked list |
-| [**deleteHistoryItem**](DiscovrApi.md#deletehistoryitem) | **DELETE** /profile/history/{mediaId} | Delete an item from history list |
-| [**deleteLikedItem**](DiscovrApi.md#deletelikeditem) | **DELETE** /profile/liked/{mediaId} | Delete an item from liked list |
-| [**deletePlaybackItem**](DiscovrApi.md#deleteplaybackitem) | **DELETE** /profile/playback/{mediaId} | Delete an item from playback list |
+| [**deletePlaybackItem**](DiscovrApi.md#deleteplaybackitem) | **DELETE** /profile/playback/{mediaId} | Remove a title from Continue Watching |
 | [**deleteProfile**](DiscovrApi.md#deleteprofile) | **DELETE** /profiles/{profileId} | Delete a profile |
-| [**deleteSuperLikedItem**](DiscovrApi.md#deletesuperlikeditem) | **DELETE** /profile/super_liked/{mediaId} | Delete an item from the super-liked list |
-| [**deleteWatchlistItem**](DiscovrApi.md#deletewatchlistitem) | **DELETE** /profile/watchlist/{mediaId} | Delete an item from watchlist |
 | [**exchangeWebAuthCode**](DiscovrApi.md#exchangewebauthcode) | **POST** /auth/web/token | Redeem a web sign-in code |
-| [**getDislikedItems**](DiscovrApi.md#getdislikeditems) | **GET** /profile/disliked | Get disliked items |
-| [**getHistoryItems**](DiscovrApi.md#gethistoryitems) | **GET** /profile/history | Get history items |
-| [**getHistoryItemsByMediaId**](DiscovrApi.md#gethistoryitemsbymediaid) | **GET** /profile/history/{mediaId} | Get history items for a specific media |
-| [**getLikedItems**](DiscovrApi.md#getlikeditems) | **GET** /profile/liked | Get liked items |
 | [**getMedia**](DiscovrApi.md#getmedia) | **GET** /media/{mediaId} | Get media details |
 | [**getMediaAssets**](DiscovrApi.md#getmediaassets) | **GET** /media/{mediaId}/assets | Get media assets |
-| [**getMediaProfileMeta**](DiscovrApi.md#getmediaprofilemeta) | **GET** /media/{mediaId}/profile_meta | Get profile interaction data for a title |
 | [**getPage**](DiscovrApi.md#getpage) | **GET** /pages/{pageId} | Get a page |
 | [**getPlaybackItems**](DiscovrApi.md#getplaybackitems) | **GET** /profile/playback | Get playback items |
 | [**getProfile**](DiscovrApi.md#getprofile) | **GET** /profiles/{profileId} | Get a profile |
@@ -37,97 +23,34 @@ All URIs are relative to *https://api.discovr.media*
 | [**getRowItems**](DiscovrApi.md#getrowitems) | **GET** /pages/{pageId}/rows/{rowId}/items | List row items |
 | [**getRows**](DiscovrApi.md#getrows) | **GET** /pages/{pageId}/rows | List rows |
 | [**getSeasonDetails**](DiscovrApi.md#getseasondetails) | **GET** /media/{mediaId}/seasons/{seasonNumber} | Get TV season details |
-| [**getSeasonProfileMeta**](DiscovrApi.md#getseasonprofilemeta) | **GET** /media/{mediaId}/seasons/{seasonNumber}/meta | Get which episodes of a TV season are finished |
+| [**getSeasonState**](DiscovrApi.md#getseasonstate) | **GET** /profile/titles/{mediaId}/seasons/{seasonNumber} | Get which episodes of a TV season are watched |
 | [**getSimilarRecommendations**](DiscovrApi.md#getsimilarrecommendations) | **GET** /media/{mediaId}/similar | Get similar titles |
-| [**getSuperLikedItems**](DiscovrApi.md#getsuperlikeditems) | **GET** /profile/super_liked | Get super-liked items |
-| [**getWatchlistItems**](DiscovrApi.md#getwatchlistitems) | **GET** /profile/watchlist | Get watchlist items |
-| [**markUnwatched**](DiscovrApi.md#markunwatched) | **DELETE** /profile/watched/{mediaId} | Mark a title as unwatched |
+| [**getTitleState**](DiscovrApi.md#gettitlestate) | **GET** /profile/titles/{mediaId} | Get the active profile\&#39;s state for a title |
+| [**getTitles**](DiscovrApi.md#gettitles) | **GET** /profile/titles | List titles by rating, watchlist, or watch history |
+| [**importHistory**](DiscovrApi.md#importhistory) | **POST** /profile/history | Import a watch history entry |
+| [**markUnwatched**](DiscovrApi.md#markunwatched) | **DELETE** /profile/titles/{mediaId}/watched | Mark a title, season, or episode as unwatched |
+| [**markWatched**](DiscovrApi.md#markwatched) | **PUT** /profile/titles/{mediaId}/watched | Mark a title, season, or episode as watched |
 | [**mintSessionToken**](DiscovrApi.md#mintsessiontoken) | **POST** /auth/session-token | Mint a session token |
-| [**patchHistoryItem**](DiscovrApi.md#patchhistoryitem) | **PATCH** /profile/history/{mediaId} | Update or create a history item |
 | [**pollDeviceCode**](DiscovrApi.md#polldevicecode) | **POST** /auth/device-codes/{deviceCode}/poll | Poll for auth token |
+| [**removeFromWatchlist**](DiscovrApi.md#removefromwatchlist) | **DELETE** /profile/titles/{mediaId}/watchlist | Remove a title from the watchlist |
 | [**requestDeviceCode**](DiscovrApi.md#requestdevicecode) | **POST** /auth/device-codes | Request device code |
 | [**scrobble**](DiscovrApi.md#scrobble) | **POST** /profile/scrobble/{mediaId} | Record playback progress |
-| [**scrobbleSkip**](DiscovrApi.md#scrobbleskip) | **POST** /profile/scrobble/{mediaId}/skip | Record a skip event |
 | [**searchGifs**](DiscovrApi.md#searchgifs) | **GET** /gif-search | Search GIFs |
 | [**searchMedia**](DiscovrApi.md#searchmedia) | **GET** /search | Search media |
+| [**setRating**](DiscovrApi.md#setrating) | **PUT** /profile/titles/{mediaId}/rating | Set a title\&#39;s rating |
 | [**signOutSession**](DiscovrApi.md#signoutsession) | **DELETE** /auth/session | Sign out the current device |
 | [**startDemoSession**](DiscovrApi.md#startdemosession) | **POST** /auth/demo-session | Start a demo session |
-| [**updatePlaybackItem**](DiscovrApi.md#updateplaybackitem) | **PATCH** /profile/playback | Update playback progress |
 | [**updateProfile**](DiscovrApi.md#updateprofile) | **PATCH** /profiles/{profileId} | Update a profile |
 
 
 
-## addDislikedItem
+## addToWatchlist
 
-> SuccessMessage addDislikedItem(addSimpleListItemPayload)
+> TitleState addToWatchlist(mediaId)
 
-Add an item to disliked list
+Add a title to the watchlist
 
-Adds a title to the disliked list.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Liked, disliked, and super-liked are exclusive — disliking something automatically removes any existing like or super-like for the same title.  Returns &#x60;201&#x60; if the item was newly added, &#x60;200&#x60; if it was already disliked. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.addDislikedItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **addSimpleListItemPayload** | [AddSimpleListItemPayload](AddSimpleListItemPayload.md) |  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: `application/json`
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Item was already disliked — no change made. |  -  |
-| **201** | Item added to disliked list. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## addHistoryItem
-
-> SuccessMessage addHistoryItem(addHistoryPayload)
-
-Add an item to history list
-
-Records a watch history entry. Unlike other lists, history allows multiple entries for the same title — each completed viewing is tracked separately.  - &#x60;mediaId&#x60;: the title to record. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows. - &#x60;progress&#x60;: how far through the title the user watched, as a percentage (0–100). Optional. - &#x60;updatedAt&#x60;: the ISO 8601 timestamp of when the viewing was recorded. Defaults to now if omitted.  **TV Shows:** Include &#x60;season&#x60; (required for TV shows) and optionally &#x60;episode&#x60; to track per-episode history. Omitting &#x60;episode&#x60; records a season-level entry — clients can use this to mark all episodes in a season as watched in a single call. 
+Adds a title to the active profile\&#39;s watchlist. Safe to call if it is already on the watchlist.  Returns the title\&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 
@@ -142,7 +65,7 @@ const client = new DiscovrClient("your-client-id", {
 
 async function example() {
   // After sign-in and profile selection …
-  const result = await client.addHistoryItem(/* see API reference */);
+  const result = await client.addToWatchlist(/* see API reference */);
   console.log(result);
 }
 
@@ -154,11 +77,11 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **addHistoryPayload** | [AddHistoryPayload](AddHistoryPayload.md) |  | |
+| **mediaId** | `string` | The title\&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | [Defaults to `undefined`] |
 
 ### Return type
 
-[**SuccessMessage**](SuccessMessage.md)
+[**TitleState**](TitleState.md)
 
 ### Authorization
 
@@ -166,271 +89,16 @@ example().catch(console.error);
 
 ### HTTP request headers
 
-- **Content-Type**: `application/json`
+- **Content-Type**: Not defined
 - **Accept**: `application/json`
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **201** | Item added successfully |  -  |
+| **200** | Added to watchlist; returns the title\&#39;s new state. |  -  |
 | **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## addLikedItem
-
-> SuccessMessage addLikedItem(addSimpleListItemPayload)
-
-Add an item to liked list
-
-Adds a title to the liked list.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Liked, disliked, and super-liked are exclusive — liking something automatically removes any existing dislike or super-like for the same title.  Returns &#x60;201&#x60; if the item was newly added, &#x60;200&#x60; if it was already liked. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.addLikedItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **addSimpleListItemPayload** | [AddSimpleListItemPayload](AddSimpleListItemPayload.md) |  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: `application/json`
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Item was already liked — no change made. |  -  |
-| **201** | Item added to liked list. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## addPlaybackItem
-
-> SuccessMessage addPlaybackItem(addPlaybackPayload)
-
-Add an item to playback list
-
-Records a new playback position for a title. If the title is already being tracked, returns 409 — use PATCH to update an existing entry.  - &#x60;mediaId&#x60;: the title to track. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;). - &#x60;progress&#x60;: how far through the title the user is, as a percentage (0–100). Optional — omit if you don\&#39;t have a position yet. - &#x60;updatedAt&#x60;: the ISO 8601 timestamp of when this progress was recorded. Defaults to now. Send the actual client time so resume positions stay accurate if the user is offline. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.addPlaybackItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **addPlaybackPayload** | [AddPlaybackPayload](AddPlaybackPayload.md) |  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: `application/json`
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Item added successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## addSuperLikedItem
-
-> SuccessMessage addSuperLikedItem(addSimpleListItemPayload)
-
-Add an item to the super-liked list
-
-Adds a title to the super-liked list.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Super-liking a title says the viewer loves it. Like the liked list, adding a super-like automatically removes any existing dislike or like for the same title.  Returns &#x60;201&#x60; if the item was newly added, &#x60;200&#x60; if it was already super-liked. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.addSuperLikedItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **addSimpleListItemPayload** | [AddSimpleListItemPayload](AddSimpleListItemPayload.md) |  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: `application/json`
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Item was already super-liked — no change made. |  -  |
-| **201** | Item added to super-liked list. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## addWatchlistItem
-
-> SuccessMessage addWatchlistItem(addSimpleListItemPayload)
-
-Add an item to watchlist
-
-Adds a title to the watchlist.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Unlike liked/disliked/super-liked, the watchlist is non-exclusive — you can watchlist something regardless of how it\&#39;s rated. Titles are automatically removed from the watchlist when the user starts watching via &#x60;scrobble&#x60;. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.addWatchlistItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **addSimpleListItemPayload** | [AddSimpleListItemPayload](AddSimpleListItemPayload.md) |  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: `application/json`
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Item added to watchlist. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
 | **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
@@ -497,6 +165,68 @@ No authorization required
 | **200** | Successful operation (Documentation only). In practice, this endpoint always redirects (302).  |  -  |
 | **302** | Redirect to authentication page |  * Location - The authentication URL <br>  |
 | **400** | Bad request — missing, invalid, or unregistered query parameters |  -  |
+| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
+| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
+| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
+| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## clearRating
+
+> TitleState clearRating(mediaId)
+
+Clear a title\&#39;s rating
+
+Clears the active profile\&#39;s rating for a title. Safe to call if the title has no rating.  Returns the title\&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+
+### Example
+
+```ts
+import { DiscovrClient } from "discovr";
+
+// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
+// the SDK Reference at https://docs.discovr.media.
+const client = new DiscovrClient("your-client-id", {
+  basePath: "https://api.discovr.media",
+});
+
+async function example() {
+  // After sign-in and profile selection …
+  const result = await client.clearRating(/* see API reference */);
+  console.log(result);
+}
+
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **mediaId** | `string` | The title\&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | [Defaults to `undefined`] |
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Rating cleared; returns the title\&#39;s new state. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -630,204 +360,13 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
-## deleteDislikedItem
-
-> SuccessMessage deleteDislikedItem(mediaId)
-
-Delete an item from disliked list
-
-Removes a title from the disliked list. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.deleteDislikedItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **mediaId** | `string` | Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user\&#39;s recommendations.  | [Defaults to `undefined`] |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Item deleted successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## deleteHistoryItem
-
-> SuccessMessage deleteHistoryItem(mediaId, season, episode)
-
-Delete an item from history list
-
-Deletes history entries for a title. Because history allows duplicates, this removes all matching entries for the specified media (and episode, if provided).  For TV shows, pass &#x60;season&#x60; as a query parameter (required) and optionally &#x60;episode&#x60;. Include &#x60;episode&#x60; to delete that episode\&#39;s entries. Omit it to delete the entries that were recorded for the season as a whole, without an episode (for example, marking a season watched in one go); entries for individual episodes are kept.  To take a title back to unwatched, use [&#x60;DELETE /profile/watched/{mediaId}&#x60;](/api-reference/discovr/mark-unwatched) instead. This call removes history entries and nothing else: it doesn\&#39;t touch the in-progress list, and a TV show\&#39;s &#x60;completed&#x60; state is brought up to date from whatever history is left. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.deleteHistoryItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **mediaId** | `string` | The media ID of the title to delete. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user\&#39;s recommendations.  | [Defaults to `undefined`] |
-| **season** | `number` | Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. | [Optional] [Defaults to `undefined`] |
-| **episode** | `number` | Episode number. Optional — omit to delete the season-level entries (those recorded without an episode); include to delete a specific episode\&#39;s entries only. | [Optional] [Defaults to `undefined`] |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Item deleted successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## deleteLikedItem
-
-> SuccessMessage deleteLikedItem(mediaId)
-
-Delete an item from liked list
-
-Removes a title from the liked list. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.deleteLikedItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **mediaId** | `string` | Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user\&#39;s recommendations.  | [Defaults to `undefined`] |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Item deleted successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
 ## deletePlaybackItem
 
 > SuccessMessage deletePlaybackItem(mediaId)
 
-Delete an item from playback list
+Remove a title from Continue Watching
 
-Removes a title from the in-progress list. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;). 
+Removes a title from the in-progress Continue Watching list without changing its watched history. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;). 
 
 ### Example
 
@@ -947,132 +486,6 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
-## deleteSuperLikedItem
-
-> SuccessMessage deleteSuperLikedItem(mediaId)
-
-Delete an item from the super-liked list
-
-Removes a title from the super-liked list. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.deleteSuperLikedItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **mediaId** | `string` | Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user\&#39;s recommendations.  | [Defaults to `undefined`] |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Item deleted successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## deleteWatchlistItem
-
-> SuccessMessage deleteWatchlistItem(mediaId)
-
-Delete an item from watchlist
-
-Removes a title from the watchlist. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.deleteWatchlistItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **mediaId** | `string` | Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user\&#39;s recommendations.  | [Defaults to `undefined`] |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Item deleted successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
 ## exchangeWebAuthCode
 
 > RefreshTokenResponse exchangeWebAuthCode(webTokenPayload)
@@ -1127,265 +540,6 @@ No authorization required
 | **200** | Code redeemed — your credential. |  -  |
 | **400** | A required field is missing, or the code, the verifier or the &#x60;deviceId&#x60; is malformed. A malformed &#x60;deviceId&#x60; is refused before the code is spent. |  -  |
 | **401** | The code cannot be redeemed. The &#x60;error&#x60; field is a machine-readable code, and every failed attempt spends the code, so start a new sign-in rather than retrying.  |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## getDislikedItems
-
-> SimpleListResponse getDislikedItems(nextPageToken, limit)
-
-Get disliked items
-
-Returns the disliked list for a specific profile.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Items are ordered newest-first and support cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.getDislikedItems(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **nextPageToken** | `string` | Opaque token from previous page for pagination | [Optional] [Defaults to `undefined`] |
-| **limit** | `number` | Maximum number of items to return (1-50, default: 10) | [Optional] [Defaults to `10`] |
-
-### Return type
-
-[**SimpleListResponse**](SimpleListResponse.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | List of disliked items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## getHistoryItems
-
-> HistoryListResponse getHistoryItems(nextPageToken, limit)
-
-Get history items
-
-Returns the profile\&#39;s full watch history, newest entries first.  History allows multiple entries for the same title — every completed viewing is tracked separately, so you may see the same &#x60;mediaId&#x60; more than once.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.getHistoryItems(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **nextPageToken** | `string` | Opaque token from previous page for pagination | [Optional] [Defaults to `undefined`] |
-| **limit** | `number` | Maximum number of items to return (1-50, default: 10) | [Optional] [Defaults to `10`] |
-
-### Return type
-
-[**HistoryListResponse**](HistoryListResponse.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | List of history items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## getHistoryItemsByMediaId
-
-> HistoryListResponse getHistoryItemsByMediaId(mediaId, season, episode, nextPageToken, limit)
-
-Get history items for a specific media
-
-Returns history entries for a specific title. Newest entries first.  For TV shows, pass &#x60;season&#x60; as a query parameter (required) and optionally &#x60;episode&#x60; to filter by episode. Omitting &#x60;episode&#x60; returns all entries for the whole season.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.getHistoryItemsByMediaId(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **mediaId** | `string` | The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user\&#39;s recommendations.  | [Defaults to `undefined`] |
-| **season** | `number` | Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. | [Optional] [Defaults to `undefined`] |
-| **episode** | `number` | Episode number. Optional — omit to return all entries for the season; include to filter to a specific episode. | [Optional] [Defaults to `undefined`] |
-| **nextPageToken** | `string` | Opaque token from previous page for pagination | [Optional] [Defaults to `undefined`] |
-| **limit** | `number` | Maximum number of items to return (1-50, default: 10) | [Optional] [Defaults to `10`] |
-
-### Return type
-
-[**HistoryListResponse**](HistoryListResponse.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | List of history items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## getLikedItems
-
-> SimpleListResponse getLikedItems(nextPageToken, limit)
-
-Get liked items
-
-Returns the liked list for a specific profile.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Items are ordered newest-first and support cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.getLikedItems(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **nextPageToken** | `string` | Opaque token from previous page for pagination | [Optional] [Defaults to `undefined`] |
-| **limit** | `number` | Maximum number of items to return (1-50, default: 10) | [Optional] [Defaults to `10`] |
-
-### Return type
-
-[**SimpleListResponse**](SimpleListResponse.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | List of liked items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
 | **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
@@ -1521,71 +675,6 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
-## getMediaProfileMeta
-
-> MediaProfileMeta getMediaProfileMeta(mediaId, providers)
-
-Get profile interaction data for a title
-
-Returns the current profile\&#39;s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (&#x60;true&#x60;/&#x60;false&#x60; for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile\&#39;s selected region. Pass &#x60;providers&#x3D;true&#x60; to include this. - **Completion**: whether the profile has finished this title (&#x60;completed&#x60;), and for TV shows, which season numbers are fully watched (&#x60;completedSeasons&#x60;).  **This call directly affects the profile\&#39;s recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn\&#39;t open registers similarly to liking those titles and will skew their recommendations. Pass the item\&#39;s &#x60;ref&#x60; when you have one.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.getMediaProfileMeta(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **mediaId** | `string` | The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user\&#39;s recommendations.  | [Defaults to `undefined`] |
-| **providers** | `boolean` | Set to &#x60;true&#x60; to include streaming provider availability in the response. | [Optional] [Defaults to `false`] |
-
-### Return type
-
-[**MediaProfileMeta**](MediaProfileMeta.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Profile interaction data returned successfully. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **403** | The token is valid but this account can\&#39;t use the API right now: it\&#39;s still on the waitlist (&#x60;access-not-granted&#x60;), has to accept the current Terms (&#x60;legal-acceptance-required&#x60;), or the profile in the token no longer exists (&#x60;profile-not-found&#x60;). Re-authenticating won\&#39;t change the answer; show the user what the &#x60;error&#x60; code says. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
 ## getPage
 
 > Page getPage(pageId)
@@ -1655,7 +744,7 @@ example().catch(console.error);
 
 Get playback items
 
-Returns the profile\&#39;s in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \&quot;Continue Watching\&quot; row.  Each item includes a &#x60;progress&#x60; field (0–100) showing how far through the title the user is.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
+Returns the profile\&#39;s in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \&quot;Continue Watching\&quot; row.  Each item includes a &#x60;progress&#x60; field (0–100) showing how far through the title the user is. To update progress as a viewer watches, call &#x60;POST /profile/scrobble/{mediaId}&#x60;.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
 
 ### Example
 
@@ -2160,13 +1249,13 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
-## getSeasonProfileMeta
+## getSeasonState
 
-> SeasonProfileMeta getSeasonProfileMeta(mediaId, seasonNumber)
+> SeasonState getSeasonState(mediaId, seasonNumber)
 
-Get which episodes of a TV season are finished
+Get which episodes of a TV season are watched
 
-Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.  Pair this with &#x60;getSeasonDetails&#x60; for episode titles and artwork, and with &#x60;getMediaProfileMeta&#x60; for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn\&#39;t tracked, so it won\&#39;t show a progress bar. The profile\&#39;s place in the episode it is watching now is &#x60;playback&#x60; on &#x60;getMediaProfileMeta&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+Returns which episodes of a single TV season the active profile has finished, plus whether the season as a whole is complete.  A season counts as complete when every aired episode in it is watched. Specials (season &#x60;0&#x60;) never count toward show completion. Pair this with &#x60;getSeasonDetails&#x60; for episode titles and artwork, and with &#x60;getTitleState&#x60; for title-level state and live playback position.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 
@@ -2181,7 +1270,7 @@ const client = new DiscovrClient("your-client-id", {
 
 async function example() {
   // After sign-in and profile selection …
-  const result = await client.getSeasonProfileMeta(/* see API reference */);
+  const result = await client.getSeasonState(/* see API reference */);
   console.log(result);
 }
 
@@ -2193,12 +1282,12 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **mediaId** | `string` | The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user\&#39;s recommendations.  | [Defaults to `undefined`] |
-| **seasonNumber** | `number` | The season number. | [Defaults to `undefined`] |
+| **mediaId** | `string` | The TV show\&#39;s media ID (&#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | [Defaults to `undefined`] |
+| **seasonNumber** | `number` | The season number (0 for specials, 1+ for regular seasons). | [Defaults to `undefined`] |
 
 ### Return type
 
-[**SeasonProfileMeta**](SeasonProfileMeta.md)
+[**SeasonState**](SeasonState.md)
 
 ### Authorization
 
@@ -2213,10 +1302,9 @@ example().catch(console.error);
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Season progress returned successfully. |  -  |
+| **200** | Season completion state returned successfully. |  -  |
 | **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **403** | The token is valid but this account can\&#39;t use the API right now: it\&#39;s still on the waitlist (&#x60;access-not-granted&#x60;), has to accept the current Terms (&#x60;legal-acceptance-required&#x60;), or the profile in the token no longer exists (&#x60;profile-not-found&#x60;). Re-authenticating won\&#39;t change the answer; show the user what the &#x60;error&#x60; code says. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -2291,13 +1379,13 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
-## getSuperLikedItems
+## getTitleState
 
-> SimpleListResponse getSuperLikedItems(nextPageToken, limit)
+> TitleState getTitleState(mediaId, providers)
 
-Get super-liked items
+Get the active profile\&#39;s state for a title
 
-Returns the super-liked list for a specific profile.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Items are ordered newest-first and support cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. Super-liked titles are the ones the viewer loves most. 
+Returns everything your UI needs to show the active profile\&#39;s relationship with a title:  - **Rating**: &#x60;liked&#x60;, &#x60;disliked&#x60;, &#x60;super_liked&#x60;, or &#x60;null&#x60;. - **Watchlist**: whether the title is saved to the watchlist. - **Watch progress &amp; completion**: whether the profile has started (&#x60;watched&#x60;) or finished (&#x60;completed&#x60;) the title, total &#x60;plays&#x60;, watched &#x60;episodes&#x60; and &#x60;completedSeasons&#x60; for TV shows, and the live &#x60;playback&#x60; resume position when mid-watch. - **Providers** *(optional)*: pass &#x60;providers&#x3D;true&#x60; to include streaming availability filtered to the account\&#39;s chosen services.  **Title opens &amp; recommendations.** Calling &#x60;GET /profile/titles/{mediaId}&#x60; records that the viewer opened the title and directly affects the profile\&#39;s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Every state write (&#x60;setRating&#x60;, &#x60;clearRating&#x60;, &#x60;addToWatchlist&#x60;, &#x60;removeFromWatchlist&#x60;, &#x60;markWatched&#x60;, &#x60;markUnwatched&#x60;) returns the updated &#x60;TitleState&#x60;, so you don\&#39;t need to refetch this endpoint after a change.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 
@@ -2312,7 +1400,7 @@ const client = new DiscovrClient("your-client-id", {
 
 async function example() {
   // After sign-in and profile selection …
-  const result = await client.getSuperLikedItems(/* see API reference */);
+  const result = await client.getTitleState(/* see API reference */);
   console.log(result);
 }
 
@@ -2324,12 +1412,12 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **nextPageToken** | `string` | Opaque token from previous page for pagination | [Optional] [Defaults to `undefined`] |
-| **limit** | `number` | Maximum number of items to return (1-50, default: 10) | [Optional] [Defaults to `10`] |
+| **mediaId** | `string` | The title\&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; for movies, &#x60;TV_&lt;id&gt;&#x60; for TV shows).  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the ID. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens recommendations.  | [Defaults to `undefined`] |
+| **providers** | `boolean` | Set to &#x60;true&#x60; to include streaming provider availability filtered to the account\&#39;s selected services. | [Optional] [Defaults to `false`] |
 
 ### Return type
 
-[**SimpleListResponse**](SimpleListResponse.md)
+[**TitleState**](TitleState.md)
 
 ### Authorization
 
@@ -2344,7 +1432,7 @@ example().catch(console.error);
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | List of super_liked items retrieved successfully |  -  |
+| **200** | Title state returned successfully. |  -  |
 | **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
@@ -2355,13 +1443,13 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
-## getWatchlistItems
+## getTitles
 
-> SimpleListResponse getWatchlistItems(nextPageToken, limit)
+> TitleListResponse getTitles(rating, watchlist, watched, nextPageToken, limit)
 
-Get watchlist items
+List titles by rating, watchlist, or watch history
 
-Returns the profile\&#39;s watchlist — titles saved to watch later.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Ordered by when they were added (newest first). Supports cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available. 
+Returns a paginated list of titles for the active profile, ordered most recent first.  Pass **exactly one** filter query parameter:  - &#x60;rating&#x3D;liked&#x60;, &#x60;rating&#x3D;disliked&#x60;, or &#x60;rating&#x3D;super_liked&#x60; — titles with that rating, newest rated first. - &#x60;watchlist&#x3D;true&#x60; — the profile\&#39;s watchlist, newest added first. - &#x60;watched&#x3D;true&#x60; — the profile\&#39;s watch history (one entry per title, with &#x60;completed&#x60;, &#x60;plays&#x60;, and the last episode for TV shows), most recently watched first.  Each item includes a &#x60;ref&#x60; alongside its &#x60;id&#x60;. Pass the &#x60;ref&#x60; when the viewer opens or acts on the title.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 
@@ -2376,7 +1464,7 @@ const client = new DiscovrClient("your-client-id", {
 
 async function example() {
   // After sign-in and profile selection …
-  const result = await client.getWatchlistItems(/* see API reference */);
+  const result = await client.getTitles(/* see API reference */);
   console.log(result);
 }
 
@@ -2388,12 +1476,15 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **nextPageToken** | `string` | Opaque token from previous page for pagination | [Optional] [Defaults to `undefined`] |
-| **limit** | `number` | Maximum number of items to return (1-50, default: 10) | [Optional] [Defaults to `10`] |
+| **rating** | `Rating` | Filter by rating (&#x60;liked&#x60;, &#x60;disliked&#x60;, or &#x60;super_liked&#x60;). | [Optional] [Defaults to `undefined`] [Enum: liked, disliked, super_liked] |
+| **watchlist** | `boolean` | Set to &#x60;true&#x60; to list the profile\&#39;s watchlist. | [Optional] [Defaults to `undefined`] |
+| **watched** | `boolean` | Set to &#x60;true&#x60; to list the profile\&#39;s watch history (one row per title). | [Optional] [Defaults to `undefined`] |
+| **nextPageToken** | `string` | Opaque cursor token from the previous page. | [Optional] [Defaults to `undefined`] |
+| **limit** | `number` | Maximum number of titles to return (1–50, default 10). | [Optional] [Defaults to `10`] |
 
 ### Return type
 
-[**SimpleListResponse**](SimpleListResponse.md)
+[**TitleListResponse**](TitleListResponse.md)
 
 ### Authorization
 
@@ -2408,7 +1499,69 @@ example().catch(console.error);
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | List of watchlist items retrieved successfully |  -  |
+| **200** | Paginated list of matching titles. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
+| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
+| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
+| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
+| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## importHistory
+
+> TitleState importHistory(importHistoryPayload)
+
+Import a watch history entry
+
+Imports a previously watched movie, show, season, or episode from an external source.  - &#x60;mediaId&#x60;: the title to import (&#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows). - &#x60;imported&#x60;: required string naming the external source (for example &#x60;\&quot;trakt\&quot;&#x60;). - &#x60;updatedAt&#x60;: optional ISO 8601 timestamp of when it was watched. Defaults to now. - &#x60;season&#x60; / &#x60;episode&#x60;: optional TV scope. Omit both to import all aired episodes of the show; pass &#x60;season&#x60; to import that season; pass both to import a single episode.  For live viewing use &#x60;scrobble()&#x60;, and for interactive \&quot;Mark as watched\&quot; buttons use &#x60;markWatched()&#x60;. To read watch history, use &#x60;GET /profile/titles?watched&#x3D;true&#x60;.  Returns the title\&#39;s updated &#x60;TitleState&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+
+### Example
+
+```ts
+import { DiscovrClient } from "discovr";
+
+// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
+// the SDK Reference at https://docs.discovr.media.
+const client = new DiscovrClient("your-client-id", {
+  basePath: "https://api.discovr.media",
+});
+
+async function example() {
+  // After sign-in and profile selection …
+  const result = await client.importHistory(/* see API reference */);
+  console.log(result);
+}
+
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **importHistoryPayload** | [ImportHistoryPayload](ImportHistoryPayload.md) |  | |
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **201** | History imported; returns the title\&#39;s new state. |  -  |
 | **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
@@ -2421,11 +1574,11 @@ example().catch(console.error);
 
 ## markUnwatched
 
-> SuccessMessage markUnwatched(mediaId, season, episode)
+> TitleState markUnwatched(mediaId, season, episode)
 
-Mark a title as unwatched
+Mark a title, season, or episode as unwatched
 
-Takes a movie, a TV show, a season, or an episode back to unwatched, in one call.  It removes the history that made it watched, takes it out of the user\&#39;s **in-progress** list if that is where it was, and brings a TV show\&#39;s &#x60;completed&#x60; state back in line. Use it for a \&quot;Mark as unwatched\&quot; button.  For TV shows, &#x60;season&#x60; and &#x60;episode&#x60; choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass &#x60;season&#x60; to undo **that season**: its episodes, and any entry that counted the whole season as watched. - Pass &#x60;season&#x60; and &#x60;episode&#x60; to undo **that episode**.  Calling it for a title that isn\&#39;t watched changes nothing and still succeeds, so it is safe to retry.  This is not the same as [&#x60;DELETE /profile/history/{mediaId}&#x60;](/api-reference/discovr/delete-history-item), which removes history entries and nothing else. Marking something unwatched with that call and &#x60;DELETE /profile/playback/{mediaId}&#x60; leaves a TV show\&#39;s &#x60;completed&#x60; out of date unless they run in a particular order; this endpoint does the right thing whichever way you reach it.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+Takes a movie, a TV show, a season, or an episode back to unwatched in one atomic call.  It removes the watched state for that scope and clears any in-progress Continue Watching position inside it. Calling it for a title that isn\&#39;t watched changes nothing and still succeeds, so it\&#39;s safe to retry.  For TV shows, &#x60;season&#x60; and &#x60;episode&#x60; choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass &#x60;season&#x60; to undo **that season**. - Pass &#x60;season&#x60; and &#x60;episode&#x60; to undo **that episode**.  Returns the title\&#39;s updated &#x60;TitleState&#x60;, so you don\&#39;t need to refetch &#x60;getTitleState&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 
@@ -2452,13 +1605,13 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **mediaId** | `string` | The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the id.  | [Defaults to `undefined`] |
+| **mediaId** | `string` | The title\&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | [Defaults to `undefined`] |
 | **season** | `number` | TV only. Season number. Omit to undo every season of the show. | [Optional] [Defaults to `undefined`] |
 | **episode** | `number` | TV only, and only together with &#x60;season&#x60;. Episode number. Omit to undo the whole season. | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
-[**SuccessMessage**](SuccessMessage.md)
+[**TitleState**](TitleState.md)
 
 ### Authorization
 
@@ -2473,9 +1626,74 @@ example().catch(console.error);
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | The title is unwatched. |  -  |
+| **200** | Marked as unwatched; returns the title\&#39;s new state. |  -  |
 | **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
+| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
+| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
+| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## markWatched
+
+> TitleState markWatched(mediaId, season, episode)
+
+Mark a title, season, or episode as watched
+
+Marks a movie, an entire TV show, a season, or a single episode as watched in one atomic call.  For TV shows, &#x60;season&#x60; and &#x60;episode&#x60; pick the scope:  - Omit both to mark **every aired episode** across all regular seasons (season 1 and up) as watched. Specials (season &#x60;0&#x60;) are excluded. - Pass &#x60;season&#x60; to mark every aired episode of **that season**. - Pass &#x60;season&#x60; and &#x60;episode&#x60; to mark **that episode**.  Any in-progress Continue Watching position within the marked scope is cleared automatically. Returns the title\&#39;s updated &#x60;TitleState&#x60;, so you don\&#39;t need to refetch &#x60;getTitleState&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+
+### Example
+
+```ts
+import { DiscovrClient } from "discovr";
+
+// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
+// the SDK Reference at https://docs.discovr.media.
+const client = new DiscovrClient("your-client-id", {
+  basePath: "https://api.discovr.media",
+});
+
+async function example() {
+  // After sign-in and profile selection …
+  const result = await client.markWatched(/* see API reference */);
+  console.log(result);
+}
+
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **mediaId** | `string` | The title\&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | [Defaults to `undefined`] |
+| **season** | `number` | TV only. Season number. Omit to mark every aired season of the show. | [Optional] [Defaults to `undefined`] |
+| **episode** | `number` | TV only, and only together with &#x60;season&#x60;. Episode number. Omit to mark the whole season. | [Optional] [Defaults to `undefined`] |
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Marked as watched; returns the title\&#39;s new state. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
+| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
+| **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
 | **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
@@ -2547,72 +1765,6 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
-## patchHistoryItem
-
-> SuccessMessage patchHistoryItem(mediaId, patchHistoryPayload, season, episode)
-
-Update or create a history item
-
-Updates the history entry for a title. If no entry exists, creates one (upsert). This ensures only one entry exists per &#x60;mediaId&#x60; + &#x60;season&#x60; + &#x60;episode&#x60; combination.  For TV shows, &#x60;season&#x60; is required as a query parameter. Include &#x60;episode&#x60; to target a specific episode; omit it to update the season-level entry.  - &#x60;progress&#x60;: how far through the title the user watched, as a percentage (0–100). 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.patchHistoryItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **mediaId** | `string` | The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user\&#39;s recommendations.  | [Defaults to `undefined`] |
-| **patchHistoryPayload** | [PatchHistoryPayload](PatchHistoryPayload.md) |  | |
-| **season** | `number` | Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. | [Optional] [Defaults to `undefined`] |
-| **episode** | `number` | Episode number. Optional — omit to update the season-level entry; include to target a specific episode. | [Optional] [Defaults to `undefined`] |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: `application/json`
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | History item updated or created successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
 ## pollDeviceCode
 
 > DeviceCodePollResponse pollDeviceCode(deviceCode, devicePollPayload)
@@ -2670,6 +1822,68 @@ No authorization required
 | **401** | Device code expired, already consumed, or declined by the person on their phone. The &#x60;error&#x60; field contains a machine-readable code.  |  -  |
 | **403** | The account is on the closed-programme waitlist and may not be issued a credential yet. Deliberately not a &#x60;401&#x60;: the credential presented was valid and re-authenticating will not change the answer, so a client that retries on &#x60;401&#x60; must not retry on this.  |  -  |
 | **404** | Device code does not exist |  -  |
+| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
+| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
+| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## removeFromWatchlist
+
+> TitleState removeFromWatchlist(mediaId)
+
+Remove a title from the watchlist
+
+Removes a title from the active profile\&#39;s watchlist. Safe to call if it is not on the watchlist.  Returns the title\&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+
+### Example
+
+```ts
+import { DiscovrClient } from "discovr";
+
+// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
+// the SDK Reference at https://docs.discovr.media.
+const client = new DiscovrClient("your-client-id", {
+  basePath: "https://api.discovr.media",
+});
+
+async function example() {
+  // After sign-in and profile selection …
+  const result = await client.removeFromWatchlist(/* see API reference */);
+  console.log(result);
+}
+
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **mediaId** | `string` | The title\&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | [Defaults to `undefined`] |
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Removed from watchlist; returns the title\&#39;s new state. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
+| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
 | **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
@@ -2746,7 +1960,7 @@ No authorization required
 
 Record playback progress
 
-Scrobbling is Discovr\&#39;s single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don\&#39;t need to coordinate multiple endpoints.  Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:  - The item stays in the user\&#39;s **in-progress** list until they finish watching. - Once they\&#39;ve watched 80% or more, it\&#39;s marked as complete and moves to their **history**. - For movies, the item is removed from the user\&#39;s watchlist once they\&#39;ve watched more than 20% — so it clears as soon as they\&#39;re clearly watching it. For TV episodes, it\&#39;s removed from the watchlist once the episode is complete (≥80%).  For TV shows, include &#x60;season&#x60; and &#x60;episode&#x60; in the request body so history is tracked per episode.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+Scrobbling is Discovr\&#39;s single-call way to track playback. One call updates live resume progress, watch history, completion, and the watchlist.  Send the viewer\&#39;s real position when playback starts (not &#x60;0&#x60; when resuming), about every 30 seconds while watching, and right away on pause, resume, seek, and completion. Discovr handles the rest:  - The title stays in Continue Watching until the movie or episode crosses 80%. - Once progress reaches 20% or more, the title is automatically removed from the watchlist — for both movies and TV shows. - Once progress reaches 80% or more, the movie or episode is marked watched and leaves Continue Watching. Lower progress later (such as a rewind) moves the live position without undoing completion — use &#x60;markUnwatched&#x60; to undo a watch. - For TV shows, include &#x60;season&#x60; and &#x60;episode&#x60; in &#x60;tv&#x60;. When an episode crosses 80%, the response includes &#x60;completedSeasons&#x60; listing every season now fully watched.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 
@@ -2793,71 +2007,7 @@ example().catch(console.error);
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Progress recorded. Check &#x60;completed&#x60; to know if the item was marked as watched. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## scrobbleSkip
-
-> ScrobbleSkipResponse scrobbleSkip(mediaId, scrobbleSkipBody)
-
-Record a skip event
-
-Signals that the user jumped to another point in the content, forward (a skip) or backward (a rewind). Used for watch analytics. Returns immediately — no side effects on lists or history.  &#x60;from&#x60; and &#x60;to&#x60; are playback positions as a percentage (0–100) and must differ; &#x60;from&#x60; higher than &#x60;to&#x60; is a jump backward. &#x60;duration&#x60; is how many seconds were jumped. After a jump, also send the position the viewer landed on as a progress update with &#x60;POST /profile/scrobble/{mediaId}&#x60;. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.scrobbleSkip(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **mediaId** | `string` | The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item\&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user\&#39;s recommendations.  | [Defaults to `undefined`] |
-| **scrobbleSkipBody** | [ScrobbleSkipBody](ScrobbleSkipBody.md) |  | |
-
-### Return type
-
-[**ScrobbleSkipResponse**](ScrobbleSkipResponse.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: `application/json`
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Skip event recorded. |  -  |
+| **200** | Progress recorded. Check &#x60;completed&#x60; to know if the movie or episode reached 80%. |  -  |
 | **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
@@ -2996,6 +2146,69 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## setRating
+
+> TitleState setRating(mediaId, setRatingPayload)
+
+Set a title\&#39;s rating
+
+Sets the active profile\&#39;s rating for a title to &#x60;liked&#x60;, &#x60;disliked&#x60;, or &#x60;super_liked&#x60;.  Ratings are mutually exclusive: setting a new rating automatically replaces any previous one. Setting the rating the title already has is a safe no-op.  Returns the title\&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+
+### Example
+
+```ts
+import { DiscovrClient } from "discovr";
+
+// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
+// the SDK Reference at https://docs.discovr.media.
+const client = new DiscovrClient("your-client-id", {
+  basePath: "https://api.discovr.media",
+});
+
+async function example() {
+  // After sign-in and profile selection …
+  const result = await client.setRating(/* see API reference */);
+  console.log(result);
+}
+
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **mediaId** | `string` | The title\&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;.  | [Defaults to `undefined`] |
+| **setRatingPayload** | [SetRatingPayload](SetRatingPayload.md) |  | |
+
+### Return type
+
+[**TitleState**](TitleState.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Rating updated; returns the title\&#39;s new state. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
+| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
+| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
+| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
+| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## signOutSession
 
 > SignOutResponse signOutSession()
@@ -3112,69 +2325,6 @@ No authorization required
 | **405** | Method not allowed. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **503** | Demo sessions are temporarily unavailable. This is on our side, not yours — retry shortly.  |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## updatePlaybackItem
-
-> SuccessMessage updatePlaybackItem(editPlaybackPayload)
-
-Update playback progress
-
-Updates the playback position for an existing entry. Same fields as the add endpoint. If no entry exists for the &#x60;mediaId&#x60;, one is created. 
-
-### Example
-
-```ts
-import { DiscovrClient } from "discovr";
-
-// This scaffold uses the `DiscovrClient` façade. Full examples for every method are in
-// the SDK Reference at https://docs.discovr.media.
-const client = new DiscovrClient("your-client-id", {
-  basePath: "https://api.discovr.media",
-});
-
-async function example() {
-  // After sign-in and profile selection …
-  const result = await client.updatePlaybackItem(/* see API reference */);
-  console.log(result);
-}
-
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **editPlaybackPayload** | [EditPlaybackPayload](EditPlaybackPayload.md) |  | |
-
-### Return type
-
-[**SuccessMessage**](SuccessMessage.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: `application/json`
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Item updated successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
-| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **404** | The requested resource wasn\&#39;t found. |  -  |
-| **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
-| **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
-| **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

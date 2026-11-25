@@ -7,14 +7,14 @@
 
 import Foundation
 
-/** Paginated list of items with playback progress. */
+/** Paginated list of items with live playback progress. */
 public struct PlaybackListResponse: Sendable, Codable, ParameterConvertible, Hashable {
 
-    /** Array of playback items */
+    /** Array of playback items. */
     public var items: [PlaybackItem]
-    /** Whether there are more items available */
+    /** Whether there are more items available. */
     public var hasMore: Bool
-    /** Opaque token to fetch the next page of results */
+    /** Opaque token to fetch the next page of results. */
     public var nextPageToken: String?
 
     public init(items: [PlaybackItem], hasMore: Bool, nextPageToken: String? = nil) {

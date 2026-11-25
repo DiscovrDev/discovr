@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * The Discovr API
- * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
+ * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
  *
  * The version of the OpenAPI document: 1.0.0-alpha.1
  * Contact: dev@discovr.media
@@ -19,9 +19,7 @@ import type {
   RateLimitedError,
   ScrobbleProgressBody,
   ScrobbleResponse,
-  ScrobbleSkipBody,
-  ScrobbleSkipResponse,
-  SuccessMessage,
+  TitleState,
 } from '../models/index';
 import {
     ApiErrorFromJSON,
@@ -32,15 +30,17 @@ import {
     ScrobbleProgressBodyToJSON,
     ScrobbleResponseFromJSON,
     ScrobbleResponseToJSON,
-    ScrobbleSkipBodyFromJSON,
-    ScrobbleSkipBodyToJSON,
-    ScrobbleSkipResponseFromJSON,
-    ScrobbleSkipResponseToJSON,
-    SuccessMessageFromJSON,
-    SuccessMessageToJSON,
+    TitleStateFromJSON,
+    TitleStateToJSON,
 } from '../models/index';
 
 interface MarkUnwatchedRequest {
+    mediaId: string;
+    season?: number;
+    episode?: number;
+}
+
+interface MarkWatchedRequest {
     mediaId: string;
     season?: number;
     episode?: number;
@@ -51,21 +51,16 @@ interface ScrobbleRequest {
     scrobbleProgressBody: ScrobbleProgressBody;
 }
 
-interface ScrobbleSkipRequest {
-    mediaId: string;
-    scrobbleSkipBody: ScrobbleSkipBody;
-}
-
 /**
  * 
  */
 export class ScrobbleApi extends runtime.BaseAPI {
 
     /**
-     * Takes a movie, a TV show, a season, or an episode back to unwatched, in one call.  It removes the history that made it watched, takes it out of the user\'s **in-progress** list if that is where it was, and brings a TV show\'s `completed` state back in line. Use it for a \"Mark as unwatched\" button.  For TV shows, `season` and `episode` choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass `season` to undo **that season**: its episodes, and any entry that counted the whole season as watched. - Pass `season` and `episode` to undo **that episode**.  Calling it for a title that isn\'t watched changes nothing and still succeeds, so it is safe to retry.  This is not the same as [`DELETE /profile/history/{mediaId}`](/api-reference/discovr/delete-history-item), which removes history entries and nothing else. Marking something unwatched with that call and `DELETE /profile/playback/{mediaId}` leaves a TV show\'s `completed` out of date unless they run in a particular order; this endpoint does the right thing whichever way you reach it.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
-     * Mark a title as unwatched
+     * Takes a movie, a TV show, a season, or an episode back to unwatched in one atomic call.  It removes the watched state for that scope and clears any in-progress Continue Watching position inside it. Calling it for a title that isn\'t watched changes nothing and still succeeds, so it\'s safe to retry.  For TV shows, `season` and `episode` choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass `season` to undo **that season**. - Pass `season` and `episode` to undo **that episode**.  Returns the title\'s updated `TitleState`, so you don\'t need to refetch `getTitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Mark a title, season, or episode as unwatched
      */
-    async markUnwatchedRaw(requestParameters: MarkUnwatchedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
+    async markUnwatchedRaw(requestParameters: MarkUnwatchedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TitleState>> {
         if (requestParameters['mediaId'] == null) {
             throw new runtime.RequiredError(
                 'mediaId',
@@ -94,7 +89,7 @@ export class ScrobbleApi extends runtime.BaseAPI {
             }
         }
 
-        let urlPath = `/profile/watched/{mediaId}`;
+        let urlPath = `/profile/titles/{mediaId}/watched`;
         urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
 
         const response = await this.request({
@@ -104,20 +99,75 @@ export class ScrobbleApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => TitleStateFromJSON(jsonValue));
     }
 
     /**
-     * Takes a movie, a TV show, a season, or an episode back to unwatched, in one call.  It removes the history that made it watched, takes it out of the user\'s **in-progress** list if that is where it was, and brings a TV show\'s `completed` state back in line. Use it for a \"Mark as unwatched\" button.  For TV shows, `season` and `episode` choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass `season` to undo **that season**: its episodes, and any entry that counted the whole season as watched. - Pass `season` and `episode` to undo **that episode**.  Calling it for a title that isn\'t watched changes nothing and still succeeds, so it is safe to retry.  This is not the same as [`DELETE /profile/history/{mediaId}`](/api-reference/discovr/delete-history-item), which removes history entries and nothing else. Marking something unwatched with that call and `DELETE /profile/playback/{mediaId}` leaves a TV show\'s `completed` out of date unless they run in a particular order; this endpoint does the right thing whichever way you reach it.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
-     * Mark a title as unwatched
+     * Takes a movie, a TV show, a season, or an episode back to unwatched in one atomic call.  It removes the watched state for that scope and clears any in-progress Continue Watching position inside it. Calling it for a title that isn\'t watched changes nothing and still succeeds, so it\'s safe to retry.  For TV shows, `season` and `episode` choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass `season` to undo **that season**. - Pass `season` and `episode` to undo **that episode**.  Returns the title\'s updated `TitleState`, so you don\'t need to refetch `getTitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Mark a title, season, or episode as unwatched
      */
-    async markUnwatched(mediaId: string, season?: number, episode?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
+    async markUnwatched(mediaId: string, season?: number, episode?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TitleState> {
         const response = await this.markUnwatchedRaw({ mediaId: mediaId, season: season, episode: episode }, initOverrides);
         return await response.value();
     }
 
     /**
-     * Scrobbling is Discovr\'s single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don\'t need to coordinate multiple endpoints.  Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:  - The item stays in the user\'s **in-progress** list until they finish watching. - Once they\'ve watched 80% or more, it\'s marked as complete and moves to their **history**. - For movies, the item is removed from the user\'s watchlist once they\'ve watched more than 20% — so it clears as soon as they\'re clearly watching it. For TV episodes, it\'s removed from the watchlist once the episode is complete (≥80%).  For TV shows, include `season` and `episode` in the request body so history is tracked per episode.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Marks a movie, an entire TV show, a season, or a single episode as watched in one atomic call.  For TV shows, `season` and `episode` pick the scope:  - Omit both to mark **every aired episode** across all regular seasons (season 1 and up) as watched. Specials (season `0`) are excluded. - Pass `season` to mark every aired episode of **that season**. - Pass `season` and `episode` to mark **that episode**.  Any in-progress Continue Watching position within the marked scope is cleared automatically. Returns the title\'s updated `TitleState`, so you don\'t need to refetch `getTitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Mark a title, season, or episode as watched
+     */
+    async markWatchedRaw(requestParameters: MarkWatchedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TitleState>> {
+        if (requestParameters['mediaId'] == null) {
+            throw new runtime.RequiredError(
+                'mediaId',
+                'Required parameter "mediaId" was null or undefined when calling markWatched().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['season'] != null) {
+            queryParameters['season'] = requestParameters['season'];
+        }
+
+        if (requestParameters['episode'] != null) {
+            queryParameters['episode'] = requestParameters['episode'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/profile/titles/{mediaId}/watched`;
+        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TitleStateFromJSON(jsonValue));
+    }
+
+    /**
+     * Marks a movie, an entire TV show, a season, or a single episode as watched in one atomic call.  For TV shows, `season` and `episode` pick the scope:  - Omit both to mark **every aired episode** across all regular seasons (season 1 and up) as watched. Specials (season `0`) are excluded. - Pass `season` to mark every aired episode of **that season**. - Pass `season` and `episode` to mark **that episode**.  Any in-progress Continue Watching position within the marked scope is cleared automatically. Returns the title\'s updated `TitleState`, so you don\'t need to refetch `getTitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Mark a title, season, or episode as watched
+     */
+    async markWatched(mediaId: string, season?: number, episode?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TitleState> {
+        const response = await this.markWatchedRaw({ mediaId: mediaId, season: season, episode: episode }, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Scrobbling is Discovr\'s single-call way to track playback. One call updates live resume progress, watch history, completion, and the watchlist.  Send the viewer\'s real position when playback starts (not `0` when resuming), about every 30 seconds while watching, and right away on pause, resume, seek, and completion. Discovr handles the rest:  - The title stays in Continue Watching until the movie or episode crosses 80%. - Once progress reaches 20% or more, the title is automatically removed from the watchlist — for both movies and TV shows. - Once progress reaches 80% or more, the movie or episode is marked watched and leaves Continue Watching. Lower progress later (such as a rewind) moves the live position without undoing completion — use `markUnwatched` to undo a watch. - For TV shows, include `season` and `episode` in `tv`. When an episode crosses 80%, the response includes `completedSeasons` listing every season now fully watched.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      * Record playback progress
      */
     async scrobbleRaw(requestParameters: ScrobbleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ScrobbleResponse>> {
@@ -165,68 +215,11 @@ export class ScrobbleApi extends runtime.BaseAPI {
     }
 
     /**
-     * Scrobbling is Discovr\'s single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don\'t need to coordinate multiple endpoints.  Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:  - The item stays in the user\'s **in-progress** list until they finish watching. - Once they\'ve watched 80% or more, it\'s marked as complete and moves to their **history**. - For movies, the item is removed from the user\'s watchlist once they\'ve watched more than 20% — so it clears as soon as they\'re clearly watching it. For TV episodes, it\'s removed from the watchlist once the episode is complete (≥80%).  For TV shows, include `season` and `episode` in the request body so history is tracked per episode.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Scrobbling is Discovr\'s single-call way to track playback. One call updates live resume progress, watch history, completion, and the watchlist.  Send the viewer\'s real position when playback starts (not `0` when resuming), about every 30 seconds while watching, and right away on pause, resume, seek, and completion. Discovr handles the rest:  - The title stays in Continue Watching until the movie or episode crosses 80%. - Once progress reaches 20% or more, the title is automatically removed from the watchlist — for both movies and TV shows. - Once progress reaches 80% or more, the movie or episode is marked watched and leaves Continue Watching. Lower progress later (such as a rewind) moves the live position without undoing completion — use `markUnwatched` to undo a watch. - For TV shows, include `season` and `episode` in `tv`. When an episode crosses 80%, the response includes `completedSeasons` listing every season now fully watched.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      * Record playback progress
      */
     async scrobble(mediaId: string, scrobbleProgressBody: ScrobbleProgressBody, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ScrobbleResponse> {
         const response = await this.scrobbleRaw({ mediaId: mediaId, scrobbleProgressBody: scrobbleProgressBody }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Signals that the user jumped to another point in the content, forward (a skip) or backward (a rewind). Used for watch analytics. Returns immediately — no side effects on lists or history.  `from` and `to` are playback positions as a percentage (0–100) and must differ; `from` higher than `to` is a jump backward. `duration` is how many seconds were jumped. After a jump, also send the position the viewer landed on as a progress update with `POST /profile/scrobble/{mediaId}`. 
-     * Record a skip event
-     */
-    async scrobbleSkipRaw(requestParameters: ScrobbleSkipRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ScrobbleSkipResponse>> {
-        if (requestParameters['mediaId'] == null) {
-            throw new runtime.RequiredError(
-                'mediaId',
-                'Required parameter "mediaId" was null or undefined when calling scrobbleSkip().'
-            );
-        }
-
-        if (requestParameters['scrobbleSkipBody'] == null) {
-            throw new runtime.RequiredError(
-                'scrobbleSkipBody',
-                'Required parameter "scrobbleSkipBody" was null or undefined when calling scrobbleSkip().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/scrobble/{mediaId}/skip`;
-        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ScrobbleSkipBodyToJSON(requestParameters['scrobbleSkipBody']),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ScrobbleSkipResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * Signals that the user jumped to another point in the content, forward (a skip) or backward (a rewind). Used for watch analytics. Returns immediately — no side effects on lists or history.  `from` and `to` are playback positions as a percentage (0–100) and must differ; `from` higher than `to` is a jump backward. `duration` is how many seconds were jumped. After a jump, also send the position the viewer landed on as a progress update with `POST /profile/scrobble/{mediaId}`. 
-     * Record a skip event
-     */
-    async scrobbleSkip(mediaId: string, scrobbleSkipBody: ScrobbleSkipBody, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ScrobbleSkipResponse> {
-        const response = await this.scrobbleSkipRaw({ mediaId: mediaId, scrobbleSkipBody: scrobbleSkipBody }, initOverrides);
         return await response.value();
     }
 

@@ -22,23 +22,23 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 
 /**
- * Paginated list of items with playback progress.
+ * Paginated list of items with live playback progress.
  *
- * @param items Array of playback items
- * @param hasMore Whether there are more items available
- * @param nextPageToken Opaque token to fetch the next page of results
+ * @param items Array of playback items.
+ * @param hasMore Whether there are more items available.
+ * @param nextPageToken Opaque token to fetch the next page of results.
  */
 @Serializable
 
 data class PlaybackListResponse (
 
-    /* Array of playback items */
+    /* Array of playback items. */
     @SerialName(value = "items") @Required val items: kotlin.collections.List<PlaybackItem>,
 
-    /* Whether there are more items available */
+    /* Whether there are more items available. */
     @SerialName(value = "hasMore") @Required val hasMore: kotlin.Boolean,
 
-    /* Opaque token to fetch the next page of results */
+    /* Opaque token to fetch the next page of results. */
     @SerialName(value = "nextPageToken") val nextPageToken: kotlin.String? = null
 
 ) {

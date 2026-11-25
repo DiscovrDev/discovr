@@ -56,14 +56,56 @@ Discriminator value indicating a media item
 
 Allowed values: `"media"`
 
-## SuccessMessage
+## ProviderInfo
 
-<a id="successmessage" />
+<a id="providerinfo" />
 
-Confirmation response with the action taken. For exclusive lists (liked/disliked/super_liked), also includes `added` (which list the item was added to) and optionally `removed` (which list it was removed from).
+A streaming service and the regions where this title is available on it.
 
-| Property | Type     | Required | Description                                                           |
-| -------- | -------- | -------- | --------------------------------------------------------------------- |
-| message  | `string` | Yes      | Success message                                                       |
-| added    | `string` | No       | The list type the item was added to (for exclusive lists)             |
-| removed  | `string` | No       | The list type the item was removed from, if any (for exclusive lists) |
+| Property | Type     | Required | Description                                                                                    |
+| -------- | -------- | -------- | ---------------------------------------------------------------------------------------------- |
+| id       | `string` | Yes      | Provider identifier.                                                                           |
+| title    | `string` | Yes      | Display name of the streaming service.                                                         |
+| logos    | `object` | Yes      | Square logo images at various sizes, keyed by pixel dimension.                                 |
+| regions  | `object` | Yes      | Regions where this provider has the title available, keyed by ISO 3166-1 alpha-2 country code. |
+
+## Rating
+
+<a id="rating" />
+
+One of the three mutually exclusive ratings a profile can give a title.
+
+Allowed values: `"liked"`, `"disliked"`, `"super_liked"`
+
+## TitlePlayback
+
+<a id="titleplayback" />
+
+The active profile's live resume position for an in-progress title.
+
+| Property  | Type      | Required | Description                                                                  |
+| --------- | --------- | -------- | ---------------------------------------------------------------------------- |
+| progress  | `number`  | No       | How far through the movie or episode the viewer is, as a percentage (0–100). |
+| season    | `integer` | No       | Season number of the episode currently being watched (TV shows only).        |
+| episode   | `integer` | No       | Episode number currently being watched (TV shows only).                      |
+| updatedAt | `string`  | Yes      | When this position was last recorded.                                        |
+
+## TitleState
+
+<a id="titlestate" />
+
+The active profile's complete state for a title — returned by `getTitleState` and by every title state write.
+
+| Property         | Type                                         | Required | Description                                                                                                                                                      |
+| ---------------- | -------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mediaId          | `string`                                     | Yes      | The title's media ID (`MV_&lt;id&gt;` or `TV_&lt;id&gt;`).                                                                                                       |
+| mediaType        | `"movie"` \| `"tv"`                          | Yes      | Whether this title is a movie or a TV show.                                                                                                                      |
+| rating           | `"liked"` \| `"disliked"` \| `"super_liked"` | No       | The profile's rating (`liked`, `disliked`, `super_liked`), or `null` if unrated.                                                                                 |
+| watchlist        | `boolean`                                    | Yes      | Whether the title is on the profile's watchlist.                                                                                                                 |
+| watched          | `boolean`                                    | Yes      | Whether the profile has played any of this title, even briefly. Use `completed` for a "Watched" checkmark.                                                       |
+| completed        | `boolean`                                    | Yes      | Whether the profile has finished the title (≥ 80% for a movie; every aired episode of every regular season for a TV show; specials excluded).                    |
+| completedSeasons | `integer[]`                                  | No       | TV shows only — regular season numbers (1 and up) whose aired episodes are all watched.                                                                          |
+| episodes         | `object`                                     | No       | TV shows only — map from season number (as string) to sorted watched episode numbers.                                                                            |
+| plays            | `integer`                                    | Yes      | Number of completed plays (of the movie or of episodes).                                                                                                         |
+| playback         | `object`                                     | No       | Live resume position if the viewer is currently mid-watch, or `null` otherwise.                                                                                  |
+| providers        | `ProviderInfo[]`                             | No       | Streaming services where this title is available, filtered to the account's selected providers. Present only when `providers=true` is passed to `getTitleState`. |

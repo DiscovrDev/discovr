@@ -149,74 +149,50 @@ open class _DiscovrClientBase: @unchecked Sendable {
         }
     }
 
-    public func getLikedItems(nextPageToken: String? = nil, limit: Int? = nil) async throws -> SimpleListResponse {
-        return try await self._call { try await DiscovrAPI.getLikedItems(nextPageToken: nextPageToken, limit: limit, apiConfiguration: self._sessionConfig) }
+    public func getTitles(rating: Rating? = nil, watchlist: Bool? = false, watched: Bool? = false, nextPageToken: String? = nil, limit: Int? = nil) async throws -> TitleListResponse {
+        return try await self._call { try await DiscovrAPI.getTitles(rating: rating, watchlist: watchlist, watched: watched, nextPageToken: nextPageToken, limit: limit, apiConfiguration: self._sessionConfig) }
+    }
+
+    public func getTitleState(mediaId: String, providers: Bool? = false) async throws -> TitleState {
+        return try await self._call { try await DiscovrAPI.getTitleState(mediaId: mediaId, providers: providers, apiConfiguration: self._sessionConfig) }
+    }
+
+    public func getSeasonState(mediaId: String, seasonNumber: Int) async throws -> SeasonState {
+        return try await self._call { try await DiscovrAPI.getSeasonState(mediaId: mediaId, seasonNumber: seasonNumber, apiConfiguration: self._sessionConfig) }
     }
 
     @discardableResult
-    public func addLikedItem(mediaId: String) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.addLikedItem(addSimpleListItemPayload: AddSimpleListItemPayload(mediaId: mediaId), apiConfiguration: self._sessionConfig) }
+    public func setRating(mediaId: String, value: Rating) async throws -> TitleState {
+        return try await self._call { try await DiscovrAPI.setRating(mediaId: mediaId, setRatingPayload: SetRatingPayload(value: value), apiConfiguration: self._sessionConfig) }
     }
 
     @discardableResult
-    public func deleteLikedItem(mediaId: String) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.deleteLikedItem(mediaId: mediaId, apiConfiguration: self._sessionConfig) }
-    }
-
-    public func getDislikedItems(nextPageToken: String? = nil, limit: Int? = nil) async throws -> SimpleListResponse {
-        return try await self._call { try await DiscovrAPI.getDislikedItems(nextPageToken: nextPageToken, limit: limit, apiConfiguration: self._sessionConfig) }
+    public func clearRating(mediaId: String) async throws -> TitleState {
+        return try await self._call { try await DiscovrAPI.clearRating(mediaId: mediaId, apiConfiguration: self._sessionConfig) }
     }
 
     @discardableResult
-    public func addDislikedItem(mediaId: String) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.addDislikedItem(addSimpleListItemPayload: AddSimpleListItemPayload(mediaId: mediaId), apiConfiguration: self._sessionConfig) }
+    public func addToWatchlist(mediaId: String) async throws -> TitleState {
+        return try await self._call { try await DiscovrAPI.addToWatchlist(mediaId: mediaId, apiConfiguration: self._sessionConfig) }
     }
 
     @discardableResult
-    public func deleteDislikedItem(mediaId: String) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.deleteDislikedItem(mediaId: mediaId, apiConfiguration: self._sessionConfig) }
-    }
-
-    public func getSuperLikedItems(nextPageToken: String? = nil, limit: Int? = nil) async throws -> SimpleListResponse {
-        return try await self._call { try await DiscovrAPI.getSuperLikedItems(nextPageToken: nextPageToken, limit: limit, apiConfiguration: self._sessionConfig) }
+    public func removeFromWatchlist(mediaId: String) async throws -> TitleState {
+        return try await self._call { try await DiscovrAPI.removeFromWatchlist(mediaId: mediaId, apiConfiguration: self._sessionConfig) }
     }
 
     @discardableResult
-    public func addSuperLikedItem(mediaId: String) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.addSuperLikedItem(addSimpleListItemPayload: AddSimpleListItemPayload(mediaId: mediaId), apiConfiguration: self._sessionConfig) }
+    public func markWatched(mediaId: String, season: Int? = nil, episode: Int? = nil) async throws -> TitleState {
+        return try await self._call { try await DiscovrAPI.markWatched(mediaId: mediaId, season: season, episode: episode, apiConfiguration: self._sessionConfig) }
     }
 
     @discardableResult
-    public func deleteSuperLikedItem(mediaId: String) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.deleteSuperLikedItem(mediaId: mediaId, apiConfiguration: self._sessionConfig) }
-    }
-
-    public func getWatchlistItems(nextPageToken: String? = nil, limit: Int? = nil) async throws -> SimpleListResponse {
-        return try await self._call { try await DiscovrAPI.getWatchlistItems(nextPageToken: nextPageToken, limit: limit, apiConfiguration: self._sessionConfig) }
-    }
-
-    @discardableResult
-    public func addWatchlistItem(mediaId: String) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.addWatchlistItem(addSimpleListItemPayload: AddSimpleListItemPayload(mediaId: mediaId), apiConfiguration: self._sessionConfig) }
-    }
-
-    @discardableResult
-    public func deleteWatchlistItem(mediaId: String) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.deleteWatchlistItem(mediaId: mediaId, apiConfiguration: self._sessionConfig) }
+    public func markUnwatched(mediaId: String, season: Int? = nil, episode: Int? = nil) async throws -> TitleState {
+        return try await self._call { try await DiscovrAPI.markUnwatched(mediaId: mediaId, season: season, episode: episode, apiConfiguration: self._sessionConfig) }
     }
 
     public func getPlaybackItems(nextPageToken: String? = nil, limit: Int? = nil) async throws -> PlaybackListResponse {
         return try await self._call { try await DiscovrAPI.getPlaybackItems(nextPageToken: nextPageToken, limit: limit, apiConfiguration: self._sessionConfig) }
-    }
-
-    @discardableResult
-    public func addPlaybackItem(mediaId: String, progress: Double? = nil, updatedAt: Date? = nil) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.addPlaybackItem(addPlaybackPayload: AddPlaybackPayload(mediaId: mediaId, progress: progress, updatedAt: updatedAt), apiConfiguration: self._sessionConfig) }
-    }
-
-    @discardableResult
-    public func updatePlaybackItem(mediaId: String, progress: Double? = nil, updatedAt: Date? = nil) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.updatePlaybackItem(editPlaybackPayload: EditPlaybackPayload(mediaId: mediaId, progress: progress, updatedAt: updatedAt), apiConfiguration: self._sessionConfig) }
     }
 
     @discardableResult
@@ -225,41 +201,13 @@ open class _DiscovrClientBase: @unchecked Sendable {
     }
 
     @discardableResult
-    public func markUnwatched(mediaId: String, season: Int? = nil, episode: Int? = nil) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.markUnwatched(mediaId: mediaId, season: season, episode: episode, apiConfiguration: self._sessionConfig) }
-    }
-
-    @discardableResult
     public func scrobble(mediaId: String, progress: Double, tv: EpisodeRef? = nil) async throws -> ScrobbleResponse {
         return try await self._call { try await DiscovrAPI.scrobble(mediaId: mediaId, scrobbleProgressBody: ScrobbleProgressBody(progress: progress, tv: tv), apiConfiguration: self._sessionConfig) }
     }
 
     @discardableResult
-    public func scrobbleSkip(mediaId: String, from: Double, to: Double, duration: Double, tv: EpisodeRef? = nil) async throws -> ScrobbleSkipResponse {
-        return try await self._call { try await DiscovrAPI.scrobbleSkip(mediaId: mediaId, scrobbleSkipBody: ScrobbleSkipBody(from: from, to: to, duration: duration, tv: tv), apiConfiguration: self._sessionConfig) }
-    }
-
-    public func getHistoryItems(nextPageToken: String? = nil, limit: Int? = nil) async throws -> HistoryListResponse {
-        return try await self._call { try await DiscovrAPI.getHistoryItems(nextPageToken: nextPageToken, limit: limit, apiConfiguration: self._sessionConfig) }
-    }
-
-    @discardableResult
-    public func addHistoryItem(mediaId: String, updatedAt: Date? = nil, progress: Double? = nil, season: Int? = nil, episode: Int? = nil, imported: String? = nil) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.addHistoryItem(addHistoryPayload: AddHistoryPayload(mediaId: mediaId, updatedAt: updatedAt, progress: progress, season: season, episode: episode, imported: imported), apiConfiguration: self._sessionConfig) }
-    }
-
-    public func getHistoryItemsByMediaId(mediaId: String, season: Int? = nil, episode: Int? = nil, nextPageToken: String? = nil, limit: Int? = nil) async throws -> HistoryListResponse {
-        return try await self._call { try await DiscovrAPI.getHistoryItemsByMediaId(mediaId: mediaId, season: season, episode: episode, nextPageToken: nextPageToken, limit: limit, apiConfiguration: self._sessionConfig) }
-    }
-
-    @discardableResult
-    public func patchHistoryItem(mediaId: String, progress: Double, season: Int? = nil, episode: Int? = nil) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.patchHistoryItem(mediaId: mediaId, patchHistoryPayload: PatchHistoryPayload(progress: progress), season: season, episode: episode, apiConfiguration: self._sessionConfig) }
-    }
-
-    @discardableResult
-    public func deleteHistoryItem(mediaId: String, season: Int? = nil, episode: Int? = nil) async throws -> SuccessMessage {
-        return try await self._call { try await DiscovrAPI.deleteHistoryItem(mediaId: mediaId, season: season, episode: episode, apiConfiguration: self._sessionConfig) }
+    public func importHistory(mediaId: String, imported: String, updatedAt: Date? = nil, season: Int? = nil, episode: Int? = nil) async throws -> TitleState {
+        return try await self._call { try await DiscovrAPI.importHistory(importHistoryPayload: ImportHistoryPayload(mediaId: mediaId, imported: imported, updatedAt: updatedAt, season: season, episode: episode), apiConfiguration: self._sessionConfig) }
     }
 
     public func getMedia(mediaId: String, bypassCache: Bool = false) async throws -> MediaResponse {
@@ -284,10 +232,6 @@ open class _DiscovrClientBase: @unchecked Sendable {
         }
     }
 
-    public func getMediaProfileMeta(mediaId: String, providers: Bool? = false) async throws -> MediaProfileMeta {
-        return try await self._call { try await DiscovrAPI.getMediaProfileMeta(mediaId: mediaId, providers: providers, apiConfiguration: self._sessionConfig) }
-    }
-
     public func getSeasonDetails(mediaId: String, seasonNumber: Int, language: String? = nil, bypassCache: Bool = false) async throws -> SeasonDetailsResponse {
         return try await _cache.wrap(
             operationId: "getSeasonDetails",
@@ -297,10 +241,6 @@ open class _DiscovrClientBase: @unchecked Sendable {
         ) {
             try await self._call { try await DiscovrAPI.getSeasonDetails(mediaId: mediaId, seasonNumber: seasonNumber, language: language, apiConfiguration: self._sessionConfig) }
         }
-    }
-
-    public func getSeasonProfileMeta(mediaId: String, seasonNumber: Int) async throws -> SeasonProfileMeta {
-        return try await self._call { try await DiscovrAPI.getSeasonProfileMeta(mediaId: mediaId, seasonNumber: seasonNumber, apiConfiguration: self._sessionConfig) }
     }
 
     public func getSimilarRecommendations(mediaId: String, language: String? = nil, page: Int? = nil, bypassCache: Bool = false) async throws -> SimilarResponse {

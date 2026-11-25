@@ -17,11 +17,9 @@ package api.discovr.apis
 
 import api.discovr.models.ApiError
 import api.discovr.models.MediaAssetsResponse
-import api.discovr.models.MediaProfileMeta
 import api.discovr.models.MediaResponse
 import api.discovr.models.RateLimitedError
 import api.discovr.models.SeasonDetailsResponse
-import api.discovr.models.SeasonProfileMeta
 import api.discovr.models.SimilarResponse
 
 import api.discovr.infrastructure.*
@@ -116,41 +114,6 @@ open class MediaApi : ApiClient {
 
 
     /**
-     * Get profile interaction data for a title
-     * Returns the current profile&#39;s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (&#x60;true&#x60;/&#x60;false&#x60; for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile&#39;s selected region. Pass &#x60;providers&#x3D;true&#x60; to include this. - **Completion**: whether the profile has finished this title (&#x60;completed&#x60;), and for TV shows, which season numbers are fully watched (&#x60;completedSeasons&#x60;).  **This call directly affects the profile&#39;s recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn&#39;t open registers similarly to liking those titles and will skew their recommendations. Pass the item&#39;s &#x60;ref&#x60; when you have one.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
-     * @param mediaId The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @param providers Set to &#x60;true&#x60; to include streaming provider availability in the response. (optional, default to false)
-     * @return MediaProfileMeta
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun getMediaProfileMeta(mediaId: kotlin.String, providers: kotlin.Boolean? = false): HttpResponse<MediaProfileMeta> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        providers?.apply { localVariableQuery["providers"] = listOf("$providers") }
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.GET,
-            "/media/{mediaId}/profile_meta".replace("{" + "mediaId" + "}", "$mediaId"),
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-    /**
      * Get TV season details
      * Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata (what the profile has watched is &#x60;getSeasonProfileMeta&#x60;), but the call needs a profile. 
      * @param mediaId The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
@@ -173,40 +136,6 @@ open class MediaApi : ApiClient {
         val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.GET,
             "/media/{mediaId}/seasons/{seasonNumber}".replace("{" + "mediaId" + "}", "$mediaId").replace("{" + "seasonNumber" + "}", "$seasonNumber"),
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-    /**
-     * Get which episodes of a TV season are finished
-     * Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.  Pair this with &#x60;getSeasonDetails&#x60; for episode titles and artwork, and with &#x60;getMediaProfileMeta&#x60; for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn&#39;t tracked, so it won&#39;t show a progress bar. The profile&#39;s place in the episode it is watching now is &#x60;playback&#x60; on &#x60;getMediaProfileMeta&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
-     * @param mediaId The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @param seasonNumber The season number.
-     * @return SeasonProfileMeta
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun getSeasonProfileMeta(mediaId: kotlin.String, seasonNumber: kotlin.Int): HttpResponse<SeasonProfileMeta> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.GET,
-            "/media/{mediaId}/seasons/{seasonNumber}/meta".replace("{" + "mediaId" + "}", "$mediaId").replace("{" + "seasonNumber" + "}", "$seasonNumber"),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

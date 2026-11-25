@@ -21,7 +21,7 @@
  * // API calls
  * const page = await client.createPage();
  * const rows = await client.getRows(page.id);
- * await client.addLikedItem("MV_550");
+ * await client.setRating("MV_550", "liked");
  * ```
  *
  * @example Try it without an account
@@ -269,6 +269,33 @@ export class DiscovrClient extends _DiscovrClientBase {
 	close(): void {
 		this._auth.close();
 		this._cache.clear();
+	}
+
+	// ── Convenience title-list wrappers ───────────────────────────────────────
+
+	/** List titles rated `liked` by the active profile, newest rated first. */
+	getLiked(options?: { nextPageToken?: string; limit?: number }) {
+		return this.getTitles({ rating: "liked", ...options });
+	}
+
+	/** List titles rated `disliked` by the active profile, newest rated first. */
+	getDisliked(options?: { nextPageToken?: string; limit?: number }) {
+		return this.getTitles({ rating: "disliked", ...options });
+	}
+
+	/** List titles rated `super_liked` by the active profile, newest rated first. */
+	getSuperLiked(options?: { nextPageToken?: string; limit?: number }) {
+		return this.getTitles({ rating: "super_liked", ...options });
+	}
+
+	/** List titles on the active profile's watchlist, newest added first. */
+	getWatchlist(options?: { nextPageToken?: string; limit?: number }) {
+		return this.getTitles({ watchlist: true, ...options });
+	}
+
+	/** List the active profile's watch history (one entry per title), most recently watched first. */
+	getHistory(options?: { nextPageToken?: string; limit?: number }) {
+		return this.getTitles({ watched: true, ...options });
 	}
 }
 

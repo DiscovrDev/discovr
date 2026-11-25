@@ -105,29 +105,23 @@ final class RefOrIdTest: XCTestCase {
 
     func testProfileListItemsCarryARef() {
         let at = Date(timeIntervalSince1970: 0)
-        let simple = SimpleListItem(
+        let titleItem = TitleListItem(
             id: "MV_550", ref: "MV_550@ctx", mediaType: .movie, title: "Fight Club",
-            posterPath: [:], backdropPath: [:], createdAt: at
+            posterPath: [:], backdropPath: [:], rating: .liked, watchlist: false, updatedAt: at
         )
         let playback = PlaybackItem(
             id: "MV_550", ref: "MV_550@ctx", mediaType: .movie, title: "Fight Club",
             posterPath: [:], backdropPath: [:], createdAt: at
         )
-        let history = HistoryItem(
-            id: "MV_550", ref: "MV_550@ctx", mediaType: .movie, title: "Fight Club",
-            posterPath: [:], backdropPath: [:], updatedAt: at, completed: true,
-            watchedCount: 1, createdAt: at
-        )
-        XCTAssertEqual(simple.refOrId, "MV_550@ctx")
+        XCTAssertEqual(titleItem.refOrId, "MV_550@ctx")
         XCTAssertEqual(playback.refOrId, "MV_550@ctx")
-        XCTAssertEqual(history.refOrId, "MV_550@ctx")
 
         // And with no ref, each falls back to its id.
-        let bareSimple = SimpleListItem(
+        let bareTitle = TitleListItem(
             id: "MV_550", mediaType: .movie, title: "Fight Club",
-            posterPath: [:], backdropPath: [:], createdAt: at
+            posterPath: [:], backdropPath: [:], rating: nil, watchlist: true, updatedAt: at
         )
-        XCTAssertEqual(bareSimple.refOrId, "MV_550")
+        XCTAssertEqual(bareTitle.refOrId, "MV_550")
     }
 
     // The same table is asserted in the TypeScript and Kotlin SDKs and against the

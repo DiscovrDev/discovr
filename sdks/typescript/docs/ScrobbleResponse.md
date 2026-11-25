@@ -10,6 +10,7 @@ Name | Type
 `status` | string
 `progress` | number
 `completed` | boolean
+`completedSeasons` | Array&lt;number&gt;
 
 ## Example
 
@@ -21,6 +22,7 @@ const example = {
   "status": ok,
   "progress": 85,
   "completed": true,
+  "completedSeasons": [1],
 } satisfies ScrobbleResponse
 
 console.log(example)

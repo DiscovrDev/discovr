@@ -137,50 +137,21 @@ The title's identifiers on other services, for deep links and cross-referencing.
 | imdb_id  | `string`  | No       | IMDb identifier, such as `tt0133093`. `null` when none is known.        |
 | tvdb_id  | `integer` | No       | TheTVDB identifier. TV only; `null` for movies and for shows with none. |
 
-## MediaProfileMeta
-
-<a id="mediaprofilemeta" />
-
-The current profile's interaction data for a title.
-
-| Property         | Type             | Required | Description                                                                                                                                                                                                                                          |
-| ---------------- | ---------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| watchlist        | `boolean`        | Yes      | Whether the title is on the profile's watchlist.                                                                                                                                                                                                     |
-| liked            | `boolean`        | Yes      | Whether the profile has liked the title.                                                                                                                                                                                                             |
-| disliked         | `boolean`        | Yes      | Whether the profile has disliked the title.                                                                                                                                                                                                          |
-| super_liked      | `boolean`        | Yes      | Whether the profile has super-liked the title.                                                                                                                                                                                                       |
-| playback         | `object`         | Yes      |                                                                                                                                                                                                                                                      |
-| history          | `boolean`        | Yes      | Whether the profile has played any of this title before, even briefly. It does not mean they finished it; use `completed` for that.                                                                                                                  |
-| completed        | `boolean`        | Yes      | Whether the profile has completed this title (progress ≥ 80% for movies; all seasons complete for TV shows).                                                                                                                                         |
-| completedSeasons | `integer[]`      | No       | TV shows only — the season numbers the profile has fully completed. Not present for movies.                                                                                                                                                          |
-| providers        | `ProviderInfo[]` | No       | Streaming services where this title is available, filtered to the profile's selected providers. Only included when `providers=true` is passed. For the full, unfiltered list see `watch_providers` on the base `GET /media/&#123;id&#125;` response. |
-
-## MediaProfileMetaPlayback
-
-<a id="mediaprofilemetaplayback" />
-
-Where the profile is up to in this title. Drives a progress bar and a Resume button.
-
-| Property | Type      | Required | Description                                                                                               |
-| -------- | --------- | -------- | --------------------------------------------------------------------------------------------------------- |
-| inlist   | `boolean` | Yes      | Whether the profile has started this title. When `false`, `data` is null and there's no progress to show. |
-| data     | `object`  | No       |                                                                                                           |
-
 ## MediaResponse
 
 <a id="mediaresponse" />
 
 Full details for a movie or TV show.
 
-| Property        | Type                | Required | Description                                                                                                                                                                                                                  |
-| --------------- | ------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| id              | `string`            | Yes      | The unique identifier of the media item.                                                                                                                                                                                     |
-| media_type      | `"movie"` \| `"tv"` | Yes      | Whether this is a movie or TV show.                                                                                                                                                                                          |
-| movie           | `object`            | No       |                                                                                                                                                                                                                              |
-| tv              | `object`            | No       |                                                                                                                                                                                                                              |
-| watch_providers | `ProviderInfo[]`    | No       | Full list of where this title is available, not filtered to any profile's preferences. Use `profile_meta` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch. |
-| credits         | `object`            | No       |                                                                                                                                                                                                                              |
-| external_ids    | `object`            | No       |                                                                                                                                                                                                                              |
+| Property        | Type                | Required | Description                                                                                                                                                                                                                                             |
+| --------------- | ------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id              | `string`            | Yes      | The unique identifier of the media item.                                                                                                                                                                                                                |
+| media_type      | `"movie"` \| `"tv"` | Yes      | Whether this is a movie or TV show.                                                                                                                                                                                                                     |
+| movie           | `object`            | No       |                                                                                                                                                                                                                                                         |
+| tv              | `object`            | No       |                                                                                                                                                                                                                                                         |
+| watch_providers | `ProviderInfo[]`    | No       | Full list of where this title is available, not filtered to any profile's preferences. Use `GET /profile/titles/&#123;mediaId&#125;` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch. |
+| credits         | `object`            | No       |                                                                                                                                                                                                                                                         |
+| external_ids    | `object`            | No       |                                                                                                                                                                                                                                                         |
 
 ## MediaResponseMovie
 
@@ -254,35 +225,6 @@ Summary of one season on a TV show's details. Use `getSeasonDetails` for full ep
 | air_date      | `string`  | No       | Date the season's first episode aired, as `YYYY-MM-DD`, or `null` when unknown.                                                     |
 | poster_path   | `object`  | No       | Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). |
 
-## PlaybackProgress
-
-<a id="playbackprogress" />
-
-A profile's saved playback position for a title, returned inside `MediaProfileMeta.playback.data`.
-
-| Property  | Type                | Required | Description                                                                                   |
-| --------- | ------------------- | -------- | --------------------------------------------------------------------------------------------- |
-| mediaId   | `string`            | Yes      | The title being tracked, as `MV_&lt;id&gt;` or `TV_&lt;id&gt;`.                               |
-| mediaType | `"movie"` \| `"tv"` | Yes      | Whether this is a movie or TV show.                                                           |
-| createdAt | `string`            | Yes      | When the profile first started this title.                                                    |
-| progress  | `number`            | No       | How far through the title the profile is, as a percentage. Use it to position a progress bar. |
-| updatedAt | `string`            | No       | When progress was last recorded. Sort by this to order a Continue Watching row.               |
-| season    | `integer`           | No       | Season number (only for TV shows)                                                             |
-| episode   | `integer`           | No       | Episode number (only for TV shows)                                                            |
-
-## ProviderInfo
-
-<a id="providerinfo" />
-
-A streaming service and the regions where this title is available on it.
-
-| Property | Type     | Required | Description                                                                                    |
-| -------- | -------- | -------- | ---------------------------------------------------------------------------------------------- |
-| id       | `string` | Yes      | Provider identifier.                                                                           |
-| title    | `string` | Yes      | Display name of the streaming service.                                                         |
-| logos    | `object` | Yes      | Square logo images at various sizes, keyed by pixel dimension.                                 |
-| regions  | `object` | Yes      | Regions where this provider has the title available, keyed by ISO 3166-1 alpha-2 country code. |
-
 ## SeasonDetailsResponse
 
 <a id="seasondetailsresponse" />
@@ -301,29 +243,6 @@ Detailed information about a TV season, including its episodes.
 | season_number  | `integer`   | Yes      | The number of the season                                                                                                            |
 | air_date       | `string`    | No       | Air date of the season, as `YYYY-MM-DD`, or `null` when unknown.                                                                    |
 | episodes       | `Episode[]` | Yes      | List of episodes in the season                                                                                                      |
-
-## SeasonProfileMeta
-
-<a id="seasonprofilemeta" />
-
-The current profile's state for a TV season — which episodes it has finished, plus the season's own aggregate completion state.
-
-| Property  | Type                         | Required | Description                                             |
-| --------- | ---------------------------- | -------- | ------------------------------------------------------- |
-| season    | `integer`                    | Yes      | The season number this meta is for.                     |
-| completed | `boolean`                    | Yes      | Whether the profile has completed the entire season.    |
-| episodes  | `SeasonProfileMetaEpisode[]` | Yes      | Which episodes of this season the profile has finished. |
-
-## SeasonProfileMetaEpisode
-
-<a id="seasonprofilemetaepisode" />
-
-Whether the current profile has finished a single episode.
-
-| Property  | Type      | Required | Description                                                                 |
-| --------- | --------- | -------- | --------------------------------------------------------------------------- |
-| episode   | `integer` | Yes      | The episode number within the season.                                       |
-| completed | `boolean` | Yes      | Whether the profile has finished this episode (watched at least 80% of it). |
 
 ## SimilarResponse
 

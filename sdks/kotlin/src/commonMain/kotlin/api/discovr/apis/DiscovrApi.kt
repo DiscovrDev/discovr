@@ -15,9 +15,6 @@
 
 package api.discovr.apis
 
-import api.discovr.models.AddHistoryPayload
-import api.discovr.models.AddPlaybackPayload
-import api.discovr.models.AddSimpleListItemPayload
 import api.discovr.models.ApiError
 import api.discovr.models.CreatePagePayload
 import api.discovr.models.CreatePageResponse
@@ -30,36 +27,34 @@ import api.discovr.models.DeviceCodePayload
 import api.discovr.models.DeviceCodePollResponse
 import api.discovr.models.DeviceCodeResponse
 import api.discovr.models.DevicePollPayload
-import api.discovr.models.EditPlaybackPayload
 import api.discovr.models.GetProfilesResponse
 import api.discovr.models.GetRowItemsResponse
 import api.discovr.models.GetRowsResponse
 import api.discovr.models.GifSearchResponse
-import api.discovr.models.HistoryListResponse
+import api.discovr.models.ImportHistoryPayload
 import api.discovr.models.MediaAssetsResponse
-import api.discovr.models.MediaProfileMeta
 import api.discovr.models.MediaResponse
 import api.discovr.models.MintSessionTokenPayload
 import api.discovr.models.Page
-import api.discovr.models.PatchHistoryPayload
 import api.discovr.models.PlaybackListResponse
 import api.discovr.models.Profile
 import api.discovr.models.ProfileImagesResponse
 import api.discovr.models.RateLimitedError
+import api.discovr.models.Rating
 import api.discovr.models.RefreshTokenResponse
 import api.discovr.models.Row
 import api.discovr.models.ScrobbleProgressBody
 import api.discovr.models.ScrobbleResponse
-import api.discovr.models.ScrobbleSkipBody
-import api.discovr.models.ScrobbleSkipResponse
 import api.discovr.models.SearchResponse
 import api.discovr.models.SeasonDetailsResponse
-import api.discovr.models.SeasonProfileMeta
+import api.discovr.models.SeasonState
 import api.discovr.models.SessionTokenResponse
+import api.discovr.models.SetRatingPayload
 import api.discovr.models.SignOutResponse
 import api.discovr.models.SimilarResponse
-import api.discovr.models.SimpleListResponse
 import api.discovr.models.SuccessMessage
+import api.discovr.models.TitleListResponse
+import api.discovr.models.TitleState
 import api.discovr.models.UpdateProfilePayload
 import api.discovr.models.WebTokenPayload
 
@@ -89,201 +84,36 @@ open class DiscovrApi : ApiClient {
     ): super(baseUrl = baseUrl, httpClient = httpClient)
 
     /**
-     * Add an item to disliked list
-     * Adds a title to the disliked list.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Liked, disliked, and super-liked are exclusive — disliking something automatically removes any existing like or super-like for the same title.  Returns &#x60;201&#x60; if the item was newly added, &#x60;200&#x60; if it was already disliked. 
-     * @param addSimpleListItemPayload 
-     * @return SuccessMessage
+     * Add a title to the watchlist
+     * Adds a title to the active profile&#39;s watchlist. Safe to call if it is already on the watchlist.  Returns the title&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * @param mediaId The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;. 
+     * @return TitleState
      */
     @Suppress("UNCHECKED_CAST")
-    open suspend fun addDislikedItem(addSimpleListItemPayload: AddSimpleListItemPayload): HttpResponse<SuccessMessage> {
+    open suspend fun addToWatchlist(mediaId: kotlin.String): HttpResponse<TitleState> {
 
         val localVariableAuthNames = listOf<String>("BearerAuth")
 
-        val localVariableBody = addSimpleListItemPayload
+        val localVariableBody = 
+            io.ktor.client.utils.EmptyContent
 
         val localVariableQuery = mutableMapOf<String, List<String>>()
         val localVariableHeaders = mutableMapOf<String, String>()
 
         val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.POST,
-            "/profile/disliked",
+            RequestMethod.PUT,
+            "/profile/titles/{mediaId}/watchlist".replace("{" + "mediaId" + "}", "$mediaId"),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,
         )
 
-        return jsonRequest(
+        return request(
             localVariableConfig,
             localVariableBody,
             localVariableAuthNames
         ).wrap()
     }
-
-
-
-    /**
-     * Add an item to history list
-     * Records a watch history entry. Unlike other lists, history allows multiple entries for the same title — each completed viewing is tracked separately.  - &#x60;mediaId&#x60;: the title to record. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows. - &#x60;progress&#x60;: how far through the title the user watched, as a percentage (0–100). Optional. - &#x60;updatedAt&#x60;: the ISO 8601 timestamp of when the viewing was recorded. Defaults to now if omitted.  **TV Shows:** Include &#x60;season&#x60; (required for TV shows) and optionally &#x60;episode&#x60; to track per-episode history. Omitting &#x60;episode&#x60; records a season-level entry — clients can use this to mark all episodes in a season as watched in a single call. 
-     * @param addHistoryPayload 
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun addHistoryItem(addHistoryPayload: AddHistoryPayload): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = addHistoryPayload
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.POST,
-            "/profile/history",
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return jsonRequest(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-
-    /**
-     * Add an item to liked list
-     * Adds a title to the liked list.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Liked, disliked, and super-liked are exclusive — liking something automatically removes any existing dislike or super-like for the same title.  Returns &#x60;201&#x60; if the item was newly added, &#x60;200&#x60; if it was already liked. 
-     * @param addSimpleListItemPayload 
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun addLikedItem(addSimpleListItemPayload: AddSimpleListItemPayload): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = addSimpleListItemPayload
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.POST,
-            "/profile/liked",
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return jsonRequest(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-
-    /**
-     * Add an item to playback list
-     * Records a new playback position for a title. If the title is already being tracked, returns 409 — use PATCH to update an existing entry.  - &#x60;mediaId&#x60;: the title to track. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;). - &#x60;progress&#x60;: how far through the title the user is, as a percentage (0–100). Optional — omit if you don&#39;t have a position yet. - &#x60;updatedAt&#x60;: the ISO 8601 timestamp of when this progress was recorded. Defaults to now. Send the actual client time so resume positions stay accurate if the user is offline. 
-     * @param addPlaybackPayload 
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun addPlaybackItem(addPlaybackPayload: AddPlaybackPayload): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = addPlaybackPayload
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.POST,
-            "/profile/playback",
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return jsonRequest(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-
-    /**
-     * Add an item to the super-liked list
-     * Adds a title to the super-liked list.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Super-liking a title says the viewer loves it. Like the liked list, adding a super-like automatically removes any existing dislike or like for the same title.  Returns &#x60;201&#x60; if the item was newly added, &#x60;200&#x60; if it was already super-liked. 
-     * @param addSimpleListItemPayload 
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun addSuperLikedItem(addSimpleListItemPayload: AddSimpleListItemPayload): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = addSimpleListItemPayload
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.POST,
-            "/profile/super_liked",
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return jsonRequest(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-
-    /**
-     * Add an item to watchlist
-     * Adds a title to the watchlist.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Unlike liked/disliked/super-liked, the watchlist is non-exclusive — you can watchlist something regardless of how it&#39;s rated. Titles are automatically removed from the watchlist when the user starts watching via &#x60;scrobble&#x60;. 
-     * @param addSimpleListItemPayload 
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun addWatchlistItem(addSimpleListItemPayload: AddSimpleListItemPayload): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = addSimpleListItemPayload
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.POST,
-            "/profile/watchlist",
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return jsonRequest(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
 
 
 
@@ -349,6 +179,39 @@ open class DiscovrApi : ApiClient {
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = false,
+        )
+
+        return request(
+            localVariableConfig,
+            localVariableBody,
+            localVariableAuthNames
+        ).wrap()
+    }
+
+
+    /**
+     * Clear a title&#39;s rating
+     * Clears the active profile&#39;s rating for a title. Safe to call if the title has no rating.  Returns the title&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * @param mediaId The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;. 
+     * @return TitleState
+     */
+    @Suppress("UNCHECKED_CAST")
+    open suspend fun clearRating(mediaId: kotlin.String): HttpResponse<TitleState> {
+
+        val localVariableAuthNames = listOf<String>("BearerAuth")
+
+        val localVariableBody = 
+            io.ktor.client.utils.EmptyContent
+
+        val localVariableQuery = mutableMapOf<String, List<String>>()
+        val localVariableHeaders = mutableMapOf<String, String>()
+
+        val localVariableConfig = RequestConfig<kotlin.Any?>(
+            RequestMethod.DELETE,
+            "/profile/titles/{mediaId}/rating".replace("{" + "mediaId" + "}", "$mediaId"),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
         )
 
         return request(
@@ -426,111 +289,8 @@ open class DiscovrApi : ApiClient {
 
 
     /**
-     * Delete an item from disliked list
-     * Removes a title from the disliked list. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-     * @param mediaId Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun deleteDislikedItem(mediaId: kotlin.String): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.DELETE,
-            "/profile/disliked/{mediaId}".replace("{" + "mediaId" + "}", "$mediaId"),
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-    /**
-     * Delete an item from history list
-     * Deletes history entries for a title. Because history allows duplicates, this removes all matching entries for the specified media (and episode, if provided).  For TV shows, pass &#x60;season&#x60; as a query parameter (required) and optionally &#x60;episode&#x60;. Include &#x60;episode&#x60; to delete that episode&#39;s entries. Omit it to delete the entries that were recorded for the season as a whole, without an episode (for example, marking a season watched in one go); entries for individual episodes are kept.  To take a title back to unwatched, use [&#x60;DELETE /profile/watched/{mediaId}&#x60;](/api-reference/discovr/mark-unwatched) instead. This call removes history entries and nothing else: it doesn&#39;t touch the in-progress list, and a TV show&#39;s &#x60;completed&#x60; state is brought up to date from whatever history is left. 
-     * @param mediaId The media ID of the title to delete. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @param season Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. (optional)
-     * @param episode Episode number. Optional — omit to delete the season-level entries (those recorded without an episode); include to delete a specific episode&#39;s entries only. (optional)
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun deleteHistoryItem(mediaId: kotlin.String, season: kotlin.Int? = null, episode: kotlin.Int? = null): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        season?.apply { localVariableQuery["season"] = listOf("$season") }
-        episode?.apply { localVariableQuery["episode"] = listOf("$episode") }
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.DELETE,
-            "/profile/history/{mediaId}".replace("{" + "mediaId" + "}", "$mediaId"),
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-    /**
-     * Delete an item from liked list
-     * Removes a title from the liked list. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-     * @param mediaId Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun deleteLikedItem(mediaId: kotlin.String): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.DELETE,
-            "/profile/liked/{mediaId}".replace("{" + "mediaId" + "}", "$mediaId"),
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-    /**
-     * Delete an item from playback list
-     * Removes a title from the in-progress list. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;). 
+     * Remove a title from Continue Watching
+     * Removes a title from the in-progress Continue Watching list without changing its watched history. Use &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;). 
      * @param mediaId The media ID of the title to remove. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
      * @return SuccessMessage
      */
@@ -595,72 +355,6 @@ open class DiscovrApi : ApiClient {
 
 
     /**
-     * Delete an item from the super-liked list
-     * Removes a title from the super-liked list. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-     * @param mediaId Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun deleteSuperLikedItem(mediaId: kotlin.String): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.DELETE,
-            "/profile/super_liked/{mediaId}".replace("{" + "mediaId" + "}", "$mediaId"),
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-    /**
-     * Delete an item from watchlist
-     * Removes a title from the watchlist. Pass the full media ID (e.g., &#x60;MV_550&#x60; for a movie, &#x60;TV_1396&#x60; for a TV show). 
-     * @param mediaId Full media ID — &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun deleteWatchlistItem(mediaId: kotlin.String): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.DELETE,
-            "/profile/watchlist/{mediaId}".replace("{" + "mediaId" + "}", "$mediaId"),
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-    /**
      * Redeem a web sign-in code
      * The last step of a web sign-in. Trade the authorization code Discovr delivered to your app, together with the &#x60;codeVerifier&#x60; you generated when you started, for the refresh token. The SDKs call this for you.  The code is single-use and lives 60 seconds. A request with a wrong &#x60;codeVerifier&#x60; fails **and spends the code**, so whoever intercepted it gets one try, not unlimited guesses. The refresh token comes back in this response only — it is never in a URL or a &#x60;postMessage&#x60;. 
      * @param webTokenPayload 
@@ -691,155 +385,6 @@ open class DiscovrApi : ApiClient {
         ).wrap()
     }
 
-
-
-    /**
-     * Get disliked items
-     * Returns the disliked list for a specific profile.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Items are ordered newest-first and support cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-     * @param nextPageToken Opaque token from previous page for pagination (optional)
-     * @param limit Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     * @return SimpleListResponse
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun getDislikedItems(nextPageToken: kotlin.String? = null, limit: kotlin.Int? = 10): HttpResponse<SimpleListResponse> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        nextPageToken?.apply { localVariableQuery["nextPageToken"] = listOf("$nextPageToken") }
-        limit?.apply { localVariableQuery["limit"] = listOf("$limit") }
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.GET,
-            "/profile/disliked",
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-    /**
-     * Get history items
-     * Returns the profile&#39;s full watch history, newest entries first.  History allows multiple entries for the same title — every completed viewing is tracked separately, so you may see the same &#x60;mediaId&#x60; more than once.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
-     * @param nextPageToken Opaque token from previous page for pagination (optional)
-     * @param limit Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     * @return HistoryListResponse
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun getHistoryItems(nextPageToken: kotlin.String? = null, limit: kotlin.Int? = 10): HttpResponse<HistoryListResponse> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        nextPageToken?.apply { localVariableQuery["nextPageToken"] = listOf("$nextPageToken") }
-        limit?.apply { localVariableQuery["limit"] = listOf("$limit") }
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.GET,
-            "/profile/history",
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-    /**
-     * Get history items for a specific media
-     * Returns history entries for a specific title. Newest entries first.  For TV shows, pass &#x60;season&#x60; as a query parameter (required) and optionally &#x60;episode&#x60; to filter by episode. Omitting &#x60;episode&#x60; returns all entries for the whole season.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
-     * @param mediaId The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @param season Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. (optional)
-     * @param episode Episode number. Optional — omit to return all entries for the season; include to filter to a specific episode. (optional)
-     * @param nextPageToken Opaque token from previous page for pagination (optional)
-     * @param limit Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     * @return HistoryListResponse
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun getHistoryItemsByMediaId(mediaId: kotlin.String, season: kotlin.Int? = null, episode: kotlin.Int? = null, nextPageToken: kotlin.String? = null, limit: kotlin.Int? = 10): HttpResponse<HistoryListResponse> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        season?.apply { localVariableQuery["season"] = listOf("$season") }
-        episode?.apply { localVariableQuery["episode"] = listOf("$episode") }
-        nextPageToken?.apply { localVariableQuery["nextPageToken"] = listOf("$nextPageToken") }
-        limit?.apply { localVariableQuery["limit"] = listOf("$limit") }
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.GET,
-            "/profile/history/{mediaId}".replace("{" + "mediaId" + "}", "$mediaId"),
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-    /**
-     * Get liked items
-     * Returns the liked list for a specific profile.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Items are ordered newest-first and support cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-     * @param nextPageToken Opaque token from previous page for pagination (optional)
-     * @param limit Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     * @return SimpleListResponse
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun getLikedItems(nextPageToken: kotlin.String? = null, limit: kotlin.Int? = 10): HttpResponse<SimpleListResponse> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        nextPageToken?.apply { localVariableQuery["nextPageToken"] = listOf("$nextPageToken") }
-        limit?.apply { localVariableQuery["limit"] = listOf("$limit") }
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.GET,
-            "/profile/liked",
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
 
 
     /**
@@ -909,41 +454,6 @@ open class DiscovrApi : ApiClient {
 
 
     /**
-     * Get profile interaction data for a title
-     * Returns the current profile&#39;s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (&#x60;true&#x60;/&#x60;false&#x60; for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile&#39;s selected region. Pass &#x60;providers&#x3D;true&#x60; to include this. - **Completion**: whether the profile has finished this title (&#x60;completed&#x60;), and for TV shows, which season numbers are fully watched (&#x60;completedSeasons&#x60;).  **This call directly affects the profile&#39;s recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn&#39;t open registers similarly to liking those titles and will skew their recommendations. Pass the item&#39;s &#x60;ref&#x60; when you have one.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
-     * @param mediaId The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @param providers Set to &#x60;true&#x60; to include streaming provider availability in the response. (optional, default to false)
-     * @return MediaProfileMeta
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun getMediaProfileMeta(mediaId: kotlin.String, providers: kotlin.Boolean? = false): HttpResponse<MediaProfileMeta> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = 
-            io.ktor.client.utils.EmptyContent
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        providers?.apply { localVariableQuery["providers"] = listOf("$providers") }
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.GET,
-            "/media/{mediaId}/profile_meta".replace("{" + "mediaId" + "}", "$mediaId"),
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return request(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-    /**
      * Get a page
      * Returns a page and its metadata.  Page IDs are stable and permanent. The same ID keeps working across sessions, profiles and devices, so it&#39;s safe in a URL, a bookmark or a deep link.  What changes is the content: recommendations refresh roughly every 30 minutes, and after they do this returns the same page with re-ranked rows. There&#39;s nothing to handle — no error, no ID to swap.  **Auth tier:** session. 
      * @param pageId The page to retrieve. Accepts either a page id or the &#x60;ref&#x60; from the navigation or provider tile you&#39;re opening — both resolve to the same page. 
@@ -978,7 +488,7 @@ open class DiscovrApi : ApiClient {
 
     /**
      * Get playback items
-     * Returns the profile&#39;s in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \&quot;Continue Watching\&quot; row.  Each item includes a &#x60;progress&#x60; field (0–100) showing how far through the title the user is.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
+     * Returns the profile&#39;s in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \&quot;Continue Watching\&quot; row.  Each item includes a &#x60;progress&#x60; field (0–100) showing how far through the title the user is. To update progress as a viewer watches, call &#x60;POST /profile/scrobble/{mediaId}&#x60;.  **Pagination:** Pass &#x60;nextPageToken&#x60; from the previous response to fetch the next page. If &#x60;hasMore&#x60; is &#x60;true&#x60;, more items are available. 
      * @param nextPageToken Opaque token from previous page for pagination (optional)
      * @param limit Maximum number of items to return (1-50, default: 10) (optional, default to 10)
      * @return PlaybackListResponse
@@ -1259,14 +769,14 @@ open class DiscovrApi : ApiClient {
 
 
     /**
-     * Get which episodes of a TV season are finished
-     * Returns which episodes of a TV season the current profile has finished, plus whether the whole season is complete.  Pair this with &#x60;getSeasonDetails&#x60; for episode titles and artwork, and with &#x60;getMediaProfileMeta&#x60; for title-level state (liked, watchlisted, playback position). Use this endpoint when you need per-episode detail for a season view — for example, putting a checkmark on each episode the profile has finished. It reports finished or not; a half-watched episode isn&#39;t tracked, so it won&#39;t show a progress bar. The profile&#39;s place in the episode it is watching now is &#x60;playback&#x60; on &#x60;getMediaProfileMeta&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
-     * @param mediaId The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @param seasonNumber The season number.
-     * @return SeasonProfileMeta
+     * Get which episodes of a TV season are watched
+     * Returns which episodes of a single TV season the active profile has finished, plus whether the season as a whole is complete.  A season counts as complete when every aired episode in it is watched. Specials (season &#x60;0&#x60;) never count toward show completion. Pair this with &#x60;getSeasonDetails&#x60; for episode titles and artwork, and with &#x60;getTitleState&#x60; for title-level state and live playback position.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * @param mediaId The TV show&#39;s media ID (&#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;. 
+     * @param seasonNumber The season number (0 for specials, 1+ for regular seasons).
+     * @return SeasonState
      */
     @Suppress("UNCHECKED_CAST")
-    open suspend fun getSeasonProfileMeta(mediaId: kotlin.String, seasonNumber: kotlin.Int): HttpResponse<SeasonProfileMeta> {
+    open suspend fun getSeasonState(mediaId: kotlin.String, seasonNumber: kotlin.Int): HttpResponse<SeasonState> {
 
         val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -1278,7 +788,7 @@ open class DiscovrApi : ApiClient {
 
         val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.GET,
-            "/media/{mediaId}/seasons/{seasonNumber}/meta".replace("{" + "mediaId" + "}", "$mediaId").replace("{" + "seasonNumber" + "}", "$seasonNumber"),
+            "/profile/titles/{mediaId}/seasons/{seasonNumber}".replace("{" + "mediaId" + "}", "$mediaId").replace("{" + "seasonNumber" + "}", "$seasonNumber"),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,
@@ -1330,14 +840,14 @@ open class DiscovrApi : ApiClient {
 
 
     /**
-     * Get super-liked items
-     * Returns the super-liked list for a specific profile.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Items are ordered newest-first and support cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. Super-liked titles are the ones the viewer loves most. 
-     * @param nextPageToken Opaque token from previous page for pagination (optional)
-     * @param limit Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     * @return SimpleListResponse
+     * Get the active profile&#39;s state for a title
+     * Returns everything your UI needs to show the active profile&#39;s relationship with a title:  - **Rating**: &#x60;liked&#x60;, &#x60;disliked&#x60;, &#x60;super_liked&#x60;, or &#x60;null&#x60;. - **Watchlist**: whether the title is saved to the watchlist. - **Watch progress &amp; completion**: whether the profile has started (&#x60;watched&#x60;) or finished (&#x60;completed&#x60;) the title, total &#x60;plays&#x60;, watched &#x60;episodes&#x60; and &#x60;completedSeasons&#x60; for TV shows, and the live &#x60;playback&#x60; resume position when mid-watch. - **Providers** *(optional)*: pass &#x60;providers&#x3D;true&#x60; to include streaming availability filtered to the account&#39;s chosen services.  **Title opens &amp; recommendations.** Calling &#x60;GET /profile/titles/{mediaId}&#x60; records that the viewer opened the title and directly affects the profile&#39;s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Every state write (&#x60;setRating&#x60;, &#x60;clearRating&#x60;, &#x60;addToWatchlist&#x60;, &#x60;removeFromWatchlist&#x60;, &#x60;markWatched&#x60;, &#x60;markUnwatched&#x60;) returns the updated &#x60;TitleState&#x60;, so you don&#39;t need to refetch this endpoint after a change.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * @param mediaId The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; for movies, &#x60;TV_&lt;id&gt;&#x60; for TV shows).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the ID. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens recommendations. 
+     * @param providers Set to &#x60;true&#x60; to include streaming provider availability filtered to the account&#39;s selected services. (optional, default to false)
+     * @return TitleState
      */
     @Suppress("UNCHECKED_CAST")
-    open suspend fun getSuperLikedItems(nextPageToken: kotlin.String? = null, limit: kotlin.Int? = 10): HttpResponse<SimpleListResponse> {
+    open suspend fun getTitleState(mediaId: kotlin.String, providers: kotlin.Boolean? = false): HttpResponse<TitleState> {
 
         val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -1345,13 +855,12 @@ open class DiscovrApi : ApiClient {
             io.ktor.client.utils.EmptyContent
 
         val localVariableQuery = mutableMapOf<String, List<String>>()
-        nextPageToken?.apply { localVariableQuery["nextPageToken"] = listOf("$nextPageToken") }
-        limit?.apply { localVariableQuery["limit"] = listOf("$limit") }
+        providers?.apply { localVariableQuery["providers"] = listOf("$providers") }
         val localVariableHeaders = mutableMapOf<String, String>()
 
         val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.GET,
-            "/profile/super_liked",
+            "/profile/titles/{mediaId}".replace("{" + "mediaId" + "}", "$mediaId"),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,
@@ -1366,14 +875,17 @@ open class DiscovrApi : ApiClient {
 
 
     /**
-     * Get watchlist items
-     * Returns the profile&#39;s watchlist — titles saved to watch later.  **Auth tier:** session — send the session token from &#x60;POST /auth/session-token&#x60;.  Ordered by when they were added (newest first). Supports cursor-based pagination via &#x60;nextPageToken&#x60;.  **Pagination:** - Pass &#x60;nextPageToken&#x60; from a previous response to fetch the next page. - If &#x60;hasMore&#x60; is &#x60;true&#x60;, there are more items available. 
-     * @param nextPageToken Opaque token from previous page for pagination (optional)
-     * @param limit Maximum number of items to return (1-50, default: 10) (optional, default to 10)
-     * @return SimpleListResponse
+     * List titles by rating, watchlist, or watch history
+     * Returns a paginated list of titles for the active profile, ordered most recent first.  Pass **exactly one** filter query parameter:  - &#x60;rating&#x3D;liked&#x60;, &#x60;rating&#x3D;disliked&#x60;, or &#x60;rating&#x3D;super_liked&#x60; — titles with that rating, newest rated first. - &#x60;watchlist&#x3D;true&#x60; — the profile&#39;s watchlist, newest added first. - &#x60;watched&#x3D;true&#x60; — the profile&#39;s watch history (one entry per title, with &#x60;completed&#x60;, &#x60;plays&#x60;, and the last episode for TV shows), most recently watched first.  Each item includes a &#x60;ref&#x60; alongside its &#x60;id&#x60;. Pass the &#x60;ref&#x60; when the viewer opens or acts on the title.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * @param rating Filter by rating (&#x60;liked&#x60;, &#x60;disliked&#x60;, or &#x60;super_liked&#x60;). (optional)
+     * @param watchlist Set to &#x60;true&#x60; to list the profile&#39;s watchlist. (optional)
+     * @param watched Set to &#x60;true&#x60; to list the profile&#39;s watch history (one row per title). (optional)
+     * @param nextPageToken Opaque cursor token from the previous page. (optional)
+     * @param limit Maximum number of titles to return (1–50, default 10). (optional, default to 10)
+     * @return TitleListResponse
      */
     @Suppress("UNCHECKED_CAST")
-    open suspend fun getWatchlistItems(nextPageToken: kotlin.String? = null, limit: kotlin.Int? = 10): HttpResponse<SimpleListResponse> {
+    open suspend fun getTitles(rating: Rating? = null, watchlist: kotlin.Boolean? = null, watched: kotlin.Boolean? = null, nextPageToken: kotlin.String? = null, limit: kotlin.Int? = 10): HttpResponse<TitleListResponse> {
 
         val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -1381,13 +893,16 @@ open class DiscovrApi : ApiClient {
             io.ktor.client.utils.EmptyContent
 
         val localVariableQuery = mutableMapOf<String, List<String>>()
+        rating?.apply { localVariableQuery["rating"] = listOf("${ rating.value }") }
+        watchlist?.apply { localVariableQuery["watchlist"] = listOf("$watchlist") }
+        watched?.apply { localVariableQuery["watched"] = listOf("$watched") }
         nextPageToken?.apply { localVariableQuery["nextPageToken"] = listOf("$nextPageToken") }
         limit?.apply { localVariableQuery["limit"] = listOf("$limit") }
         val localVariableHeaders = mutableMapOf<String, String>()
 
         val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.GET,
-            "/profile/watchlist",
+            "/profile/titles",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,
@@ -1402,15 +917,48 @@ open class DiscovrApi : ApiClient {
 
 
     /**
-     * Mark a title as unwatched
-     * Takes a movie, a TV show, a season, or an episode back to unwatched, in one call.  It removes the history that made it watched, takes it out of the user&#39;s **in-progress** list if that is where it was, and brings a TV show&#39;s &#x60;completed&#x60; state back in line. Use it for a \&quot;Mark as unwatched\&quot; button.  For TV shows, &#x60;season&#x60; and &#x60;episode&#x60; choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass &#x60;season&#x60; to undo **that season**: its episodes, and any entry that counted the whole season as watched. - Pass &#x60;season&#x60; and &#x60;episode&#x60; to undo **that episode**.  Calling it for a title that isn&#39;t watched changes nothing and still succeeds, so it is safe to retry.  This is not the same as [&#x60;DELETE /profile/history/{mediaId}&#x60;](/api-reference/discovr/delete-history-item), which removes history entries and nothing else. Marking something unwatched with that call and &#x60;DELETE /profile/playback/{mediaId}&#x60; leaves a TV show&#39;s &#x60;completed&#x60; out of date unless they run in a particular order; this endpoint does the right thing whichever way you reach it.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
-     * @param mediaId The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. 
+     * Import a watch history entry
+     * Imports a previously watched movie, show, season, or episode from an external source.  - &#x60;mediaId&#x60;: the title to import (&#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows). - &#x60;imported&#x60;: required string naming the external source (for example &#x60;\&quot;trakt\&quot;&#x60;). - &#x60;updatedAt&#x60;: optional ISO 8601 timestamp of when it was watched. Defaults to now. - &#x60;season&#x60; / &#x60;episode&#x60;: optional TV scope. Omit both to import all aired episodes of the show; pass &#x60;season&#x60; to import that season; pass both to import a single episode.  For live viewing use &#x60;scrobble()&#x60;, and for interactive \&quot;Mark as watched\&quot; buttons use &#x60;markWatched()&#x60;. To read watch history, use &#x60;GET /profile/titles?watched&#x3D;true&#x60;.  Returns the title&#39;s updated &#x60;TitleState&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * @param importHistoryPayload 
+     * @return TitleState
+     */
+    @Suppress("UNCHECKED_CAST")
+    open suspend fun importHistory(importHistoryPayload: ImportHistoryPayload): HttpResponse<TitleState> {
+
+        val localVariableAuthNames = listOf<String>("BearerAuth")
+
+        val localVariableBody = importHistoryPayload
+
+        val localVariableQuery = mutableMapOf<String, List<String>>()
+        val localVariableHeaders = mutableMapOf<String, String>()
+
+        val localVariableConfig = RequestConfig<kotlin.Any?>(
+            RequestMethod.POST,
+            "/profile/history",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+        )
+
+        return jsonRequest(
+            localVariableConfig,
+            localVariableBody,
+            localVariableAuthNames
+        ).wrap()
+    }
+
+
+
+    /**
+     * Mark a title, season, or episode as unwatched
+     * Takes a movie, a TV show, a season, or an episode back to unwatched in one atomic call.  It removes the watched state for that scope and clears any in-progress Continue Watching position inside it. Calling it for a title that isn&#39;t watched changes nothing and still succeeds, so it&#39;s safe to retry.  For TV shows, &#x60;season&#x60; and &#x60;episode&#x60; choose how much to undo:  - Omit both to undo **the whole show**, every season. - Pass &#x60;season&#x60; to undo **that season**. - Pass &#x60;season&#x60; and &#x60;episode&#x60; to undo **that episode**.  Returns the title&#39;s updated &#x60;TitleState&#x60;, so you don&#39;t need to refetch &#x60;getTitleState&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * @param mediaId The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;. 
      * @param season TV only. Season number. Omit to undo every season of the show. (optional)
      * @param episode TV only, and only together with &#x60;season&#x60;. Episode number. Omit to undo the whole season. (optional)
-     * @return SuccessMessage
+     * @return TitleState
      */
     @Suppress("UNCHECKED_CAST")
-    open suspend fun markUnwatched(mediaId: kotlin.String, season: kotlin.Int? = null, episode: kotlin.Int? = null): HttpResponse<SuccessMessage> {
+    open suspend fun markUnwatched(mediaId: kotlin.String, season: kotlin.Int? = null, episode: kotlin.Int? = null): HttpResponse<TitleState> {
 
         val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -1424,7 +972,44 @@ open class DiscovrApi : ApiClient {
 
         val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.DELETE,
-            "/profile/watched/{mediaId}".replace("{" + "mediaId" + "}", "$mediaId"),
+            "/profile/titles/{mediaId}/watched".replace("{" + "mediaId" + "}", "$mediaId"),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+        )
+
+        return request(
+            localVariableConfig,
+            localVariableBody,
+            localVariableAuthNames
+        ).wrap()
+    }
+
+
+    /**
+     * Mark a title, season, or episode as watched
+     * Marks a movie, an entire TV show, a season, or a single episode as watched in one atomic call.  For TV shows, &#x60;season&#x60; and &#x60;episode&#x60; pick the scope:  - Omit both to mark **every aired episode** across all regular seasons (season 1 and up) as watched. Specials (season &#x60;0&#x60;) are excluded. - Pass &#x60;season&#x60; to mark every aired episode of **that season**. - Pass &#x60;season&#x60; and &#x60;episode&#x60; to mark **that episode**.  Any in-progress Continue Watching position within the marked scope is cleared automatically. Returns the title&#39;s updated &#x60;TitleState&#x60;, so you don&#39;t need to refetch &#x60;getTitleState&#x60;.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * @param mediaId The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;. 
+     * @param season TV only. Season number. Omit to mark every aired season of the show. (optional)
+     * @param episode TV only, and only together with &#x60;season&#x60;. Episode number. Omit to mark the whole season. (optional)
+     * @return TitleState
+     */
+    @Suppress("UNCHECKED_CAST")
+    open suspend fun markWatched(mediaId: kotlin.String, season: kotlin.Int? = null, episode: kotlin.Int? = null): HttpResponse<TitleState> {
+
+        val localVariableAuthNames = listOf<String>("BearerAuth")
+
+        val localVariableBody = 
+            io.ktor.client.utils.EmptyContent
+
+        val localVariableQuery = mutableMapOf<String, List<String>>()
+        season?.apply { localVariableQuery["season"] = listOf("$season") }
+        episode?.apply { localVariableQuery["episode"] = listOf("$episode") }
+        val localVariableHeaders = mutableMapOf<String, String>()
+
+        val localVariableConfig = RequestConfig<kotlin.Any?>(
+            RequestMethod.PUT,
+            "/profile/titles/{mediaId}/watched".replace("{" + "mediaId" + "}", "$mediaId"),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,
@@ -1472,44 +1057,6 @@ open class DiscovrApi : ApiClient {
 
 
     /**
-     * Update or create a history item
-     * Updates the history entry for a title. If no entry exists, creates one (upsert). This ensures only one entry exists per &#x60;mediaId&#x60; + &#x60;season&#x60; + &#x60;episode&#x60; combination.  For TV shows, &#x60;season&#x60; is required as a query parameter. Include &#x60;episode&#x60; to target a specific episode; omit it to update the season-level entry.  - &#x60;progress&#x60;: how far through the title the user watched, as a percentage (0–100). 
-     * @param mediaId The media ID of the title. Format: &#x60;MV_&lt;number&gt;&#x60; for movies, &#x60;TV_&lt;number&gt;&#x60; for TV shows.  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @param patchHistoryPayload 
-     * @param season Season number. Required for TV shows (&#x60;TV_&#x60; mediaId); ignored for movies. (optional)
-     * @param episode Episode number. Optional — omit to update the season-level entry; include to target a specific episode. (optional)
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun patchHistoryItem(mediaId: kotlin.String, patchHistoryPayload: PatchHistoryPayload, season: kotlin.Int? = null, episode: kotlin.Int? = null): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = patchHistoryPayload
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        season?.apply { localVariableQuery["season"] = listOf("$season") }
-        episode?.apply { localVariableQuery["episode"] = listOf("$episode") }
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.PATCH,
-            "/profile/history/{mediaId}".replace("{" + "mediaId" + "}", "$mediaId"),
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return jsonRequest(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-
-    /**
      * Poll for auth token
      * The second step of the device code flow. Call this repeatedly after showing the user code or QR code.  While the user hasn&#39;t confirmed yet, you&#39;ll get &#x60;{ status: \&quot;pending\&quot;, interval }&#x60; — wait &#x60;interval&#x60; seconds and poll again. Once they approve, the response changes to &#x60;{ refreshToken, publicId, expiresAt }&#x60;. Store the &#x60;refreshToken&#x60; securely — it&#39;s your long-lived credential for all identity-tier calls.  **Polling interval:** the server sets it and repeats it in every pending answer; it grows the longer the code has been waiting, so always use the latest value. The SDKs do this for you. Stop polling when you receive a &#x60;refreshToken&#x60; or a &#x60;401&#x60; error.  A person can decline on their phone. Your next poll then returns &#x60;401&#x60; with &#x60;device-code-denied&#x60; straight away (and on every poll after, until the code expires), so you can say so on screen instead of waiting out the timeout. 
      * @param deviceCode The device code obtained from the request device code endpoint
@@ -1541,6 +1088,39 @@ open class DiscovrApi : ApiClient {
         ).wrap()
     }
 
+
+
+    /**
+     * Remove a title from the watchlist
+     * Removes a title from the active profile&#39;s watchlist. Safe to call if it is not on the watchlist.  Returns the title&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * @param mediaId The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;. 
+     * @return TitleState
+     */
+    @Suppress("UNCHECKED_CAST")
+    open suspend fun removeFromWatchlist(mediaId: kotlin.String): HttpResponse<TitleState> {
+
+        val localVariableAuthNames = listOf<String>("BearerAuth")
+
+        val localVariableBody = 
+            io.ktor.client.utils.EmptyContent
+
+        val localVariableQuery = mutableMapOf<String, List<String>>()
+        val localVariableHeaders = mutableMapOf<String, String>()
+
+        val localVariableConfig = RequestConfig<kotlin.Any?>(
+            RequestMethod.DELETE,
+            "/profile/titles/{mediaId}/watchlist".replace("{" + "mediaId" + "}", "$mediaId"),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+        )
+
+        return request(
+            localVariableConfig,
+            localVariableBody,
+            localVariableAuthNames
+        ).wrap()
+    }
 
 
 
@@ -1597,7 +1177,7 @@ open class DiscovrApi : ApiClient {
 
     /**
      * Record playback progress
-     * Scrobbling is Discovr&#39;s single-call way to track playback. One call updates everything — progress, history, and watchlist — so you don&#39;t need to coordinate multiple endpoints.  Call this about every 30 seconds while the user watches, and straight away on pause, resume, seek and when playback ends. Discovr handles the rest:  - The item stays in the user&#39;s **in-progress** list until they finish watching. - Once they&#39;ve watched 80% or more, it&#39;s marked as complete and moves to their **history**. - For movies, the item is removed from the user&#39;s watchlist once they&#39;ve watched more than 20% — so it clears as soon as they&#39;re clearly watching it. For TV episodes, it&#39;s removed from the watchlist once the episode is complete (≥80%).  For TV shows, include &#x60;season&#x60; and &#x60;episode&#x60; in the request body so history is tracked per episode.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * Scrobbling is Discovr&#39;s single-call way to track playback. One call updates live resume progress, watch history, completion, and the watchlist.  Send the viewer&#39;s real position when playback starts (not &#x60;0&#x60; when resuming), about every 30 seconds while watching, and right away on pause, resume, seek, and completion. Discovr handles the rest:  - The title stays in Continue Watching until the movie or episode crosses 80%. - Once progress reaches 20% or more, the title is automatically removed from the watchlist — for both movies and TV shows. - Once progress reaches 80% or more, the movie or episode is marked watched and leaves Continue Watching. Lower progress later (such as a rewind) moves the live position without undoing completion — use &#x60;markUnwatched&#x60; to undo a watch. - For TV shows, include &#x60;season&#x60; and &#x60;episode&#x60; in &#x60;tv&#x60;. When an episode crosses 80%, the response includes &#x60;completedSeasons&#x60; listing every season now fully watched.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
      * @param mediaId The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
      * @param scrobbleProgressBody 
      * @return ScrobbleResponse
@@ -1615,40 +1195,6 @@ open class DiscovrApi : ApiClient {
         val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.POST,
             "/profile/scrobble/{mediaId}".replace("{" + "mediaId" + "}", "$mediaId"),
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
-        )
-
-        return jsonRequest(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-
-    /**
-     * Record a skip event
-     * Signals that the user jumped to another point in the content, forward (a skip) or backward (a rewind). Used for watch analytics. Returns immediately — no side effects on lists or history.  &#x60;from&#x60; and &#x60;to&#x60; are playback positions as a percentage (0–100) and must differ; &#x60;from&#x60; higher than &#x60;to&#x60; is a jump backward. &#x60;duration&#x60; is how many seconds were jumped. After a jump, also send the position the viewer landed on as a progress update with &#x60;POST /profile/scrobble/{mediaId}&#x60;. 
-     * @param mediaId The media ID in &#x60;MV_&lt;number&gt;&#x60; or &#x60;TV_&lt;number&gt;&#x60; format (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
-     * @param scrobbleSkipBody 
-     * @return ScrobbleSkipResponse
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun scrobbleSkip(mediaId: kotlin.String, scrobbleSkipBody: ScrobbleSkipBody): HttpResponse<ScrobbleSkipResponse> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = scrobbleSkipBody
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.POST,
-            "/profile/scrobble/{mediaId}/skip".replace("{" + "mediaId" + "}", "$mediaId"),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,
@@ -1767,6 +1313,40 @@ open class DiscovrApi : ApiClient {
 
 
     /**
+     * Set a title&#39;s rating
+     * Sets the active profile&#39;s rating for a title to &#x60;liked&#x60;, &#x60;disliked&#x60;, or &#x60;super_liked&#x60;.  Ratings are mutually exclusive: setting a new rating automatically replaces any previous one. Setting the rating the title already has is a safe no-op.  Returns the title&#39;s updated &#x60;TitleState&#x60;, so you can update your UI immediately without calling &#x60;getTitleState&#x60; again.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * @param mediaId The title&#39;s media ID (&#x60;MV_&lt;id&gt;&#x60; or &#x60;TV_&lt;id&gt;&#x60;), or an item &#x60;ref&#x60;. 
+     * @param setRatingPayload 
+     * @return TitleState
+     */
+    @Suppress("UNCHECKED_CAST")
+    open suspend fun setRating(mediaId: kotlin.String, setRatingPayload: SetRatingPayload): HttpResponse<TitleState> {
+
+        val localVariableAuthNames = listOf<String>("BearerAuth")
+
+        val localVariableBody = setRatingPayload
+
+        val localVariableQuery = mutableMapOf<String, List<String>>()
+        val localVariableHeaders = mutableMapOf<String, String>()
+
+        val localVariableConfig = RequestConfig<kotlin.Any?>(
+            RequestMethod.PUT,
+            "/profile/titles/{mediaId}/rating".replace("{" + "mediaId" + "}", "$mediaId"),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+        )
+
+        return jsonRequest(
+            localVariableConfig,
+            localVariableBody,
+            localVariableAuthNames
+        ).wrap()
+    }
+
+
+
+    /**
      * Sign out the current device
      * Signs out the current device by revoking the refresh token you send in the &#x60;Authorization&#x60; header. Other devices the user is signed into aren&#39;t affected — you can only sign out the current device from a third-party app.  Identity-tier calls using this token fail immediately after revocation. Any existing session tokens (valid for 30 minutes) remain usable until they naturally expire.  Works the same way for a demo session&#39;s refresh token — a demo sandbox is an ordinary account, so this is a quick way to end one early and test how your app handles it.  Using an SDK? Call &#x60;signOut()&#x60; instead — it wraps this endpoint and also clears the credentials stored on the device.  **Auth tier:** identity — send your refresh token in the &#x60;Authorization: Bearer&#x60; header. 
      * @return SignOutResponse
@@ -1820,39 +1400,6 @@ open class DiscovrApi : ApiClient {
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = false,
-        )
-
-        return jsonRequest(
-            localVariableConfig,
-            localVariableBody,
-            localVariableAuthNames
-        ).wrap()
-    }
-
-
-
-    /**
-     * Update playback progress
-     * Updates the playback position for an existing entry. Same fields as the add endpoint. If no entry exists for the &#x60;mediaId&#x60;, one is created. 
-     * @param editPlaybackPayload 
-     * @return SuccessMessage
-     */
-    @Suppress("UNCHECKED_CAST")
-    open suspend fun updatePlaybackItem(editPlaybackPayload: EditPlaybackPayload): HttpResponse<SuccessMessage> {
-
-        val localVariableAuthNames = listOf<String>("BearerAuth")
-
-        val localVariableBody = editPlaybackPayload
-
-        val localVariableQuery = mutableMapOf<String, List<String>>()
-        val localVariableHeaders = mutableMapOf<String, String>()
-
-        val localVariableConfig = RequestConfig<kotlin.Any?>(
-            RequestMethod.PATCH,
-            "/profile/playback",
-            query = localVariableQuery,
-            headers = localVariableHeaders,
-            requiresAuthentication = true,
         )
 
         return jsonRequest(

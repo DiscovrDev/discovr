@@ -1,0 +1,76 @@
+---
+title: "getSeasonState()"
+description: "Get which episodes of a TV season are watched"
+---
+
+Returns which episodes of a single TV season the active profile has finished, plus whether the season as a whole is complete.
+
+A season counts as complete when every aired episode in it is watched. Specials (season `0`) never count toward show completion. Pair this with `getSeasonDetails` for episode titles and artwork, and with `getTitleState` for title-level state and live playback position.
+
+**Auth tier:** session — send your session token in `Authorization: Bearer`.
+
+## Parameters
+
+| Name         | Type      | Required | Description                                                 |
+| ------------ | --------- | -------- | ----------------------------------------------------------- |
+| mediaId      | `string`  | Yes      | The TV show's media ID (`TV_&lt;id&gt;`), or an item `ref`. |
+| seasonNumber | `integer` | Yes      | The season number (0 for specials, 1+ for regular seasons). |
+
+## Returns
+
+[`SeasonState`](/sdk-reference/types/profile-lists#seasonstate) — Season completion state returned successfully.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "season": 1,
+  "completed": false,
+  "episodes": [
+{
+  "episode": 1,
+  "completed": false
+}
+]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { SeasonState } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: SeasonState = await discovr.getSeasonState("TV_1396", 1);
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.SeasonState
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: SeasonState = client.getSeasonState(mediaId = "TV_1396", seasonNumber = 1)
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// SeasonState
+let response: SeasonState = try await client.getSeasonState(mediaId: "TV_1396", seasonNumber: 1)
+print(response)
+```
+
+</CodeGroup>

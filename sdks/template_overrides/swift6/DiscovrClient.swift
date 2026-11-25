@@ -25,7 +25,7 @@
  // API calls
  let page = try await client.createPage()
  let rows = try await client.getRows(pageId: page.id)
- try await client.addLikedItem(mediaId: "MV_550")
+ try await client.setRating(mediaId: "MV_550", value: .liked)
  ```
  */
 
@@ -262,6 +262,33 @@ public final class DiscovrClient: _DiscovrClientBase, @unchecked Sendable {
     public func clearCache() async {
         await _cache.clear()
     }
+
+    // ── Convenience title-list wrappers ───────────────────────────────────────
+
+    /** List titles rated `liked` by the active profile, newest rated first. */
+    public func getLiked(nextPageToken: String? = nil, limit: Int? = nil) async throws -> TitleListResponse {
+        try await getTitles(rating: .liked, nextPageToken: nextPageToken, limit: limit)
+    }
+
+    /** List titles rated `disliked` by the active profile, newest rated first. */
+    public func getDisliked(nextPageToken: String? = nil, limit: Int? = nil) async throws -> TitleListResponse {
+        try await getTitles(rating: .disliked, nextPageToken: nextPageToken, limit: limit)
+    }
+
+    /** List titles rated `super_liked` by the active profile, newest rated first. */
+    public func getSuperLiked(nextPageToken: String? = nil, limit: Int? = nil) async throws -> TitleListResponse {
+        try await getTitles(rating: .superLiked, nextPageToken: nextPageToken, limit: limit)
+    }
+
+    /** List titles on the active profile's watchlist, newest added first. */
+    public func getWatchlist(nextPageToken: String? = nil, limit: Int? = nil) async throws -> TitleListResponse {
+        try await getTitles(watchlist: true, nextPageToken: nextPageToken, limit: limit)
+    }
+
+    /** List the active profile's watch history (one entry per title), most recently watched first. */
+    public func getHistory(nextPageToken: String? = nil, limit: Int? = nil) async throws -> TitleListResponse {
+        try await getTitles(watched: true, nextPageToken: nextPageToken, limit: limit)
+    }
 }
 
 
@@ -313,17 +340,12 @@ public extension KnownForItem {
     var refOrId: String { ref ?? id }
 }
 
-public extension SimpleListItem {
+public extension TitleListItem {
     /// See ``MediaItem/refOrId``.
     var refOrId: String { ref ?? id }
 }
 
 public extension PlaybackItem {
-    /// See ``MediaItem/refOrId``.
-    var refOrId: String { ref ?? id }
-}
-
-public extension HistoryItem {
     /// See ``MediaItem/refOrId``.
     var refOrId: String { ref ?? id }
 }

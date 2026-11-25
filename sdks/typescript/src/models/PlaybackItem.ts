@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * The Discovr API
- * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
+ * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
  *
  * The version of the OpenAPI document: 1.0.0-alpha.1
  * Contact: dev@discovr.media
@@ -14,13 +14,13 @@
 
 import { mapValues } from '../runtime';
 /**
- * A media item with playback progress. `progress` is 0–100.
+ * A media item with live playback progress. `progress` is 0–100.
  * @export
  * @interface PlaybackItem
  */
 export interface PlaybackItem {
     /**
-     * The DiscovrID (TV_<number> or MV_<number>)
+     * The DiscovrID (`TV_<number>` or `MV_<number>`).
      * @type {string}
      * @memberof PlaybackItem
      */
@@ -28,22 +28,20 @@ export interface PlaybackItem {
     /**
      * This item's `id` with the list it came from attached.
      * 
-     * Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, scrobbling it, removing it from a list. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.
-     * 
-     * A bare `id` always works; `ref` is never required.
+     * Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, scrobbling it, or removing it from Continue Watching. A bare `id` always works; `ref` is never required.
      * 
      * @type {string}
      * @memberof PlaybackItem
      */
     ref?: string;
     /**
-     * The type of media
+     * The type of media.
      * @type {string}
      * @memberof PlaybackItem
      */
     mediaType: PlaybackItemMediaTypeEnum;
     /**
-     * The title of the media
+     * The title of the media.
      * @type {string}
      * @memberof PlaybackItem
      */
@@ -61,44 +59,43 @@ export interface PlaybackItem {
      */
     backdropPath: { [key: string]: string; };
     /**
-     * Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Only present for episode-level playback items.
-     * 
+     * Episode still image URLs keyed by width bucket. Only present for episode-level playback items.
      * @type {{ [key: string]: string; }}
      * @memberof PlaybackItem
      */
     episodeImage?: { [key: string]: string; };
     /**
-     * The title of the episode (only present for episode-level playback items)
+     * The title of the episode (only present for episode-level playback items).
      * @type {string}
      * @memberof PlaybackItem
      */
     episodeTitle?: string;
     /**
-     * Playback progress percentage (0-100)
+     * Playback progress percentage (0–100).
      * @type {number}
      * @memberof PlaybackItem
      */
     progress?: number;
     /**
-     * ISO 8601 timestamp indicating when playback was last updated
+     * ISO 8601 timestamp indicating when playback was last updated.
      * @type {Date}
      * @memberof PlaybackItem
      */
     updatedAt?: Date;
     /**
-     * Season number (only for TV shows)
+     * Season number (only for TV shows).
      * @type {number}
      * @memberof PlaybackItem
      */
     season?: number;
     /**
-     * Episode number (only for TV shows)
+     * Episode number (only for TV shows).
      * @type {number}
      * @memberof PlaybackItem
      */
     episode?: number;
     /**
-     * ISO 8601 timestamp indicating when the item was first added to the list
+     * ISO 8601 timestamp indicating when the item was first added to Continue Watching.
      * @type {Date}
      * @memberof PlaybackItem
      */

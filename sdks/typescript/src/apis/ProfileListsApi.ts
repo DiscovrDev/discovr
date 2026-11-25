@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * The Discovr API
- * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
+ * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
  *
  * The version of the OpenAPI document: 1.0.0-alpha.1
  * Contact: dev@discovr.media
@@ -15,78 +15,45 @@
 
 import * as runtime from '../runtime';
 import type {
-  AddHistoryPayload,
-  AddPlaybackPayload,
-  AddSimpleListItemPayload,
   ApiError,
-  EditPlaybackPayload,
-  HistoryListResponse,
-  PatchHistoryPayload,
+  ImportHistoryPayload,
   PlaybackListResponse,
   RateLimitedError,
-  SimpleListResponse,
+  Rating,
+  SeasonState,
+  SetRatingPayload,
   SuccessMessage,
+  TitleListResponse,
+  TitleState,
 } from '../models/index';
 import {
-    AddHistoryPayloadFromJSON,
-    AddHistoryPayloadToJSON,
-    AddPlaybackPayloadFromJSON,
-    AddPlaybackPayloadToJSON,
-    AddSimpleListItemPayloadFromJSON,
-    AddSimpleListItemPayloadToJSON,
     ApiErrorFromJSON,
     ApiErrorToJSON,
-    EditPlaybackPayloadFromJSON,
-    EditPlaybackPayloadToJSON,
-    HistoryListResponseFromJSON,
-    HistoryListResponseToJSON,
-    PatchHistoryPayloadFromJSON,
-    PatchHistoryPayloadToJSON,
+    ImportHistoryPayloadFromJSON,
+    ImportHistoryPayloadToJSON,
     PlaybackListResponseFromJSON,
     PlaybackListResponseToJSON,
     RateLimitedErrorFromJSON,
     RateLimitedErrorToJSON,
-    SimpleListResponseFromJSON,
-    SimpleListResponseToJSON,
+    RatingFromJSON,
+    RatingToJSON,
+    SeasonStateFromJSON,
+    SeasonStateToJSON,
+    SetRatingPayloadFromJSON,
+    SetRatingPayloadToJSON,
     SuccessMessageFromJSON,
     SuccessMessageToJSON,
+    TitleListResponseFromJSON,
+    TitleListResponseToJSON,
+    TitleStateFromJSON,
+    TitleStateToJSON,
 } from '../models/index';
 
-interface AddDislikedItemRequest {
-    addSimpleListItemPayload: AddSimpleListItemPayload;
-}
-
-interface AddHistoryItemRequest {
-    addHistoryPayload: AddHistoryPayload;
-}
-
-interface AddLikedItemRequest {
-    addSimpleListItemPayload: AddSimpleListItemPayload;
-}
-
-interface AddPlaybackItemRequest {
-    addPlaybackPayload: AddPlaybackPayload;
-}
-
-interface AddSuperLikedItemRequest {
-    addSimpleListItemPayload: AddSimpleListItemPayload;
-}
-
-interface AddWatchlistItemRequest {
-    addSimpleListItemPayload: AddSimpleListItemPayload;
-}
-
-interface DeleteDislikedItemRequest {
+interface AddToWatchlistRequest {
     mediaId: string;
 }
 
-interface DeleteHistoryItemRequest {
-    mediaId: string;
-    season?: number;
-    episode?: number;
-}
-
-interface DeleteLikedItemRequest {
+interface ClearRatingRequest {
     mediaId: string;
 }
 
@@ -94,61 +61,40 @@ interface DeletePlaybackItemRequest {
     mediaId: string;
 }
 
-interface DeleteSuperLikedItemRequest {
-    mediaId: string;
-}
-
-interface DeleteWatchlistItemRequest {
-    mediaId: string;
-}
-
-interface GetDislikedItemsRequest {
-    nextPageToken?: string;
-    limit?: number;
-}
-
-interface GetHistoryItemsRequest {
-    nextPageToken?: string;
-    limit?: number;
-}
-
-interface GetHistoryItemsByMediaIdRequest {
-    mediaId: string;
-    season?: number;
-    episode?: number;
-    nextPageToken?: string;
-    limit?: number;
-}
-
-interface GetLikedItemsRequest {
-    nextPageToken?: string;
-    limit?: number;
-}
-
 interface GetPlaybackItemsRequest {
     nextPageToken?: string;
     limit?: number;
 }
 
-interface GetSuperLikedItemsRequest {
-    nextPageToken?: string;
-    limit?: number;
-}
-
-interface GetWatchlistItemsRequest {
-    nextPageToken?: string;
-    limit?: number;
-}
-
-interface PatchHistoryItemRequest {
+interface GetSeasonStateRequest {
     mediaId: string;
-    patchHistoryPayload: PatchHistoryPayload;
-    season?: number;
-    episode?: number;
+    seasonNumber: number;
 }
 
-interface UpdatePlaybackItemRequest {
-    editPlaybackPayload: EditPlaybackPayload;
+interface GetTitleStateRequest {
+    mediaId: string;
+    providers?: boolean;
+}
+
+interface GetTitlesRequest {
+    rating?: Rating;
+    watchlist?: boolean;
+    watched?: boolean;
+    nextPageToken?: string;
+    limit?: number;
+}
+
+interface ImportHistoryRequest {
+    importHistoryPayload: ImportHistoryPayload;
+}
+
+interface RemoveFromWatchlistRequest {
+    mediaId: string;
+}
+
+interface SetRatingRequest {
+    mediaId: string;
+    setRatingPayload: SetRatingPayload;
 }
 
 /**
@@ -157,308 +103,14 @@ interface UpdatePlaybackItemRequest {
 export class ProfileListsApi extends runtime.BaseAPI {
 
     /**
-     * Adds a title to the disliked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Liked, disliked, and super-liked are exclusive — disliking something automatically removes any existing like or super-like for the same title.  Returns `201` if the item was newly added, `200` if it was already disliked. 
-     * Add an item to disliked list
+     * Adds a title to the active profile\'s watchlist. Safe to call if it is already on the watchlist.  Returns the title\'s updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Add a title to the watchlist
      */
-    async addDislikedItemRaw(requestParameters: AddDislikedItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
-        if (requestParameters['addSimpleListItemPayload'] == null) {
-            throw new runtime.RequiredError(
-                'addSimpleListItemPayload',
-                'Required parameter "addSimpleListItemPayload" was null or undefined when calling addDislikedItem().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/disliked`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AddSimpleListItemPayloadToJSON(requestParameters['addSimpleListItemPayload']),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
-    }
-
-    /**
-     * Adds a title to the disliked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Liked, disliked, and super-liked are exclusive — disliking something automatically removes any existing like or super-like for the same title.  Returns `201` if the item was newly added, `200` if it was already disliked. 
-     * Add an item to disliked list
-     */
-    async addDislikedItem(addSimpleListItemPayload: AddSimpleListItemPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.addDislikedItemRaw({ addSimpleListItemPayload: addSimpleListItemPayload }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Records a watch history entry. Unlike other lists, history allows multiple entries for the same title — each completed viewing is tracked separately.  - `mediaId`: the title to record. Use `MV_<number>` for movies, `TV_<number>` for TV shows. - `progress`: how far through the title the user watched, as a percentage (0–100). Optional. - `updatedAt`: the ISO 8601 timestamp of when the viewing was recorded. Defaults to now if omitted.  **TV Shows:** Include `season` (required for TV shows) and optionally `episode` to track per-episode history. Omitting `episode` records a season-level entry — clients can use this to mark all episodes in a season as watched in a single call. 
-     * Add an item to history list
-     */
-    async addHistoryItemRaw(requestParameters: AddHistoryItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
-        if (requestParameters['addHistoryPayload'] == null) {
-            throw new runtime.RequiredError(
-                'addHistoryPayload',
-                'Required parameter "addHistoryPayload" was null or undefined when calling addHistoryItem().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/history`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AddHistoryPayloadToJSON(requestParameters['addHistoryPayload']),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
-    }
-
-    /**
-     * Records a watch history entry. Unlike other lists, history allows multiple entries for the same title — each completed viewing is tracked separately.  - `mediaId`: the title to record. Use `MV_<number>` for movies, `TV_<number>` for TV shows. - `progress`: how far through the title the user watched, as a percentage (0–100). Optional. - `updatedAt`: the ISO 8601 timestamp of when the viewing was recorded. Defaults to now if omitted.  **TV Shows:** Include `season` (required for TV shows) and optionally `episode` to track per-episode history. Omitting `episode` records a season-level entry — clients can use this to mark all episodes in a season as watched in a single call. 
-     * Add an item to history list
-     */
-    async addHistoryItem(addHistoryPayload: AddHistoryPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.addHistoryItemRaw({ addHistoryPayload: addHistoryPayload }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Adds a title to the liked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Liked, disliked, and super-liked are exclusive — liking something automatically removes any existing dislike or super-like for the same title.  Returns `201` if the item was newly added, `200` if it was already liked. 
-     * Add an item to liked list
-     */
-    async addLikedItemRaw(requestParameters: AddLikedItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
-        if (requestParameters['addSimpleListItemPayload'] == null) {
-            throw new runtime.RequiredError(
-                'addSimpleListItemPayload',
-                'Required parameter "addSimpleListItemPayload" was null or undefined when calling addLikedItem().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/liked`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AddSimpleListItemPayloadToJSON(requestParameters['addSimpleListItemPayload']),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
-    }
-
-    /**
-     * Adds a title to the liked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Liked, disliked, and super-liked are exclusive — liking something automatically removes any existing dislike or super-like for the same title.  Returns `201` if the item was newly added, `200` if it was already liked. 
-     * Add an item to liked list
-     */
-    async addLikedItem(addSimpleListItemPayload: AddSimpleListItemPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.addLikedItemRaw({ addSimpleListItemPayload: addSimpleListItemPayload }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Records a new playback position for a title. If the title is already being tracked, returns 409 — use PATCH to update an existing entry.  - `mediaId`: the title to track. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). - `progress`: how far through the title the user is, as a percentage (0–100). Optional — omit if you don\'t have a position yet. - `updatedAt`: the ISO 8601 timestamp of when this progress was recorded. Defaults to now. Send the actual client time so resume positions stay accurate if the user is offline. 
-     * Add an item to playback list
-     */
-    async addPlaybackItemRaw(requestParameters: AddPlaybackItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
-        if (requestParameters['addPlaybackPayload'] == null) {
-            throw new runtime.RequiredError(
-                'addPlaybackPayload',
-                'Required parameter "addPlaybackPayload" was null or undefined when calling addPlaybackItem().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/playback`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AddPlaybackPayloadToJSON(requestParameters['addPlaybackPayload']),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
-    }
-
-    /**
-     * Records a new playback position for a title. If the title is already being tracked, returns 409 — use PATCH to update an existing entry.  - `mediaId`: the title to track. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). - `progress`: how far through the title the user is, as a percentage (0–100). Optional — omit if you don\'t have a position yet. - `updatedAt`: the ISO 8601 timestamp of when this progress was recorded. Defaults to now. Send the actual client time so resume positions stay accurate if the user is offline. 
-     * Add an item to playback list
-     */
-    async addPlaybackItem(addPlaybackPayload: AddPlaybackPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.addPlaybackItemRaw({ addPlaybackPayload: addPlaybackPayload }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Adds a title to the super-liked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Super-liking a title says the viewer loves it. Like the liked list, adding a super-like automatically removes any existing dislike or like for the same title.  Returns `201` if the item was newly added, `200` if it was already super-liked. 
-     * Add an item to the super-liked list
-     */
-    async addSuperLikedItemRaw(requestParameters: AddSuperLikedItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
-        if (requestParameters['addSimpleListItemPayload'] == null) {
-            throw new runtime.RequiredError(
-                'addSimpleListItemPayload',
-                'Required parameter "addSimpleListItemPayload" was null or undefined when calling addSuperLikedItem().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/super_liked`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AddSimpleListItemPayloadToJSON(requestParameters['addSimpleListItemPayload']),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
-    }
-
-    /**
-     * Adds a title to the super-liked list.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Super-liking a title says the viewer loves it. Like the liked list, adding a super-like automatically removes any existing dislike or like for the same title.  Returns `201` if the item was newly added, `200` if it was already super-liked. 
-     * Add an item to the super-liked list
-     */
-    async addSuperLikedItem(addSimpleListItemPayload: AddSimpleListItemPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.addSuperLikedItemRaw({ addSimpleListItemPayload: addSimpleListItemPayload }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Adds a title to the watchlist.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Unlike liked/disliked/super-liked, the watchlist is non-exclusive — you can watchlist something regardless of how it\'s rated. Titles are automatically removed from the watchlist when the user starts watching via `scrobble`. 
-     * Add an item to watchlist
-     */
-    async addWatchlistItemRaw(requestParameters: AddWatchlistItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
-        if (requestParameters['addSimpleListItemPayload'] == null) {
-            throw new runtime.RequiredError(
-                'addSimpleListItemPayload',
-                'Required parameter "addSimpleListItemPayload" was null or undefined when calling addWatchlistItem().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/watchlist`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AddSimpleListItemPayloadToJSON(requestParameters['addSimpleListItemPayload']),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
-    }
-
-    /**
-     * Adds a title to the watchlist.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Unlike liked/disliked/super-liked, the watchlist is non-exclusive — you can watchlist something regardless of how it\'s rated. Titles are automatically removed from the watchlist when the user starts watching via `scrobble`. 
-     * Add an item to watchlist
-     */
-    async addWatchlistItem(addSimpleListItemPayload: AddSimpleListItemPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.addWatchlistItemRaw({ addSimpleListItemPayload: addSimpleListItemPayload }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Removes a title from the disliked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     * Delete an item from disliked list
-     */
-    async deleteDislikedItemRaw(requestParameters: DeleteDislikedItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
+    async addToWatchlistRaw(requestParameters: AddToWatchlistRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TitleState>> {
         if (requestParameters['mediaId'] == null) {
             throw new runtime.RequiredError(
                 'mediaId',
-                'Required parameter "mediaId" was null or undefined when calling deleteDislikedItem().'
+                'Required parameter "mediaId" was null or undefined when calling addToWatchlist().'
             );
         }
 
@@ -475,7 +127,54 @@ export class ProfileListsApi extends runtime.BaseAPI {
             }
         }
 
-        let urlPath = `/profile/disliked/{mediaId}`;
+        let urlPath = `/profile/titles/{mediaId}/watchlist`;
+        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TitleStateFromJSON(jsonValue));
+    }
+
+    /**
+     * Adds a title to the active profile\'s watchlist. Safe to call if it is already on the watchlist.  Returns the title\'s updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Add a title to the watchlist
+     */
+    async addToWatchlist(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TitleState> {
+        const response = await this.addToWatchlistRaw({ mediaId: mediaId }, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Clears the active profile\'s rating for a title. Safe to call if the title has no rating.  Returns the title\'s updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Clear a title\'s rating
+     */
+    async clearRatingRaw(requestParameters: ClearRatingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TitleState>> {
+        if (requestParameters['mediaId'] == null) {
+            throw new runtime.RequiredError(
+                'mediaId',
+                'Required parameter "mediaId" was null or undefined when calling clearRating().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/profile/titles/{mediaId}/rating`;
         urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
 
         const response = await this.request({
@@ -485,123 +184,21 @@ export class ProfileListsApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => TitleStateFromJSON(jsonValue));
     }
 
     /**
-     * Removes a title from the disliked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     * Delete an item from disliked list
+     * Clears the active profile\'s rating for a title. Safe to call if the title has no rating.  Returns the title\'s updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Clear a title\'s rating
      */
-    async deleteDislikedItem(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.deleteDislikedItemRaw({ mediaId: mediaId }, initOverrides);
+    async clearRating(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TitleState> {
+        const response = await this.clearRatingRaw({ mediaId: mediaId }, initOverrides);
         return await response.value();
     }
 
     /**
-     * Deletes history entries for a title. Because history allows duplicates, this removes all matching entries for the specified media (and episode, if provided).  For TV shows, pass `season` as a query parameter (required) and optionally `episode`. Include `episode` to delete that episode\'s entries. Omit it to delete the entries that were recorded for the season as a whole, without an episode (for example, marking a season watched in one go); entries for individual episodes are kept.  To take a title back to unwatched, use [`DELETE /profile/watched/{mediaId}`](/api-reference/discovr/mark-unwatched) instead. This call removes history entries and nothing else: it doesn\'t touch the in-progress list, and a TV show\'s `completed` state is brought up to date from whatever history is left. 
-     * Delete an item from history list
-     */
-    async deleteHistoryItemRaw(requestParameters: DeleteHistoryItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
-        if (requestParameters['mediaId'] == null) {
-            throw new runtime.RequiredError(
-                'mediaId',
-                'Required parameter "mediaId" was null or undefined when calling deleteHistoryItem().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters['season'] != null) {
-            queryParameters['season'] = requestParameters['season'];
-        }
-
-        if (requestParameters['episode'] != null) {
-            queryParameters['episode'] = requestParameters['episode'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/history/{mediaId}`;
-        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
-    }
-
-    /**
-     * Deletes history entries for a title. Because history allows duplicates, this removes all matching entries for the specified media (and episode, if provided).  For TV shows, pass `season` as a query parameter (required) and optionally `episode`. Include `episode` to delete that episode\'s entries. Omit it to delete the entries that were recorded for the season as a whole, without an episode (for example, marking a season watched in one go); entries for individual episodes are kept.  To take a title back to unwatched, use [`DELETE /profile/watched/{mediaId}`](/api-reference/discovr/mark-unwatched) instead. This call removes history entries and nothing else: it doesn\'t touch the in-progress list, and a TV show\'s `completed` state is brought up to date from whatever history is left. 
-     * Delete an item from history list
-     */
-    async deleteHistoryItem(mediaId: string, season?: number, episode?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.deleteHistoryItemRaw({ mediaId: mediaId, season: season, episode: episode }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Removes a title from the liked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     * Delete an item from liked list
-     */
-    async deleteLikedItemRaw(requestParameters: DeleteLikedItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
-        if (requestParameters['mediaId'] == null) {
-            throw new runtime.RequiredError(
-                'mediaId',
-                'Required parameter "mediaId" was null or undefined when calling deleteLikedItem().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/liked/{mediaId}`;
-        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
-    }
-
-    /**
-     * Removes a title from the liked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     * Delete an item from liked list
-     */
-    async deleteLikedItem(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.deleteLikedItemRaw({ mediaId: mediaId }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Removes a title from the in-progress list. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). 
-     * Delete an item from playback list
+     * Removes a title from the in-progress Continue Watching list without changing its watched history. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). 
+     * Remove a title from Continue Watching
      */
     async deletePlaybackItemRaw(requestParameters: DeletePlaybackItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
         if (requestParameters['mediaId'] == null) {
@@ -638,8 +235,8 @@ export class ProfileListsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Removes a title from the in-progress list. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). 
-     * Delete an item from playback list
+     * Removes a title from the in-progress Continue Watching list without changing its watched history. Use `MV_<number>` for movies, `TV_<number>` for TV shows (e.g., `MV_550`, `TV_1396`). 
+     * Remove a title from Continue Watching
      */
     async deletePlaybackItem(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
         const response = await this.deletePlaybackItemRaw({ mediaId: mediaId }, initOverrides);
@@ -647,305 +244,7 @@ export class ProfileListsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Removes a title from the super-liked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     * Delete an item from the super-liked list
-     */
-    async deleteSuperLikedItemRaw(requestParameters: DeleteSuperLikedItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
-        if (requestParameters['mediaId'] == null) {
-            throw new runtime.RequiredError(
-                'mediaId',
-                'Required parameter "mediaId" was null or undefined when calling deleteSuperLikedItem().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/super_liked/{mediaId}`;
-        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
-    }
-
-    /**
-     * Removes a title from the super-liked list. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     * Delete an item from the super-liked list
-     */
-    async deleteSuperLikedItem(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.deleteSuperLikedItemRaw({ mediaId: mediaId }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Removes a title from the watchlist. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     * Delete an item from watchlist
-     */
-    async deleteWatchlistItemRaw(requestParameters: DeleteWatchlistItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
-        if (requestParameters['mediaId'] == null) {
-            throw new runtime.RequiredError(
-                'mediaId',
-                'Required parameter "mediaId" was null or undefined when calling deleteWatchlistItem().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/watchlist/{mediaId}`;
-        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
-    }
-
-    /**
-     * Removes a title from the watchlist. Pass the full media ID (e.g., `MV_550` for a movie, `TV_1396` for a TV show). 
-     * Delete an item from watchlist
-     */
-    async deleteWatchlistItem(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.deleteWatchlistItemRaw({ mediaId: mediaId }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Returns the disliked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-     * Get disliked items
-     */
-    async getDislikedItemsRaw(requestParameters: GetDislikedItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SimpleListResponse>> {
-        const queryParameters: any = {};
-
-        if (requestParameters['nextPageToken'] != null) {
-            queryParameters['nextPageToken'] = requestParameters['nextPageToken'];
-        }
-
-        if (requestParameters['limit'] != null) {
-            queryParameters['limit'] = requestParameters['limit'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/disliked`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SimpleListResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * Returns the disliked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-     * Get disliked items
-     */
-    async getDislikedItems(nextPageToken?: string, limit?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SimpleListResponse> {
-        const response = await this.getDislikedItemsRaw({ nextPageToken: nextPageToken, limit: limit }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Returns the profile\'s full watch history, newest entries first.  History allows multiple entries for the same title — every completed viewing is tracked separately, so you may see the same `mediaId` more than once.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
-     * Get history items
-     */
-    async getHistoryItemsRaw(requestParameters: GetHistoryItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<HistoryListResponse>> {
-        const queryParameters: any = {};
-
-        if (requestParameters['nextPageToken'] != null) {
-            queryParameters['nextPageToken'] = requestParameters['nextPageToken'];
-        }
-
-        if (requestParameters['limit'] != null) {
-            queryParameters['limit'] = requestParameters['limit'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/history`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => HistoryListResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * Returns the profile\'s full watch history, newest entries first.  History allows multiple entries for the same title — every completed viewing is tracked separately, so you may see the same `mediaId` more than once.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
-     * Get history items
-     */
-    async getHistoryItems(nextPageToken?: string, limit?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<HistoryListResponse> {
-        const response = await this.getHistoryItemsRaw({ nextPageToken: nextPageToken, limit: limit }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Returns history entries for a specific title. Newest entries first.  For TV shows, pass `season` as a query parameter (required) and optionally `episode` to filter by episode. Omitting `episode` returns all entries for the whole season.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
-     * Get history items for a specific media
-     */
-    async getHistoryItemsByMediaIdRaw(requestParameters: GetHistoryItemsByMediaIdRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<HistoryListResponse>> {
-        if (requestParameters['mediaId'] == null) {
-            throw new runtime.RequiredError(
-                'mediaId',
-                'Required parameter "mediaId" was null or undefined when calling getHistoryItemsByMediaId().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters['season'] != null) {
-            queryParameters['season'] = requestParameters['season'];
-        }
-
-        if (requestParameters['episode'] != null) {
-            queryParameters['episode'] = requestParameters['episode'];
-        }
-
-        if (requestParameters['nextPageToken'] != null) {
-            queryParameters['nextPageToken'] = requestParameters['nextPageToken'];
-        }
-
-        if (requestParameters['limit'] != null) {
-            queryParameters['limit'] = requestParameters['limit'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/history/{mediaId}`;
-        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => HistoryListResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * Returns history entries for a specific title. Newest entries first.  For TV shows, pass `season` as a query parameter (required) and optionally `episode` to filter by episode. Omitting `episode` returns all entries for the whole season.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
-     * Get history items for a specific media
-     */
-    async getHistoryItemsByMediaId(mediaId: string, season?: number, episode?: number, nextPageToken?: string, limit?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<HistoryListResponse> {
-        const response = await this.getHistoryItemsByMediaIdRaw({ mediaId: mediaId, season: season, episode: episode, nextPageToken: nextPageToken, limit: limit }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Returns the liked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-     * Get liked items
-     */
-    async getLikedItemsRaw(requestParameters: GetLikedItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SimpleListResponse>> {
-        const queryParameters: any = {};
-
-        if (requestParameters['nextPageToken'] != null) {
-            queryParameters['nextPageToken'] = requestParameters['nextPageToken'];
-        }
-
-        if (requestParameters['limit'] != null) {
-            queryParameters['limit'] = requestParameters['limit'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/liked`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SimpleListResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * Returns the liked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. 
-     * Get liked items
-     */
-    async getLikedItems(nextPageToken?: string, limit?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SimpleListResponse> {
-        const response = await this.getLikedItemsRaw({ nextPageToken: nextPageToken, limit: limit }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Returns the profile\'s in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \"Continue Watching\" row.  Each item includes a `progress` field (0–100) showing how far through the title the user is.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
+     * Returns the profile\'s in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \"Continue Watching\" row.  Each item includes a `progress` field (0–100) showing how far through the title the user is. To update progress as a viewer watches, call `POST /profile/scrobble/{mediaId}`.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
      * Get playback items
      */
     async getPlaybackItemsRaw(requestParameters: GetPlaybackItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlaybackListResponse>> {
@@ -983,7 +282,7 @@ export class ProfileListsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the profile\'s in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \"Continue Watching\" row.  Each item includes a `progress` field (0–100) showing how far through the title the user is.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
+     * Returns the profile\'s in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a \"Continue Watching\" row.  Each item includes a `progress` field (0–100) showing how far through the title the user is. To update progress as a viewer watches, call `POST /profile/scrobble/{mediaId}`.  **Pagination:** Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available. 
      * Get playback items
      */
     async getPlaybackItems(nextPageToken?: string, limit?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlaybackListResponse> {
@@ -992,131 +291,27 @@ export class ProfileListsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the super-liked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. Super-liked titles are the ones the viewer loves most. 
-     * Get super-liked items
+     * Returns which episodes of a single TV season the active profile has finished, plus whether the season as a whole is complete.  A season counts as complete when every aired episode in it is watched. Specials (season `0`) never count toward show completion. Pair this with `getSeasonDetails` for episode titles and artwork, and with `getTitleState` for title-level state and live playback position.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Get which episodes of a TV season are watched
      */
-    async getSuperLikedItemsRaw(requestParameters: GetSuperLikedItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SimpleListResponse>> {
-        const queryParameters: any = {};
-
-        if (requestParameters['nextPageToken'] != null) {
-            queryParameters['nextPageToken'] = requestParameters['nextPageToken'];
-        }
-
-        if (requestParameters['limit'] != null) {
-            queryParameters['limit'] = requestParameters['limit'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/super_liked`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SimpleListResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * Returns the super-liked list for a specific profile.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Items are ordered newest-first and support cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available.  **Exclusive lists:** Liked, disliked, and super-liked are mutually exclusive — a title can only be in one of those lists at a time. Super-liked titles are the ones the viewer loves most. 
-     * Get super-liked items
-     */
-    async getSuperLikedItems(nextPageToken?: string, limit?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SimpleListResponse> {
-        const response = await this.getSuperLikedItemsRaw({ nextPageToken: nextPageToken, limit: limit }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Returns the profile\'s watchlist — titles saved to watch later.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Ordered by when they were added (newest first). Supports cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available. 
-     * Get watchlist items
-     */
-    async getWatchlistItemsRaw(requestParameters: GetWatchlistItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SimpleListResponse>> {
-        const queryParameters: any = {};
-
-        if (requestParameters['nextPageToken'] != null) {
-            queryParameters['nextPageToken'] = requestParameters['nextPageToken'];
-        }
-
-        if (requestParameters['limit'] != null) {
-            queryParameters['limit'] = requestParameters['limit'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/profile/watchlist`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SimpleListResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * Returns the profile\'s watchlist — titles saved to watch later.  **Auth tier:** session — send the session token from `POST /auth/session-token`.  Ordered by when they were added (newest first). Supports cursor-based pagination via `nextPageToken`.  **Pagination:** - Pass `nextPageToken` from a previous response to fetch the next page. - If `hasMore` is `true`, there are more items available. 
-     * Get watchlist items
-     */
-    async getWatchlistItems(nextPageToken?: string, limit?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SimpleListResponse> {
-        const response = await this.getWatchlistItemsRaw({ nextPageToken: nextPageToken, limit: limit }, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Updates the history entry for a title. If no entry exists, creates one (upsert). This ensures only one entry exists per `mediaId` + `season` + `episode` combination.  For TV shows, `season` is required as a query parameter. Include `episode` to target a specific episode; omit it to update the season-level entry.  - `progress`: how far through the title the user watched, as a percentage (0–100). 
-     * Update or create a history item
-     */
-    async patchHistoryItemRaw(requestParameters: PatchHistoryItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
+    async getSeasonStateRaw(requestParameters: GetSeasonStateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SeasonState>> {
         if (requestParameters['mediaId'] == null) {
             throw new runtime.RequiredError(
                 'mediaId',
-                'Required parameter "mediaId" was null or undefined when calling patchHistoryItem().'
+                'Required parameter "mediaId" was null or undefined when calling getSeasonState().'
             );
         }
 
-        if (requestParameters['patchHistoryPayload'] == null) {
+        if (requestParameters['seasonNumber'] == null) {
             throw new runtime.RequiredError(
-                'patchHistoryPayload',
-                'Required parameter "patchHistoryPayload" was null or undefined when calling patchHistoryItem().'
+                'seasonNumber',
+                'Required parameter "seasonNumber" was null or undefined when calling getSeasonState().'
             );
         }
 
         const queryParameters: any = {};
 
-        if (requestParameters['season'] != null) {
-            queryParameters['season'] = requestParameters['season'];
-        }
-
-        if (requestParameters['episode'] != null) {
-            queryParameters['episode'] = requestParameters['episode'];
-        }
-
         const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
@@ -1127,38 +322,148 @@ export class ProfileListsApi extends runtime.BaseAPI {
             }
         }
 
-        let urlPath = `/profile/history/{mediaId}`;
+        let urlPath = `/profile/titles/{mediaId}/seasons/{seasonNumber}`;
+        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
+        urlPath = urlPath.replace(`{${"seasonNumber"}}`, encodeURIComponent(String(requestParameters['seasonNumber'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SeasonStateFromJSON(jsonValue));
+    }
+
+    /**
+     * Returns which episodes of a single TV season the active profile has finished, plus whether the season as a whole is complete.  A season counts as complete when every aired episode in it is watched. Specials (season `0`) never count toward show completion. Pair this with `getSeasonDetails` for episode titles and artwork, and with `getTitleState` for title-level state and live playback position.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Get which episodes of a TV season are watched
+     */
+    async getSeasonState(mediaId: string, seasonNumber: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SeasonState> {
+        const response = await this.getSeasonStateRaw({ mediaId: mediaId, seasonNumber: seasonNumber }, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Returns everything your UI needs to show the active profile\'s relationship with a title:  - **Rating**: `liked`, `disliked`, `super_liked`, or `null`. - **Watchlist**: whether the title is saved to the watchlist. - **Watch progress & completion**: whether the profile has started (`watched`) or finished (`completed`) the title, total `plays`, watched `episodes` and `completedSeasons` for TV shows, and the live `playback` resume position when mid-watch. - **Providers** *(optional)*: pass `providers=true` to include streaming availability filtered to the account\'s chosen services.  **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened the title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Every state write (`setRating`, `clearRating`, `addToWatchlist`, `removeFromWatchlist`, `markWatched`, `markUnwatched`) returns the updated `TitleState`, so you don\'t need to refetch this endpoint after a change.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Get the active profile\'s state for a title
+     */
+    async getTitleStateRaw(requestParameters: GetTitleStateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TitleState>> {
+        if (requestParameters['mediaId'] == null) {
+            throw new runtime.RequiredError(
+                'mediaId',
+                'Required parameter "mediaId" was null or undefined when calling getTitleState().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['providers'] != null) {
+            queryParameters['providers'] = requestParameters['providers'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/profile/titles/{mediaId}`;
         urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
 
         const response = await this.request({
             path: urlPath,
-            method: 'PATCH',
+            method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-            body: PatchHistoryPayloadToJSON(requestParameters['patchHistoryPayload']),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => TitleStateFromJSON(jsonValue));
     }
 
     /**
-     * Updates the history entry for a title. If no entry exists, creates one (upsert). This ensures only one entry exists per `mediaId` + `season` + `episode` combination.  For TV shows, `season` is required as a query parameter. Include `episode` to target a specific episode; omit it to update the season-level entry.  - `progress`: how far through the title the user watched, as a percentage (0–100). 
-     * Update or create a history item
+     * Returns everything your UI needs to show the active profile\'s relationship with a title:  - **Rating**: `liked`, `disliked`, `super_liked`, or `null`. - **Watchlist**: whether the title is saved to the watchlist. - **Watch progress & completion**: whether the profile has started (`watched`) or finished (`completed`) the title, total `plays`, watched `episodes` and `completedSeasons` for TV shows, and the live `playback` resume position when mid-watch. - **Providers** *(optional)*: pass `providers=true` to include streaming availability filtered to the account\'s chosen services.  **Title opens & recommendations.** Calling `GET /profile/titles/{mediaId}` records that the viewer opened the title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Every state write (`setRating`, `clearRating`, `addToWatchlist`, `removeFromWatchlist`, `markWatched`, `markUnwatched`) returns the updated `TitleState`, so you don\'t need to refetch this endpoint after a change.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Get the active profile\'s state for a title
      */
-    async patchHistoryItem(mediaId: string, patchHistoryPayload: PatchHistoryPayload, season?: number, episode?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.patchHistoryItemRaw({ mediaId: mediaId, patchHistoryPayload: patchHistoryPayload, season: season, episode: episode }, initOverrides);
+    async getTitleState(mediaId: string, providers?: boolean, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TitleState> {
+        const response = await this.getTitleStateRaw({ mediaId: mediaId, providers: providers }, initOverrides);
         return await response.value();
     }
 
     /**
-     * Updates the playback position for an existing entry. Same fields as the add endpoint. If no entry exists for the `mediaId`, one is created. 
-     * Update playback progress
+     * Returns a paginated list of titles for the active profile, ordered most recent first.  Pass **exactly one** filter query parameter:  - `rating=liked`, `rating=disliked`, or `rating=super_liked` — titles with that rating, newest rated first. - `watchlist=true` — the profile\'s watchlist, newest added first. - `watched=true` — the profile\'s watch history (one entry per title, with `completed`, `plays`, and the last episode for TV shows), most recently watched first.  Each item includes a `ref` alongside its `id`. Pass the `ref` when the viewer opens or acts on the title.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * List titles by rating, watchlist, or watch history
      */
-    async updatePlaybackItemRaw(requestParameters: UpdatePlaybackItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SuccessMessage>> {
-        if (requestParameters['editPlaybackPayload'] == null) {
+    async getTitlesRaw(requestParameters: GetTitlesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TitleListResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['rating'] != null) {
+            queryParameters['rating'] = requestParameters['rating'];
+        }
+
+        if (requestParameters['watchlist'] != null) {
+            queryParameters['watchlist'] = requestParameters['watchlist'];
+        }
+
+        if (requestParameters['watched'] != null) {
+            queryParameters['watched'] = requestParameters['watched'];
+        }
+
+        if (requestParameters['nextPageToken'] != null) {
+            queryParameters['nextPageToken'] = requestParameters['nextPageToken'];
+        }
+
+        if (requestParameters['limit'] != null) {
+            queryParameters['limit'] = requestParameters['limit'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/profile/titles`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TitleListResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Returns a paginated list of titles for the active profile, ordered most recent first.  Pass **exactly one** filter query parameter:  - `rating=liked`, `rating=disliked`, or `rating=super_liked` — titles with that rating, newest rated first. - `watchlist=true` — the profile\'s watchlist, newest added first. - `watched=true` — the profile\'s watch history (one entry per title, with `completed`, `plays`, and the last episode for TV shows), most recently watched first.  Each item includes a `ref` alongside its `id`. Pass the `ref` when the viewer opens or acts on the title.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * List titles by rating, watchlist, or watch history
+     */
+    async getTitles(rating?: Rating, watchlist?: boolean, watched?: boolean, nextPageToken?: string, limit?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TitleListResponse> {
+        const response = await this.getTitlesRaw({ rating: rating, watchlist: watchlist, watched: watched, nextPageToken: nextPageToken, limit: limit }, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Imports a previously watched movie, show, season, or episode from an external source.  - `mediaId`: the title to import (`MV_<number>` for movies, `TV_<number>` for TV shows). - `imported`: required string naming the external source (for example `\"trakt\"`). - `updatedAt`: optional ISO 8601 timestamp of when it was watched. Defaults to now. - `season` / `episode`: optional TV scope. Omit both to import all aired episodes of the show; pass `season` to import that season; pass both to import a single episode.  For live viewing use `scrobble()`, and for interactive \"Mark as watched\" buttons use `markWatched()`. To read watch history, use `GET /profile/titles?watched=true`.  Returns the title\'s updated `TitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Import a watch history entry
+     */
+    async importHistoryRaw(requestParameters: ImportHistoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TitleState>> {
+        if (requestParameters['importHistoryPayload'] == null) {
             throw new runtime.RequiredError(
-                'editPlaybackPayload',
-                'Required parameter "editPlaybackPayload" was null or undefined when calling updatePlaybackItem().'
+                'importHistoryPayload',
+                'Required parameter "importHistoryPayload" was null or undefined when calling importHistory().'
             );
         }
 
@@ -1177,25 +482,129 @@ export class ProfileListsApi extends runtime.BaseAPI {
             }
         }
 
-        let urlPath = `/profile/playback`;
+        let urlPath = `/profile/history`;
 
         const response = await this.request({
             path: urlPath,
-            method: 'PATCH',
+            method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: EditPlaybackPayloadToJSON(requestParameters['editPlaybackPayload']),
+            body: ImportHistoryPayloadToJSON(requestParameters['importHistoryPayload']),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => SuccessMessageFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => TitleStateFromJSON(jsonValue));
     }
 
     /**
-     * Updates the playback position for an existing entry. Same fields as the add endpoint. If no entry exists for the `mediaId`, one is created. 
-     * Update playback progress
+     * Imports a previously watched movie, show, season, or episode from an external source.  - `mediaId`: the title to import (`MV_<number>` for movies, `TV_<number>` for TV shows). - `imported`: required string naming the external source (for example `\"trakt\"`). - `updatedAt`: optional ISO 8601 timestamp of when it was watched. Defaults to now. - `season` / `episode`: optional TV scope. Omit both to import all aired episodes of the show; pass `season` to import that season; pass both to import a single episode.  For live viewing use `scrobble()`, and for interactive \"Mark as watched\" buttons use `markWatched()`. To read watch history, use `GET /profile/titles?watched=true`.  Returns the title\'s updated `TitleState`.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Import a watch history entry
      */
-    async updatePlaybackItem(editPlaybackPayload: EditPlaybackPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SuccessMessage> {
-        const response = await this.updatePlaybackItemRaw({ editPlaybackPayload: editPlaybackPayload }, initOverrides);
+    async importHistory(importHistoryPayload: ImportHistoryPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TitleState> {
+        const response = await this.importHistoryRaw({ importHistoryPayload: importHistoryPayload }, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Removes a title from the active profile\'s watchlist. Safe to call if it is not on the watchlist.  Returns the title\'s updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Remove a title from the watchlist
+     */
+    async removeFromWatchlistRaw(requestParameters: RemoveFromWatchlistRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TitleState>> {
+        if (requestParameters['mediaId'] == null) {
+            throw new runtime.RequiredError(
+                'mediaId',
+                'Required parameter "mediaId" was null or undefined when calling removeFromWatchlist().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/profile/titles/{mediaId}/watchlist`;
+        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TitleStateFromJSON(jsonValue));
+    }
+
+    /**
+     * Removes a title from the active profile\'s watchlist. Safe to call if it is not on the watchlist.  Returns the title\'s updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Remove a title from the watchlist
+     */
+    async removeFromWatchlist(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TitleState> {
+        const response = await this.removeFromWatchlistRaw({ mediaId: mediaId }, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Sets the active profile\'s rating for a title to `liked`, `disliked`, or `super_liked`.  Ratings are mutually exclusive: setting a new rating automatically replaces any previous one. Setting the rating the title already has is a safe no-op.  Returns the title\'s updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Set a title\'s rating
+     */
+    async setRatingRaw(requestParameters: SetRatingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TitleState>> {
+        if (requestParameters['mediaId'] == null) {
+            throw new runtime.RequiredError(
+                'mediaId',
+                'Required parameter "mediaId" was null or undefined when calling setRating().'
+            );
+        }
+
+        if (requestParameters['setRatingPayload'] == null) {
+            throw new runtime.RequiredError(
+                'setRatingPayload',
+                'Required parameter "setRatingPayload" was null or undefined when calling setRating().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/profile/titles/{mediaId}/rating`;
+        urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SetRatingPayloadToJSON(requestParameters['setRatingPayload']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TitleStateFromJSON(jsonValue));
+    }
+
+    /**
+     * Sets the active profile\'s rating for a title to `liked`, `disliked`, or `super_liked`.  Ratings are mutually exclusive: setting a new rating automatically replaces any previous one. Setting the rating the title already has is a safe no-op.  Returns the title\'s updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Set a title\'s rating
+     */
+    async setRating(mediaId: string, setRatingPayload: SetRatingPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TitleState> {
+        const response = await this.setRatingRaw({ mediaId: mediaId, setRatingPayload: setRatingPayload }, initOverrides);
         return await response.value();
     }
 

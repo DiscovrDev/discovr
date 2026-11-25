@@ -1,43 +1,70 @@
 ---
 title: "markUnwatched()"
-description: "Mark a title as unwatched"
+description: "Mark a title, season, or episode as unwatched"
 ---
 
-Takes a movie, a TV show, a season, or an episode back to unwatched, in one call.
+Takes a movie, a TV show, a season, or an episode back to unwatched in one atomic call.
 
-It removes the history that made it watched, takes it out of the user's **in-progress** list if that is where it was, and brings a TV show's `completed` state back in line. Use it for a "Mark as unwatched" button.
+It removes the watched state for that scope and clears any in-progress Continue Watching position inside it. Calling it for a title that isn't watched changes nothing and still succeeds, so it's safe to retry.
 
 For TV shows, `season` and `episode` choose how much to undo:
 
 - Omit both to undo **the whole show**, every season.
-- Pass `season` to undo **that season**: its episodes, and any entry that counted the whole season as watched.
+- Pass `season` to undo **that season**.
 - Pass `season` and `episode` to undo **that episode**.
 
-Calling it for a title that isn't watched changes nothing and still succeeds, so it is safe to retry.
-
-This is not the same as [`DELETE /profile/history/&#123;mediaId&#125;`](/api-reference/discovr/delete-history-item), which removes history entries and nothing else. Marking something unwatched with that call and `DELETE /profile/playback/&#123;mediaId&#125;` leaves a TV show's `completed` out of date unless they run in a particular order; this endpoint does the right thing whichever way you reach it.
+Returns the title's updated `TitleState`, so you don't need to refetch `getTitleState`.
 
 **Auth tier:** session — send your session token in `Authorization: Bearer`.
 
 ## Parameters
 
-| Name    | Type      | Required | Description                                                                                                                                     |
-| ------- | --------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| mediaId | `string`  | Yes      | The media ID in `MV_&lt;number&gt;` or `TV_&lt;number&gt;` format (e.g., `MV_550`, `TV_1396`). Also accepts an item's `ref` in place of the id. |
-| season  | `integer` | No       | TV only. Season number. Omit to undo every season of the show.                                                                                  |
-| episode | `integer` | No       | TV only, and only together with `season`. Episode number. Omit to undo the whole season.                                                        |
+| Name    | Type      | Required | Description                                                                              |
+| ------- | --------- | -------- | ---------------------------------------------------------------------------------------- |
+| mediaId | `string`  | Yes      | The title's media ID (`MV_&lt;id&gt;` or `TV_&lt;id&gt;`), or an item `ref`.             |
+| season  | `integer` | No       | TV only. Season number. Omit to undo every season of the show.                           |
+| episode | `integer` | No       | TV only, and only together with `season`. Episode number. Omit to undo the whole season. |
 
 ## Returns
 
-[`SuccessMessage`](/sdk-reference/types/common#successmessage) — The title is unwatched.
+[`TitleState`](/sdk-reference/types/common#titlestate) — Marked as unwatched; returns the title's new state.
 
 <AccordionGroup>
 <Accordion title="View response structure">
 ```json
 {
-  "message": "string",
-  "added": "string",
-  "removed": "string"
+  "mediaId": "string",
+  "mediaType": "movie" /* enum: "movie", "tv" */,
+  "rating": "liked" /* Rating: "liked", "disliked", "super_liked" */,
+  "watchlist": false,
+  "watched": false,
+  "completed": false,
+  "completedSeasons": ["integer"],
+  "episodes": {
+  "1": [1,2,3,4,5,6,7]
+},
+  "plays": 7,
+  "playback": {
+  "progress": 45.5,
+  "season": 2,
+  "episode": 5,
+  "updatedAt": "string" /* date-time */
+},
+  "providers": [
+{
+  "id": "string",
+  "title": "string",
+  "logos": {
+  "60": "https://is1-ssl.mzstatic.com/image/thumb/.../60x60bb.jpg",
+  "100": "https://is1-ssl.mzstatic.com/image/thumb/.../100x100bb.jpg",
+  "512": "https://is1-ssl.mzstatic.com/image/thumb/.../512x512bb.jpg",
+  "1024": "https://is1-ssl.mzstatic.com/image/thumb/.../1024x1024bb.png"
+},
+  "regions": {
+  "<key>": "object" /* dynamic keys, shape not fixed in OpenAPI */
+}
+}
+]
 }
 ```
 </Accordion>
@@ -49,22 +76,22 @@ This is not the same as [`DELETE /profile/history/&#123;mediaId&#125;`](/api-ref
 
 ```typescript TypeScript
 import { DiscovrClient } from "discovr";
-import type { SuccessMessage } from "discovr";
+import type { TitleState } from "discovr";
 
 const discovr = new DiscovrClient("your-client-id");
 
 // After sign-in and profile selection …
-const response: SuccessMessage = await discovr.markUnwatched("TV_1396", { season: 1, episode: 5 });
+const response: TitleState = await discovr.markUnwatched("TV_1396", { season: 1, episode: 5 });
 console.log(response);
 ```
 
 ```kotlin Kotlin
 import api.discovr.DiscovrClient
-import api.discovr.models.SuccessMessage
+import api.discovr.models.TitleState
 
 // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
 suspend fun example(client: DiscovrClient) {
-    val response: SuccessMessage = client.markUnwatched(mediaId = "TV_1396", season = 1, episode = 5)
+    val response: TitleState = client.markUnwatched(mediaId = "TV_1396", season = 1, episode = 5)
     println(response)
 }
 ```
@@ -74,8 +101,8 @@ import Discovr
 
 let client = DiscovrClient(clientId: "your-client-id")
 // Response / argument types:
-// SuccessMessage
-let response: SuccessMessage = try await client.markUnwatched(mediaId: "TV_1396", season: 1, episode: 5)
+// TitleState
+let response: TitleState = try await client.markUnwatched(mediaId: "TV_1396", season: 1, episode: 5)
 print(response)
 ```
 

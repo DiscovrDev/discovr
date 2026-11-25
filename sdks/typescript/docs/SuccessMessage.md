@@ -1,15 +1,13 @@
 
 # SuccessMessage
 
-Confirmation response with the action taken. For exclusive lists (liked/disliked/super_liked), also includes `added` (which list the item was added to) and optionally `removed` (which list it was removed from).
+Confirmation response for deletions that do not return a title state object.
 
 ## Properties
 
 Name | Type
 ------------ | -------------
 `message` | string
-`added` | string
-`removed` | string
 
 ## Example
 
@@ -18,9 +16,7 @@ import type { SuccessMessage } from 'discovr'
 
 // TODO: Update the object below with actual values
 const example = {
-  "message": Item added successfully,
-  "added": liked,
-  "removed": disliked,
+  "message": Playback deleted successfully,
 } satisfies SuccessMessage
 
 console.log(example)

@@ -7,26 +7,18 @@
 
 import Foundation
 
-/** Confirmation response with the action taken. For exclusive lists (liked/disliked/super_liked), also includes &#x60;added&#x60; (which list the item was added to) and optionally &#x60;removed&#x60; (which list it was removed from). */
+/** Confirmation response for deletions that do not return a title state object. */
 public struct SuccessMessage: Sendable, Codable, ParameterConvertible, Hashable {
 
-    /** Success message */
+    /** Success message. */
     public var message: String
-    /** The list type the item was added to (for exclusive lists) */
-    public var added: String?
-    /** The list type the item was removed from, if any (for exclusive lists) */
-    public var removed: String?
 
-    public init(message: String, added: String? = nil, removed: String? = nil) {
+    public init(message: String) {
         self.message = message
-        self.added = added
-        self.removed = removed
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case message
-        case added
-        case removed
     }
 
     // Encodable protocol methods
@@ -34,8 +26,6 @@ public struct SuccessMessage: Sendable, Codable, ParameterConvertible, Hashable 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(message, forKey: .message)
-        try container.encodeIfPresent(added, forKey: .added)
-        try container.encodeIfPresent(removed, forKey: .removed)
     }
 }
 

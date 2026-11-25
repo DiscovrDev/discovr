@@ -5,15 +5,14 @@ import kotlinx.coroutines.*
 
 private suspend fun sample(client: DiscovrClient) {
     // docs:start
-    // When the user pauses
-    suspend fun onPause(mediaId: String, progress: Double) {
+    // When playback starts — send the real start position (not 0 when resuming)
+    suspend fun onStart(mediaId: String, progress: Double) {
         client.scrobble(mediaId, progress)
     }
 
-    // When they skip or rewind — log the jump, then the position they landed on
-    suspend fun onSkip(mediaId: String, from: Double, toProgress: Double, secondsSkipped: Double) {
-        client.scrobbleSkip(mediaId, from, toProgress, secondsSkipped)
-        client.scrobble(mediaId, toProgress)
+    // When the user pauses or seeks to a new position
+    suspend fun onPauseOrSeek(mediaId: String, progress: Double) {
+        client.scrobble(mediaId, progress)
     }
 
     // About every 30 seconds while playing

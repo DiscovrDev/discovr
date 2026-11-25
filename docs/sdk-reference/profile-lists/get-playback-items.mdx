@@ -5,7 +5,7 @@ description: "Get playback items"
 
 Returns the profile's in-progress titles — everything with a saved playback position. Ordered by most recently updated. Use this to build a "Continue Watching" row.
 
-Each item includes a `progress` field (0–100) showing how far through the title the user is.
+Each item includes a `progress` field (0–100) showing how far through the title the user is. To update progress as a viewer watches, call `POST /profile/scrobble/&#123;mediaId&#125;`.
 
 **Pagination:**
 Pass `nextPageToken` from the previous response to fetch the next page. If `hasMore` is `true`, more items are available.

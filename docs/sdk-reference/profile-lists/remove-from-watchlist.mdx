@@ -1,0 +1,99 @@
+---
+title: "removeFromWatchlist()"
+description: "Remove a title from the watchlist"
+---
+
+Removes a title from the active profile's watchlist. Safe to call if it is not on the watchlist.
+
+Returns the title's updated `TitleState`, so you can update your UI immediately without calling `getTitleState` again.
+
+**Auth tier:** session — send your session token in `Authorization: Bearer`.
+
+## Parameters
+
+| Name    | Type     | Required | Description                                                                  |
+| ------- | -------- | -------- | ---------------------------------------------------------------------------- |
+| mediaId | `string` | Yes      | The title's media ID (`MV_&lt;id&gt;` or `TV_&lt;id&gt;`), or an item `ref`. |
+
+## Returns
+
+[`TitleState`](/sdk-reference/types/common#titlestate) — Removed from watchlist; returns the title's new state.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "mediaId": "string",
+  "mediaType": "movie" /* enum: "movie", "tv" */,
+  "rating": "liked" /* Rating: "liked", "disliked", "super_liked" */,
+  "watchlist": false,
+  "watched": false,
+  "completed": false,
+  "completedSeasons": ["integer"],
+  "episodes": {
+  "1": [1,2,3,4,5,6,7]
+},
+  "plays": 7,
+  "playback": {
+  "progress": 45.5,
+  "season": 2,
+  "episode": 5,
+  "updatedAt": "string" /* date-time */
+},
+  "providers": [
+{
+  "id": "string",
+  "title": "string",
+  "logos": {
+  "60": "https://is1-ssl.mzstatic.com/image/thumb/.../60x60bb.jpg",
+  "100": "https://is1-ssl.mzstatic.com/image/thumb/.../100x100bb.jpg",
+  "512": "https://is1-ssl.mzstatic.com/image/thumb/.../512x512bb.jpg",
+  "1024": "https://is1-ssl.mzstatic.com/image/thumb/.../1024x1024bb.png"
+},
+  "regions": {
+  "<key>": "object" /* dynamic keys, shape not fixed in OpenAPI */
+}
+}
+]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Example
+
+<CodeGroup>
+
+```typescript TypeScript
+import { DiscovrClient } from "discovr";
+import type { TitleState } from "discovr";
+
+const discovr = new DiscovrClient("your-client-id");
+
+// After sign-in and profile selection …
+const response: TitleState = await discovr.removeFromWatchlist("MV_550");
+console.log(response);
+```
+
+```kotlin Kotlin
+import api.discovr.DiscovrClient
+import api.discovr.models.TitleState
+
+// Construct DiscovrClient with your AuthStorage implementation (see SDK README).
+suspend fun example(client: DiscovrClient) {
+    val response: TitleState = client.removeFromWatchlist(mediaId = "MV_550")
+    println(response)
+}
+```
+
+```swift Swift
+import Discovr
+
+let client = DiscovrClient(clientId: "your-client-id")
+// Response / argument types:
+// TitleState
+let response: TitleState = try await client.removeFromWatchlist(mediaId: "MV_550")
+print(response)
+```
+
+</CodeGroup>
