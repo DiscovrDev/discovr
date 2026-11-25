@@ -21,23 +21,32 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 
 /**
- * A `429` body. Same shape as `ApiError` plus the wait hint, which `ApiError` can't carry because it forbids extra properties — a strict validator would reject the very body every limiter sends. 
+ * A `429` error body carrying `error: \"rate-limited\"` and the wait hint (`retryAfterSeconds`), mirroring the `Retry-After` header. 
  *
- * @param error Machine-readable error code. Always `RATE_LIMITED` for a `429`.
+ * @param error Machine-readable error code. Always `rate-limited` for a `429`.
  * @param retryAfterSeconds Seconds until the current limit window rolls over. Mirrors the `Retry-After` header.
  */
 @Serializable
 
 data class RateLimitedError (
 
-    /* Machine-readable error code. Always `RATE_LIMITED` for a `429`. */
-    @SerialName(value = "error") @Required val error: kotlin.String,
+    /* Machine-readable error code. Always `rate-limited` for a `429`. */
+    @SerialName(value = "error") @Required val error: RateLimitedError.Error,
 
     /* Seconds until the current limit window rolls over. Mirrors the `Retry-After` header. */
-    @SerialName(value = "retryAfterSeconds") val retryAfterSeconds: kotlin.Int? = null
+    @SerialName(value = "retryAfterSeconds") @Required val retryAfterSeconds: kotlin.Int
 
 ) {
 
+    /**
+     * Machine-readable error code. Always `rate-limited` for a `429`.
+     *
+     * Values: rateMinusLimited
+     */
+    @Serializable
+    enum class Error(val value: kotlin.String) {
+        @SerialName(value = "rate-limited") rateMinusLimited("rate-limited");
+    }
 
 }
 

@@ -8,6 +8,7 @@ import api.discovr.auth._DiscovrAuth
 import api.discovr.auth.TokenInvalidError
 import api.discovr.auth.RateLimitedError
 import api.discovr.auth.retryAfterSeconds
+import api.discovr.auth.typedApiErrorFor
 import api.discovr.infrastructure.HttpResponse
 import api.discovr.models.AddHistoryPayload
 import api.discovr.models.AddPlaybackPayload
@@ -68,24 +69,31 @@ abstract class _DiscovrClientBase {
     internal abstract val _sessionApi: DiscovrApi
     internal abstract val _identityApi: DiscovrApi
 
-    // ── Internal session-tier call helper with auto-recovery ──────────────────
+    // ── Internal call helpers with 429, typed-error, and 401 recovery ─────────
+
+    internal fun throwForFailure(status: Int, rawBody: String, retryAfterHeader: String?): Nothing {
+        if (status == 429) throw RateLimitedError(
+            "Too many requests — slow down and try again shortly.",
+            retryAfterSeconds(retryAfterHeader, rawBody),
+        )
+        typedApiErrorFor(status, rawBody, retryAfterHeader)?.let { throw it }
+        throw DiscovrException(status, rawBody)
+    }
 
     internal suspend inline fun <reified T : Any> sessionApiCall(
         crossinline call: suspend DiscovrApi.() -> HttpResponse<T>,
     ): T {
         val resp = _sessionApi.call()
         if (resp.success) return resp.body()
-        if (resp.status == 429) throw RateLimitedError(
-            "Too many requests — slow down and try again shortly.",
-            retryAfterSeconds(resp.response.headers["Retry-After"]),
-        )
-        if (resp.status != 401) throw DiscovrException(resp.status)
         val rawBody = resp.response.bodyAsText()
+        if (resp.status != 401) throwForFailure(resp.status, rawBody, resp.response.headers["Retry-After"])
         val action = _auth.handleSessionErrorBody(rawBody)
         return when (action) {
             is _DiscovrAuth.RecoveryAction.RetryWithBearer -> {
                 val retry = _sessionApi.call()
-                if (retry.success) retry.body() else throw DiscovrException(retry.status)
+                if (retry.success) return retry.body()
+                val retryBody = retry.response.bodyAsText()
+                throwForFailure(retry.status, retryBody, retry.response.headers["Retry-After"])
             }
             is _DiscovrAuth.RecoveryAction.SignedOut -> throw TokenInvalidError("Refresh token expired")
             is _DiscovrAuth.RecoveryAction.NoOp -> throw DiscovrException(resp.status, rawBody)
@@ -97,12 +105,21 @@ abstract class _DiscovrClientBase {
     ): T {
         val resp = _identityApi.call()
         if (resp.success) return resp.body()
+        val rawBody = resp.response.bodyAsText()
         if (resp.status == 401) {
-            val rawBody = resp.response.bodyAsText()
             if (_auth.handleIdentityErrorBody(rawBody)) throw TokenInvalidError("Refresh token expired")
             throw DiscovrException(resp.status, rawBody)
         }
-        throw DiscovrException(resp.status)
+        throwForFailure(resp.status, rawBody, resp.response.headers["Retry-After"])
+    }
+
+    internal suspend inline fun <reified T : Any> publicApiCall(
+        crossinline call: suspend DiscovrApi.() -> HttpResponse<T>,
+    ): T {
+        val resp = _auth.publicApi().call()
+        if (resp.success) return resp.body()
+        val rawBody = resp.response.bodyAsText()
+        throwForFailure(resp.status, rawBody, resp.response.headers["Retry-After"])
     }
 
     // ── Identity tier — refresh token bearer (/profiles, /auth/sessions) ─────────────────────────────────────────────────────
@@ -226,11 +243,23 @@ abstract class _DiscovrClientBase {
     suspend fun deleteHistoryItem(mediaId: String, season: Int? = null, episode: Int? = null): SuccessMessage =
         sessionApiCall { deleteHistoryItem(mediaId, season = season, episode = episode) }
 
+    suspend fun getMedia(mediaId: String, bypassCache: Boolean = false): MediaResponse =
+        _cache.wrap("getMedia", mapOf("mediaId" to mediaId), null, bypassCache) { sessionApiCall { getMedia(mediaId) } }
+
+    suspend fun getMediaAssets(mediaId: String, bypassCache: Boolean = false): MediaAssetsResponse =
+        _cache.wrap("getMediaAssets", mapOf("mediaId" to mediaId), null, bypassCache) { sessionApiCall { getMediaAssets(mediaId) } }
+
     suspend fun getMediaProfileMeta(mediaId: String, providers: Boolean? = false): MediaProfileMeta =
         sessionApiCall { getMediaProfileMeta(mediaId, providers = providers) }
 
+    suspend fun getSeasonDetails(mediaId: String, seasonNumber: Int, language: String? = null, bypassCache: Boolean = false): SeasonDetailsResponse =
+        _cache.wrap("getSeasonDetails", mapOf("mediaId" to mediaId, "seasonNumber" to seasonNumber, "language" to language), null, bypassCache) { sessionApiCall { getSeasonDetails(mediaId, seasonNumber, language = language) } }
+
     suspend fun getSeasonProfileMeta(mediaId: String, seasonNumber: Int): SeasonProfileMeta =
         sessionApiCall { getSeasonProfileMeta(mediaId, seasonNumber) }
+
+    suspend fun getSimilarRecommendations(mediaId: String, language: String? = null, page: Int? = null, bypassCache: Boolean = false): SimilarResponse =
+        _cache.wrap("getSimilarRecommendations", mapOf("mediaId" to mediaId, "language" to language, "page" to page), 3600000L, bypassCache) { sessionApiCall { getSimilarRecommendations(mediaId, language = language, page = page) } }
 
     suspend fun searchMedia(query: String? = null, q: String? = null, page: Int? = null, bypassCache: Boolean = false): SearchResponse =
         _cache.wrap("searchMedia", mapOf("query" to query, "q" to q, "page" to page), 3600000L, bypassCache) { sessionApiCall { searchMedia(query = query, q = q, page = page) } }
@@ -238,36 +267,24 @@ abstract class _DiscovrClientBase {
     // ── Public endpoints — no bearer required ─────────────────────────────────────────────────────
 
     suspend fun requestDeviceCode(clientID: String, demo: Boolean? = false, size: Int? = null, format: DiscovrApi.FormatRequestDeviceCode? = null): DeviceCodeResponse =
-        _auth.publicApi().requestDeviceCode(DeviceCodePayload(clientID = clientID, demo = demo), size = size, format = format).body()
+        publicApiCall { requestDeviceCode(DeviceCodePayload(clientID = clientID, demo = demo), size = size, format = format) }
 
     suspend fun pollDeviceCode(deviceCode: String, deviceId: String? = null): PollDeviceCode200Response =
-        _auth.publicApi().pollDeviceCode(deviceCode, DevicePollPayload(deviceId = deviceId)).body()
+        publicApiCall { pollDeviceCode(deviceCode, DevicePollPayload(deviceId = deviceId)) }
 
     suspend fun authorizeClientWeb(clientID: String, state: String, codeChallenge: String, codeChallengeMethod: DiscovrApi.CodeChallengeMethodAuthorizeClientWeb, redirectURL: String? = null, platform: DiscovrApi.PlatformAuthorizeClientWeb? = null): Unit =
-        _auth.publicApi().authorizeClientWeb(clientID, state, codeChallenge, codeChallengeMethod, redirectURL = redirectURL, platform = platform).body()
+        publicApiCall { authorizeClientWeb(clientID, state, codeChallenge, codeChallengeMethod, redirectURL = redirectURL, platform = platform) }
 
     suspend fun exchangeWebAuthCode(clientID: String, code: String, codeVerifier: String, deviceId: String? = null): RefreshTokenResponse =
-        _auth.publicApi().exchangeWebAuthCode(WebTokenPayload(clientID = clientID, code = code, codeVerifier = codeVerifier, deviceId = deviceId)).body()
+        publicApiCall { exchangeWebAuthCode(WebTokenPayload(clientID = clientID, code = code, codeVerifier = codeVerifier, deviceId = deviceId)) }
 
     suspend fun startDemoSession(clientId: String, ttlMs: Int? = null): DemoSessionResponse =
-        _auth.publicApi().startDemoSession(DemoSessionRequest(clientId = clientId, ttlMs = ttlMs)).body()
-
-    suspend fun getMedia(mediaId: String, bypassCache: Boolean = false): MediaResponse =
-        _cache.wrap("getMedia", mapOf("mediaId" to mediaId), null, bypassCache) { _auth.publicApi().getMedia(mediaId).body() }
-
-    suspend fun getMediaAssets(mediaId: String, bypassCache: Boolean = false): MediaAssetsResponse =
-        _cache.wrap("getMediaAssets", mapOf("mediaId" to mediaId), null, bypassCache) { _auth.publicApi().getMediaAssets(mediaId).body() }
-
-    suspend fun getSeasonDetails(mediaId: String, seasonNumber: Int, language: String? = null, bypassCache: Boolean = false): SeasonDetailsResponse =
-        _cache.wrap("getSeasonDetails", mapOf("mediaId" to mediaId, "seasonNumber" to seasonNumber, "language" to language), null, bypassCache) { _auth.publicApi().getSeasonDetails(mediaId, seasonNumber, language = language).body() }
-
-    suspend fun getSimilarRecommendations(mediaId: String, language: String? = null, page: Int? = null, bypassCache: Boolean = false): SimilarResponse =
-        _cache.wrap("getSimilarRecommendations", mapOf("mediaId" to mediaId, "language" to language, "page" to page), 3600000L, bypassCache) { _auth.publicApi().getSimilarRecommendations(mediaId, language = language, page = page).body() }
+        publicApiCall { startDemoSession(DemoSessionRequest(clientId = clientId, ttlMs = ttlMs)) }
 
     suspend fun getProfileImages(limit: Int? = null, pageToken: String? = null, bypassCache: Boolean = false): ProfileImagesResponse =
-        _cache.wrap("getProfileImages", mapOf("limit" to limit, "pageToken" to pageToken), null, bypassCache) { _auth.publicApi().getProfileImages(limit = limit, pageToken = pageToken).body() }
+        _cache.wrap("getProfileImages", mapOf("limit" to limit, "pageToken" to pageToken), null, bypassCache) { publicApiCall { getProfileImages(limit = limit, pageToken = pageToken) } }
 
     suspend fun searchGifs(q: String, limit: Int? = null, pos: String? = null, contentfilter: DiscovrApi.ContentfilterSearchGifs? = null, country: String? = null, locale: String? = null, bypassCache: Boolean = false): GifSearchResponse =
-        _cache.wrap("searchGifs", mapOf("q" to q, "limit" to limit, "pos" to pos, "contentfilter" to contentfilter, "country" to country, "locale" to locale), 3600000L, bypassCache) { _auth.publicApi().searchGifs(q, limit = limit, pos = pos, contentfilter = contentfilter, country = country, locale = locale).body() }
+        _cache.wrap("searchGifs", mapOf("q" to q, "limit" to limit, "pos" to pos, "contentfilter" to contentfilter, "country" to country, "locale" to locale), 3600000L, bypassCache) { publicApiCall { searchGifs(q, limit = limit, pos = pos, contentfilter = contentfilter, country = country, locale = locale) } }
 
 }

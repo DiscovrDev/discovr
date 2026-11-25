@@ -21,6 +21,16 @@ Together, they tell you which button to show ("Resume from 45%", "Add to List", 
 	[Profiles](/guides/profiles). Code samples use **TypeScript / Kotlin / Swift**.
 </Note>
 
+<Note>
+	**This call directly affects the profile's recommendations.** Fetching profile metadata records
+	that the viewer opened the title, and it's the only call that does. Only call it when the title
+	screen actually opens — never prefetch it or fire it on hover/focus. Ignoring this registers every
+	loaded tile similarly to the viewer liking the show or movie, which will skew their
+	recommendations. Pass the item's `ref` (see [passing the `ref` when your user
+	acts](/guides/rows#pass-the-ref-when-your-user-acts)) so the open is credited to the row that
+	offered it. Opening the same title again within half an hour counts once.
+</Note>
+
 ## Five pieces of user state
 
 **`getMediaProfileMeta()`** gives you five signals about how the viewer relates to this title:

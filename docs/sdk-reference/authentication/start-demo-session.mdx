@@ -11,7 +11,7 @@ The response is a refresh token. From here you're on the normal path — call [`
 
 Two things to keep in mind:
 
-- **Sandboxes are temporary.** Yours lasts 30 minutes (you can ask for a shorter one with `ttlMs`, never a longer one) and everything in it is deleted afterwards. Once it has ended, requests made with its token fail with `401` `TOKEN_EXPIRED`. Don't build anything that expects it to still be there tomorrow.
+- **Sandboxes are temporary.** Yours lasts 30 minutes (you can ask for a shorter one with `ttlMs`, never a longer one) and everything in it is deleted afterwards. Once it has ended, requests made with its token fail with `401` `token-expired`. Don't build anything that expects it to still be there tomorrow.
 - **Sandboxes are rate limited.** You can start five per hour from the same network address, and that allowance is shared with the demo button on Discovr's sign-in screens and with a TV's device-code demo. When it runs out you get a `429` with a `Retry-After` header, so hold on to the token you're given rather than requesting a new one per request.
 
 You do still need a `clientId` — the same one your SDK constructor already takes regardless of demo mode, so this asks nothing new of a real integration. Trying this endpoint directly from this page? Use `discovr-docs-playground`, a client id that's always available for exactly that.

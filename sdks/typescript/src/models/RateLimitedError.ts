@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * The Discovr API
- * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`. 
+ * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
  *
  * The version of the OpenAPI document: 1.0.0-alpha.1
  * Contact: dev@discovr.media
@@ -14,33 +14,42 @@
 
 import { mapValues } from '../runtime';
 /**
- * A `429` body. Same shape as `ApiError` plus the wait hint, which `ApiError`
- * can't carry because it forbids extra properties — a strict validator would
- * reject the very body every limiter sends.
+ * A `429` error body carrying `error: "rate-limited"` and the wait hint (`retryAfterSeconds`), mirroring the `Retry-After` header.
  * 
  * @export
  * @interface RateLimitedError
  */
 export interface RateLimitedError {
     /**
-     * Machine-readable error code. Always `RATE_LIMITED` for a `429`.
+     * Machine-readable error code. Always `rate-limited` for a `429`.
      * @type {string}
      * @memberof RateLimitedError
      */
-    error: string;
+    error: RateLimitedErrorErrorEnum;
     /**
      * Seconds until the current limit window rolls over. Mirrors the `Retry-After` header.
      * @type {number}
      * @memberof RateLimitedError
      */
-    retryAfterSeconds?: number;
+    retryAfterSeconds: number;
 }
+
+
+/**
+ * @export
+ */
+export const RateLimitedErrorErrorEnum = {
+    RateLimited: 'rate-limited'
+} as const;
+export type RateLimitedErrorErrorEnum = typeof RateLimitedErrorErrorEnum[keyof typeof RateLimitedErrorErrorEnum];
+
 
 /**
  * Check if a given object implements the RateLimitedError interface.
  */
 export function instanceOfRateLimitedError(value: object): value is RateLimitedError {
     if (!('error' in value) || value['error'] === undefined) return false;
+    if (!('retryAfterSeconds' in value) || value['retryAfterSeconds'] === undefined) return false;
     return true;
 }
 
@@ -55,7 +64,7 @@ export function RateLimitedErrorFromJSONTyped(json: any, ignoreDiscriminator: bo
     return {
         
         'error': json['error'],
-        'retryAfterSeconds': json['retryAfterSeconds'] == null ? undefined : json['retryAfterSeconds'],
+        'retryAfterSeconds': json['retryAfterSeconds'],
     };
 }
 

@@ -1,7 +1,7 @@
 # Shared HTTP response definitions used across all API endpoints
 
 BadRequest:
-  description: "The request is missing a required field or contains an invalid value. Check the `error` field for details."
+  description: "The request is missing a required field or contains an invalid value. Check `error` and optional `message` for details."
   content:
     application/json:
       schema:
@@ -9,7 +9,8 @@ BadRequest:
       examples:
         default:
           value:
-            error: "Missing or invalid required field: clientID"
+            error: "invalid-input"
+            message: "Missing or invalid required field: clientID"
 
 Unauthorized:
   description: "Authentication failed — the token is missing, expired, or invalid."
@@ -20,7 +21,18 @@ Unauthorized:
       examples:
         default:
           value:
-            error: "Invalid ClientID"
+            error: "token-invalid"
+
+Forbidden:
+  description: "The token is valid but this account can't use the API right now: it's still on the waitlist (`access-not-granted`), has to accept the current Terms (`legal-acceptance-required`), or the profile in the token no longer exists (`profile-not-found`). Re-authenticating won't change the answer; show the user what the `error` code says."
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas.yaml#/ApiError"
+      examples:
+        default:
+          value:
+            error: "access-not-granted"
 
 NotFound:
   description: "The requested resource wasn't found."
@@ -31,7 +43,8 @@ NotFound:
       examples:
         default:
           value:
-            error: "Device code not found"
+            error: "not-found"
+            message: "Resource not found"
 
 CursorExpired:
   description: |
@@ -43,7 +56,7 @@ CursorExpired:
       examples:
         default:
           value:
-            error: "CURSOR_EXPIRED"
+            error: "cursor-expired"
 
 Conflict:
   description: "The request conflicts with existing data."
@@ -54,7 +67,7 @@ Conflict:
       examples:
         default:
           value:
-            error: "Watched item already exists. Use editWatched to update count."
+            error: "duplicate"
 
 InternalServerError:
   description: "Something went wrong on Discovr's end. Try again, and contact support if the issue persists."
@@ -65,7 +78,7 @@ InternalServerError:
       examples:
         default:
           value:
-            error: "Internal server error"
+            error: "internal-error"
 
 RateLimited:
   description: "Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn't affect other clients."
@@ -82,7 +95,7 @@ RateLimited:
       examples:
         default:
           value:
-            error: "RATE_LIMITED"
+            error: "rate-limited"
             retryAfterSeconds: 14
 
 ServiceUnavailable:
@@ -94,4 +107,4 @@ ServiceUnavailable:
       examples:
         default:
           value:
-            error: "SERVICE_UNAVAILABLE"
+            error: "service-unavailable"

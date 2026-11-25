@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * The Discovr API
- * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`. 
+ * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
  *
  * The version of the OpenAPI document: 1.0.0-alpha.1
  * Contact: dev@discovr.media
@@ -13,25 +13,71 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ApiErrorCode } from './ApiErrorCode';
+import {
+    ApiErrorCodeFromJSON,
+    ApiErrorCodeFromJSONTyped,
+    ApiErrorCodeToJSON,
+    ApiErrorCodeToJSONTyped,
+} from './ApiErrorCode';
+
 /**
- * An API error response. `error` is either a machine-readable code or a plain description of what went wrong. The SDKs translate the codes into typed errors, so most apps never read it directly.
+ * An API error response. `error` is a machine-readable kebab-case code from `ApiErrorCode`; `message` is an optional developer-facing detail. The SDKs translate these codes into typed errors, so most apps never read the raw JSON.
  * @export
  * @interface ApiError
  */
 export interface ApiError {
     /**
-     * Why the request failed. Authentication endpoints return one of these codes:
-     * `session-expired`, `session-already-consumed`, `session-not-found`,
-     * `client-not-found`, `client-mismatch`, `device-code-not-found`,
-     * `device-code-expired`, `device-code-already-consumed`,
-     * `device-code-denied`, `code-verifier-invalid`, `token-invalid`. Other endpoints return a
-     * plain description.
      * 
+     * @type {ApiErrorCode}
+     * @memberof ApiError
+     */
+    error: ApiErrorCode;
+    /**
+     * Optional human-readable detail for debugging. Omitted on `500` responses.
      * @type {string}
      * @memberof ApiError
      */
-    error: string;
+    message?: string;
+    /**
+     * Present on `429 rate-limited` responses. Seconds until the current limit window rolls over.
+     * @type {number}
+     * @memberof ApiError
+     */
+    retryAfterSeconds?: number;
+    /**
+     * Present on `401 token-expired` responses. Identifies which credential expired.
+     * @type {string}
+     * @memberof ApiError
+     */
+    tokenKind?: ApiErrorTokenKindEnum;
+    /**
+     * Present on `403 wrong-token-kind` responses. Identifies which credential tier the endpoint expected.
+     * @type {string}
+     * @memberof ApiError
+     */
+    expected?: ApiErrorExpectedEnum;
 }
+
+
+/**
+ * @export
+ */
+export const ApiErrorTokenKindEnum = {
+    Session: 'session',
+    Refresh: 'refresh'
+} as const;
+export type ApiErrorTokenKindEnum = typeof ApiErrorTokenKindEnum[keyof typeof ApiErrorTokenKindEnum];
+
+/**
+ * @export
+ */
+export const ApiErrorExpectedEnum = {
+    Session: 'session',
+    Refresh: 'refresh'
+} as const;
+export type ApiErrorExpectedEnum = typeof ApiErrorExpectedEnum[keyof typeof ApiErrorExpectedEnum];
+
 
 /**
  * Check if a given object implements the ApiError interface.
@@ -51,7 +97,11 @@ export function ApiErrorFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
     }
     return {
         
-        'error': json['error'],
+        'error': ApiErrorCodeFromJSON(json['error']),
+        'message': json['message'] == null ? undefined : json['message'],
+        'retryAfterSeconds': json['retryAfterSeconds'] == null ? undefined : json['retryAfterSeconds'],
+        'tokenKind': json['tokenKind'] == null ? undefined : json['tokenKind'],
+        'expected': json['expected'] == null ? undefined : json['expected'],
     };
 }
 
@@ -66,7 +116,11 @@ export function ApiErrorToJSONTyped(value?: ApiError | null, ignoreDiscriminator
 
     return {
         
-        'error': value['error'],
+        'error': ApiErrorCodeToJSON(value['error']),
+        'message': value['message'],
+        'retryAfterSeconds': value['retryAfterSeconds'],
+        'tokenKind': value['tokenKind'],
+        'expected': value['expected'],
     };
 }
 

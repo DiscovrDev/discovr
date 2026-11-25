@@ -4,7 +4,25 @@
 ## Properties
 | Name | Type | Description | Notes |
 | ------------ | ------------- | ------------- | ------------- |
-| **error** | **kotlin.String** | Why the request failed. Authentication endpoints return one of these codes: &#x60;session-expired&#x60;, &#x60;session-already-consumed&#x60;, &#x60;session-not-found&#x60;, &#x60;client-not-found&#x60;, &#x60;client-mismatch&#x60;, &#x60;device-code-not-found&#x60;, &#x60;device-code-expired&#x60;, &#x60;device-code-already-consumed&#x60;, &#x60;device-code-denied&#x60;, &#x60;code-verifier-invalid&#x60;, &#x60;token-invalid&#x60;. Other endpoints return a plain description.  |  |
+| **error** | [**ApiErrorCode**](ApiErrorCode.md) |  |  |
+| **message** | **kotlin.String** | Optional human-readable detail for debugging. Omitted on &#x60;500&#x60; responses. |  [optional] |
+| **retryAfterSeconds** | **kotlin.Int** | Present on &#x60;429 rate-limited&#x60; responses. Seconds until the current limit window rolls over. |  [optional] |
+| **tokenKind** | [**inline**](#TokenKind) | Present on &#x60;401 token-expired&#x60; responses. Identifies which credential expired. |  [optional] |
+| **expected** | [**inline**](#Expected) | Present on &#x60;403 wrong-token-kind&#x60; responses. Identifies which credential tier the endpoint expected. |  [optional] |
+
+
+<a id="TokenKind"></a>
+## Enum: tokenKind
+| Name | Value |
+| ---- | ----- |
+| tokenKind | session, refresh |
+
+
+<a id="Expected"></a>
+## Enum: expected
+| Name | Value |
+| ---- | ----- |
+| expected | session, refresh |
 
 
 

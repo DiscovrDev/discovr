@@ -1,13 +1,17 @@
 
 # ApiError
 
-An API error response. `error` is either a machine-readable code or a plain description of what went wrong. The SDKs translate the codes into typed errors, so most apps never read it directly.
+An API error response. `error` is a machine-readable kebab-case code from `ApiErrorCode`; `message` is an optional developer-facing detail. The SDKs translate these codes into typed errors, so most apps never read the raw JSON.
 
 ## Properties
 
 Name | Type
 ------------ | -------------
-`error` | string
+`error` | [ApiErrorCode](ApiErrorCode.md)
+`message` | string
+`retryAfterSeconds` | number
+`tokenKind` | string
+`expected` | string
 
 ## Example
 
@@ -16,7 +20,11 @@ import type { ApiError } from 'discovr'
 
 // TODO: Update the object below with actual values
 const example = {
-  "error": device-code-expired,
+  "error": null,
+  "message": null,
+  "retryAfterSeconds": null,
+  "tokenKind": null,
+  "expected": null,
 } satisfies ApiError
 
 console.log(example)

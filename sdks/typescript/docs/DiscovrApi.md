@@ -111,7 +111,7 @@ example().catch(console.error);
 |-------------|-------------|------------------|
 | **200** | Item was already disliked — no change made. |  -  |
 | **201** | Item added to disliked list. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -174,7 +174,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **201** | Item added successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -238,7 +238,7 @@ example().catch(console.error);
 |-------------|-------------|------------------|
 | **200** | Item was already liked — no change made. |  -  |
 | **201** | Item added to liked list. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -301,7 +301,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **201** | Item added successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -365,7 +365,7 @@ example().catch(console.error);
 |-------------|-------------|------------------|
 | **200** | Item was already super-liked — no change made. |  -  |
 | **201** | Item added to super-liked list. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -428,7 +428,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **201** | Item added to watchlist. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -558,7 +558,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **201** | Page created successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -621,7 +621,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **201** | Profile created. The response contains the new profile\&#39;s ID. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -683,7 +683,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Item deleted successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -748,7 +748,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Item deleted successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -811,7 +811,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Item deleted successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -874,7 +874,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Item deleted successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -937,7 +937,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Profile deleted. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -1000,7 +1000,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Item deleted successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -1063,7 +1063,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Item deleted successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -1188,7 +1188,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | List of disliked items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -1252,7 +1252,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | List of history items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -1319,7 +1319,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | List of history items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -1383,7 +1383,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | List of liked items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -1399,7 +1399,7 @@ example().catch(console.error);
 
 Get media details
 
-Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  This is a public endpoint — no authentication required. Returns only generic catalog metadata; personalized fields live under &#x60;profile_meta&#x60;. 
+Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata; the profile\&#39;s own state for the title (lists, playback, completion) is &#x60;getMediaProfileMeta&#x60;, which is also the call that records the title as opened. 
 
 ### Example
 
@@ -1413,6 +1413,7 @@ const client = new DiscovrClient("your-client-id", {
 });
 
 async function example() {
+  // After sign-in and profile selection …
   const result = await client.getMedia(/* see API reference */);
   console.log(result);
 }
@@ -1433,7 +1434,7 @@ example().catch(console.error);
 
 ### Authorization
 
-No authorization required
+[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 
@@ -1445,7 +1446,9 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Full media details returned successfully. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
+| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
+| **403** | The token is valid but this account can\&#39;t use the API right now: it\&#39;s still on the waitlist (&#x60;access-not-granted&#x60;), has to accept the current Terms (&#x60;legal-acceptance-required&#x60;), or the profile in the token no longer exists (&#x60;profile-not-found&#x60;). Re-authenticating won\&#39;t change the answer; show the user what the &#x60;error&#x60; code says. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -1460,7 +1463,7 @@ No authorization required
 
 Get media assets
 
-Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
 
 ### Example
 
@@ -1474,6 +1477,7 @@ const client = new DiscovrClient("your-client-id", {
 });
 
 async function example() {
+  // After sign-in and profile selection …
   const result = await client.getMediaAssets(/* see API reference */);
   console.log(result);
 }
@@ -1494,7 +1498,7 @@ example().catch(console.error);
 
 ### Authorization
 
-No authorization required
+[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 
@@ -1506,7 +1510,9 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Media assets returned successfully. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
+| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
+| **403** | The token is valid but this account can\&#39;t use the API right now: it\&#39;s still on the waitlist (&#x60;access-not-granted&#x60;), has to accept the current Terms (&#x60;legal-acceptance-required&#x60;), or the profile in the token no longer exists (&#x60;profile-not-found&#x60;). Re-authenticating won\&#39;t change the answer; show the user what the &#x60;error&#x60; code says. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -1521,7 +1527,7 @@ No authorization required
 
 Get profile interaction data for a title
 
-Returns the current profile\&#39;s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (&#x60;true&#x60;/&#x60;false&#x60; for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile\&#39;s selected region. Pass &#x60;providers&#x3D;true&#x60; to include this. - **Completion**: whether the profile has finished this title (&#x60;completed&#x60;), and for TV shows, which season numbers are fully watched (&#x60;completedSeasons&#x60;).  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+Returns the current profile\&#39;s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (&#x60;true&#x60;/&#x60;false&#x60; for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile\&#39;s selected region. Pass &#x60;providers&#x3D;true&#x60; to include this. - **Completion**: whether the profile has finished this title (&#x60;completed&#x60;), and for TV shows, which season numbers are fully watched (&#x60;completedSeasons&#x60;).  **This call directly affects the profile\&#39;s recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn\&#39;t open registers similarly to liking those titles and will skew their recommendations. Pass the item\&#39;s &#x60;ref&#x60; when you have one.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 
@@ -1569,8 +1575,9 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Profile interaction data returned successfully. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
+| **403** | The token is valid but this account can\&#39;t use the API right now: it\&#39;s still on the waitlist (&#x60;access-not-granted&#x60;), has to accept the current Terms (&#x60;legal-acceptance-required&#x60;), or the profile in the token no longer exists (&#x60;profile-not-found&#x60;). Re-authenticating won\&#39;t change the answer; show the user what the &#x60;error&#x60; code says. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -1632,7 +1639,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Page retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -1696,7 +1703,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | List of playback items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -1759,7 +1766,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Profile returned successfully. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -1822,7 +1829,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Avatar images returned successfully. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -1922,7 +1929,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **pageId** | `string` | The unique identifier of the page | [Defaults to `undefined`] |
+| **pageId** | `string` | The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) | [Defaults to `undefined`] |
 | **rowId** | `string` | The unique identifier of the row | [Defaults to `undefined`] |
 
 ### Return type
@@ -1943,7 +1950,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Row retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **409** | Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid. For rows this is what a recommendation turnover looks like: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token and replace what you\&#39;re showing, rather than merging the result into the old list. For a row\&#39;s items it means the set was cleaned up; start that row\&#39;s pagination again from the beginning.  |  -  |
@@ -1987,7 +1994,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **pageId** | `string` | The unique identifier of the page | [Defaults to `undefined`] |
+| **pageId** | `string` | The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) | [Defaults to `undefined`] |
 | **rowId** | `string` | The unique identifier of the row | [Defaults to `undefined`] |
 | **nextPageToken** | `string` | Opaque pagination token returned from the previous page | [Optional] [Defaults to `undefined`] |
 | **limit** | `number` | Maximum number of items to return | [Optional] [Defaults to `10`] |
@@ -2010,7 +2017,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | List of row items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **409** | Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid. For rows this is what a recommendation turnover looks like: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token and replace what you\&#39;re showing, rather than merging the result into the old list. For a row\&#39;s items it means the set was cleaned up; start that row\&#39;s pagination again from the beginning.  |  -  |
@@ -2027,7 +2034,7 @@ example().catch(console.error);
 
 List rows
 
-Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60;. They keep working even if recommendations refresh while the user is scrolling, so a rail they\&#39;ve already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user\&#39;s recommendations haven\&#39;t turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with &#x60;409 CURSOR_EXPIRED&#x60;: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token on the same page ID and replace what you\&#39;re showing with the result. Rows you already hold are not affected: &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60; keeps working for them.  **Auth tier:** session. 
+Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60;. They keep working even if recommendations refresh while the user is scrolling, so a rail they\&#39;ve already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user\&#39;s recommendations haven\&#39;t turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with &#x60;409 cursor-expired&#x60;: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token on the same page ID and replace what you\&#39;re showing with the result. Rows you already hold are not affected: &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60; keeps working for them.  **Auth tier:** session. 
 
 ### Example
 
@@ -2054,7 +2061,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **pageId** | `string` | The unique identifier of the page | [Defaults to `undefined`] |
+| **pageId** | `string` | The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) | [Defaults to `undefined`] |
 | **nextPageToken** | `string` | Opaque pagination token returned from the previous page | [Optional] [Defaults to `undefined`] |
 | **limit** | `number` | Maximum number of rows to return | [Optional] [Defaults to `5`] |
 
@@ -2076,7 +2083,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | List of rows retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **409** | Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid. For rows this is what a recommendation turnover looks like: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token and replace what you\&#39;re showing, rather than merging the result into the old list. For a row\&#39;s items it means the set was cleaned up; start that row\&#39;s pagination again from the beginning.  |  -  |
@@ -2093,7 +2100,7 @@ example().catch(console.error);
 
 Get TV season details
 
-Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata (what the profile has watched is &#x60;getSeasonProfileMeta&#x60;), but the call needs a profile. 
 
 ### Example
 
@@ -2107,6 +2114,7 @@ const client = new DiscovrClient("your-client-id", {
 });
 
 async function example() {
+  // After sign-in and profile selection …
   const result = await client.getSeasonDetails(/* see API reference */);
   console.log(result);
 }
@@ -2129,7 +2137,7 @@ example().catch(console.error);
 
 ### Authorization
 
-No authorization required
+[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 
@@ -2141,7 +2149,9 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Season details returned successfully. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
+| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
+| **403** | The token is valid but this account can\&#39;t use the API right now: it\&#39;s still on the waitlist (&#x60;access-not-granted&#x60;), has to accept the current Terms (&#x60;legal-acceptance-required&#x60;), or the profile in the token no longer exists (&#x60;profile-not-found&#x60;). Re-authenticating won\&#39;t change the answer; show the user what the &#x60;error&#x60; code says. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -2204,8 +2214,9 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Season progress returned successfully. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
+| **403** | The token is valid but this account can\&#39;t use the API right now: it\&#39;s still on the waitlist (&#x60;access-not-granted&#x60;), has to accept the current Terms (&#x60;legal-acceptance-required&#x60;), or the profile in the token no longer exists (&#x60;profile-not-found&#x60;). Re-authenticating won\&#39;t change the answer; show the user what the &#x60;error&#x60; code says. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -2220,7 +2231,7 @@ example().catch(console.error);
 
 Get similar titles
 
-Returns titles that are similar to the given movie or TV show. Useful for \&quot;More like this\&quot; sections.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+Returns titles that are similar to the given movie or TV show. Useful for \&quot;More like this\&quot; sections.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The refs on the results are sealed for the profile that asked. 
 
 ### Example
 
@@ -2234,6 +2245,7 @@ const client = new DiscovrClient("your-client-id", {
 });
 
 async function example() {
+  // After sign-in and profile selection …
   const result = await client.getSimilarRecommendations(/* see API reference */);
   console.log(result);
 }
@@ -2256,7 +2268,7 @@ example().catch(console.error);
 
 ### Authorization
 
-No authorization required
+[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 
@@ -2268,7 +2280,9 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Similar titles returned successfully. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
+| **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
+| **403** | The token is valid but this account can\&#39;t use the API right now: it\&#39;s still on the waitlist (&#x60;access-not-granted&#x60;), has to accept the current Terms (&#x60;legal-acceptance-required&#x60;), or the profile in the token no longer exists (&#x60;profile-not-found&#x60;). Re-authenticating won\&#39;t change the answer; show the user what the &#x60;error&#x60; code says. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -2331,7 +2345,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | List of super_liked items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -2395,7 +2409,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | List of watchlist items retrieved successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -2460,7 +2474,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | The title is unwatched. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -2522,9 +2536,9 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A new session token. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
-| **403** | Returned when you send a session token where a refresh token is required (&#x60;WRONG_TOKEN_KIND&#x60;), or when the &#x60;profileId&#x60; doesn\&#39;t belong to the signed-in user (&#x60;PROFILE_NOT_FOUND&#x60;).  |  -  |
+| **403** | Returned when you send a session token where a refresh token is required (&#x60;wrong-token-kind&#x60;), or when the &#x60;profileId&#x60; doesn\&#39;t belong to the signed-in user (&#x60;profile-not-found&#x60;).  |  -  |
 | **405** | Method not allowed. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
@@ -2589,7 +2603,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | History item updated or created successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -2780,7 +2794,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Progress recorded. Check &#x60;completed&#x60; to know if the item was marked as watched. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -2844,7 +2858,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Skip event recorded. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -2911,7 +2925,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | GIF results returned successfully. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
 | **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
@@ -2974,7 +2988,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Search results returned successfully. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
 | **500** | Something went wrong on Discovr\&#39;s end. Try again, and contact support if the issue persists. |  -  |
 | **503** | The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr\&#39;s status page if this persists. |  -  |
@@ -3047,7 +3061,7 @@ This endpoint does not need any parameter.
 
 Start a demo session
 
-Gives you a working Discovr account in one call — no sign-up, no credentials, nothing to configure. Use it while you build: to explore the API, prototype against realistic data, or try requests right here in the docs. It\&#39;s a development tool, not something to put in front of your users.  You get a private sandbox pre-loaded with profiles, watchlists, and viewing history, so recommendation rows are populated from the very first request. It behaves like any other account: writes really do save, and reading them back returns what you\&#39;d expect.  The response is a refresh token. From here you\&#39;re on the normal path — call [&#x60;POST /auth/session-token&#x60;](/api-reference/discovr/mint-session-token) with a profile ID to start browsing. Nothing else about your integration changes, which is the point: code you write against a demo session works unchanged against a real one.  Two things to keep in mind: - **Sandboxes are temporary.** Yours lasts 30 minutes (you can ask for a shorter one with &#x60;ttlMs&#x60;, never a longer one) and everything in it is deleted afterwards. Once it has ended, requests made with its token fail with &#x60;401&#x60; &#x60;TOKEN_EXPIRED&#x60;. Don\&#39;t build anything that expects it to still be there tomorrow. - **Sandboxes are rate limited.** You can start five per hour from the same network address, and that allowance is shared with the demo button on Discovr\&#39;s sign-in screens and with a TV\&#39;s device-code demo. When it runs out you get a &#x60;429&#x60; with a &#x60;Retry-After&#x60; header, so hold on to the token you\&#39;re given rather than requesting a new one per request.  You do still need a &#x60;clientId&#x60; — the same one your SDK constructor already takes regardless of demo mode, so this asks nothing new of a real integration. Trying this endpoint directly from this page? Use &#x60;discovr-docs-playground&#x60;, a client id that\&#39;s always available for exactly that.  It also powers the \&quot;Continue as Demo\&quot; button that Discovr\&#39;s sign-in screens show to a client created with &#x60;demoMode&#x60;, which is meant for development builds.  **Auth tier:** none — this is the one endpoint you can call without a credential. 
+Gives you a working Discovr account in one call — no sign-up, no credentials, nothing to configure. Use it while you build: to explore the API, prototype against realistic data, or try requests right here in the docs. It\&#39;s a development tool, not something to put in front of your users.  You get a private sandbox pre-loaded with profiles, watchlists, and viewing history, so recommendation rows are populated from the very first request. It behaves like any other account: writes really do save, and reading them back returns what you\&#39;d expect.  The response is a refresh token. From here you\&#39;re on the normal path — call [&#x60;POST /auth/session-token&#x60;](/api-reference/discovr/mint-session-token) with a profile ID to start browsing. Nothing else about your integration changes, which is the point: code you write against a demo session works unchanged against a real one.  Two things to keep in mind: - **Sandboxes are temporary.** Yours lasts 30 minutes (you can ask for a shorter one with &#x60;ttlMs&#x60;, never a longer one) and everything in it is deleted afterwards. Once it has ended, requests made with its token fail with &#x60;401&#x60; &#x60;token-expired&#x60;. Don\&#39;t build anything that expects it to still be there tomorrow. - **Sandboxes are rate limited.** You can start five per hour from the same network address, and that allowance is shared with the demo button on Discovr\&#39;s sign-in screens and with a TV\&#39;s device-code demo. When it runs out you get a &#x60;429&#x60; with a &#x60;Retry-After&#x60; header, so hold on to the token you\&#39;re given rather than requesting a new one per request.  You do still need a &#x60;clientId&#x60; — the same one your SDK constructor already takes regardless of demo mode, so this asks nothing new of a real integration. Trying this endpoint directly from this page? Use &#x60;discovr-docs-playground&#x60;, a client id that\&#39;s always available for exactly that.  It also powers the \&quot;Continue as Demo\&quot; button that Discovr\&#39;s sign-in screens show to a client created with &#x60;demoMode&#x60;, which is meant for development builds.  **Auth tier:** none — this is the one endpoint you can call without a credential. 
 
 ### Example
 
@@ -3093,7 +3107,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **201** | A new demo sandbox is ready. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **403** | &#x60;clientId&#x60; doesn\&#39;t match a registered client.  |  -  |
 | **405** | Method not allowed. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -3155,7 +3169,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Item updated successfully |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |
@@ -3219,7 +3233,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Profile updated successfully. Returns the full updated profile object. |  -  |
-| **400** | The request is missing a required field or contains an invalid value. Check the &#x60;error&#x60; field for details. |  -  |
+| **400** | The request is missing a required field or contains an invalid value. Check &#x60;error&#x60; and optional &#x60;message&#x60; for details. |  -  |
 | **401** | Authentication failed — the token is missing, expired, or invalid. |  -  |
 | **404** | The requested resource wasn\&#39;t found. |  -  |
 | **429** | Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn\&#39;t affect other clients. |  * Retry-After - Seconds to wait before retrying. Counted to the end of the current limit window, so it is never longer than it needs to be. <br>  |

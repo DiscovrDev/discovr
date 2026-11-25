@@ -39,7 +39,7 @@ Check `row.type` to choose a layout; check each item’s `type` to render the ri
 	Page IDs are permanent — a page/rows call never fails because the page "expired". If the rows
 	behind a page have turned over, [`getRows()`](/sdk-reference/rows/get-rows) with no token just
 	returns the new ranking. What goes stale is a **rows pagination token**: after a turnover it's
-	refused with `409 CURSOR_EXPIRED`. Reload with `getPage(pageId)` and `getRows(pageId)`, replace
+	refused with `409 cursor-expired`. Reload with `getPage(pageId)` and `getRows(pageId)`, replace
 	what you're showing, and drop the old row IDs. Paging **row items** for rows you already hold
 	stays usable while you finish scrolling a rail. See [Recommendations](/guides/recommendations).
 </Tip>
@@ -236,7 +236,7 @@ Every title Discovr hands you — in rows and the hero, in search results, under
 
 It works anywhere the plain id does, and it's how Discovr learns what's working for each profile: the more of your user's actions carry it, the sharper their next recommendations get. So use the `ref` whenever your user **does** something or **moves** somewhere:
 
-- opening a title's detail screen
+- opening a title's detail screen (the open itself is recorded by [`getMediaProfileMeta()`](/guides/profile-context/media-profile-meta), so call that with the `ref` when the title screen opens)
 - liking it, adding it to a list, or scrobbling it
 - drilling into the page a navigation or provider tile links to
 - jumping from one title to another
@@ -330,6 +330,13 @@ let cacheKey = idOf(savedRef)
 </CodeGroup>
 
 `idOf` also accepts a plain `id` and hands it straight back, so it's safe to call on either.
+
+<Note>
+	A title counts as opened when you call
+	[`getMediaProfileMeta()`](/guides/profile-context/media-profile-meta) with its `ref`. Call it when
+	the title screen opens, and not before: prefetching it for a tile that is only focused or hovered
+	records an open that never happened. `getMedia()` doesn't record anything.
+</Note>
 
 <Note>
 	A bare `id` always works. `ref` is never required, and nothing breaks if you don't pass it — you

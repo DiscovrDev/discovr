@@ -93,7 +93,7 @@ fires: a user reading row 12 doesn't want the screen to jump. Instead:
 
 ## Pagination across a refresh
 
-A `nextPageToken` from [`getRows()`](/sdk-reference/rows/get-rows) only continues inside the recommendations it came from. Once they turn over, the token is refused with `409 CURSOR_EXPIRED` — the same error you'd get if the token had simply gone stale after a day. Either way the fix is the same: reload the page, with the same page ID.
+A `nextPageToken` from [`getRows()`](/sdk-reference/rows/get-rows) only continues inside the recommendations it came from. Once they turn over, the token is refused with `409 cursor-expired` (`CursorExpiredError` / `AuthError.cursorExpired`) — the same error you'd get if the token had simply gone stale after a day. Either way the fix is the same: reload the page, with the same page ID.
 
 {/* sample: recommendations-pagination-across-a-refresh */}
 
@@ -103,7 +103,7 @@ A `nextPageToken` from [`getRows()`](/sdk-reference/rows/get-rows) only continue
 try {
 	return await client.getRows(pageId, { nextPageToken: token });
 } catch (err) {
-	if (err instanceof ResponseError && err.response.status === 409) {
+	if (err instanceof CursorExpiredError) {
 		// The recommendations turned over, so this token is done. The page ID is
 		// still good: reload the hero and the first rows, and replace what you
 		// were showing. Don't append them to the old list.
@@ -117,8 +117,7 @@ try {
 ```kotlin Kotlin
 try {
     client.getRows(pageId, nextPageToken = token)
-} catch (err: DiscovrException) {
-    if (err.statusCode != 409) throw err
+} catch (_: CursorExpiredError) {
     // The recommendations turned over, so this token is done. The page ID is
     // still good: reload the hero and the first rows, and replace what you
     // were showing. Don't append them to the old list.
@@ -130,7 +129,7 @@ try {
 ```swift Swift
 do {
     _ = try await client.getRows(pageId: pageId, nextPageToken: token)
-} catch ErrorResponse.error(409, _, _, _) {
+} catch AuthError.cursorExpired {
     // The recommendations turned over, so this token is done. The page ID is
     // still good: reload the hero and the first rows, and replace what you
     // were showing. Don't append them to the old list.

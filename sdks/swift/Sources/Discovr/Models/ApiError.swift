@@ -7,18 +7,42 @@
 
 import Foundation
 
-/** An API error response. &#x60;error&#x60; is either a machine-readable code or a plain description of what went wrong. The SDKs translate the codes into typed errors, so most apps never read it directly. */
+/** An API error response. &#x60;error&#x60; is a machine-readable kebab-case code from &#x60;ApiErrorCode&#x60;; &#x60;message&#x60; is an optional developer-facing detail. The SDKs translate these codes into typed errors, so most apps never read the raw JSON. */
 public struct ApiError: Sendable, Codable, ParameterConvertible, Hashable {
 
-    /** Why the request failed. Authentication endpoints return one of these codes: `session-expired`, `session-already-consumed`, `session-not-found`, `client-not-found`, `client-mismatch`, `device-code-not-found`, `device-code-expired`, `device-code-already-consumed`, `device-code-denied`, `code-verifier-invalid`, `token-invalid`. Other endpoints return a plain description.  */
-    public var error: String
+    public enum TokenKind: String, Sendable, Codable, CaseIterable {
+        case session = "session"
+        case refresh = "refresh"
+    }
+    public enum Expected: String, Sendable, Codable, CaseIterable {
+        case session = "session"
+        case refresh = "refresh"
+    }
+    public static let retryAfterSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public var error: ApiErrorCode
+    /** Optional human-readable detail for debugging. Omitted on `500` responses. */
+    public var message: String?
+    /** Present on `429 rate-limited` responses. Seconds until the current limit window rolls over. */
+    public var retryAfterSeconds: Int?
+    /** Present on `401 token-expired` responses. Identifies which credential expired. */
+    public var tokenKind: TokenKind?
+    /** Present on `403 wrong-token-kind` responses. Identifies which credential tier the endpoint expected. */
+    public var expected: Expected?
 
-    public init(error: String) {
+    public init(error: ApiErrorCode, message: String? = nil, retryAfterSeconds: Int? = nil, tokenKind: TokenKind? = nil, expected: Expected? = nil) {
         self.error = error
+        self.message = message
+        self.retryAfterSeconds = retryAfterSeconds
+        self.tokenKind = tokenKind
+        self.expected = expected
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case error
+        case message
+        case retryAfterSeconds
+        case tokenKind
+        case expected
     }
 
     // Encodable protocol methods
@@ -26,6 +50,10 @@ public struct ApiError: Sendable, Codable, ParameterConvertible, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(error, forKey: .error)
+        try container.encodeIfPresent(message, forKey: .message)
+        try container.encodeIfPresent(retryAfterSeconds, forKey: .retryAfterSeconds)
+        try container.encodeIfPresent(tokenKind, forKey: .tokenKind)
+        try container.encodeIfPresent(expected, forKey: .expected)
     }
 }
 

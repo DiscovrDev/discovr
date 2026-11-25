@@ -18,15 +18,18 @@ All URIs are relative to *https://api.discovr.media*
 
 Get media details
 
-Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  This is a public endpoint — no authentication required. Returns only generic catalog metadata; personalized fields live under &#x60;profile_meta&#x60;. 
+Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata; the profile&#39;s own state for the title (lists, playback, completion) is &#x60;getMediaProfileMeta&#x60;, which is also the call that records the title as opened. 
 
 ### Example
 ```kotlin
 // Import classes:
 //import api.discovr.infrastructure.*
 //import api.discovr.models.*
+import api.discovr.DiscovrClient
 
-val discovr = MediaApi()
+// Initialize DiscovrClient (public entry point)
+val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
+// Or manually: val discovr = MediaApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
 val mediaId : kotlin.String = mediaId_example // kotlin.String | The unique identifier of the media item. Use `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
 try {
@@ -52,7 +55,9 @@ try {
 
 ### Authorization
 
-No authorization required
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
 
 ### HTTP request headers
 
@@ -65,15 +70,18 @@ No authorization required
 
 Get media assets
 
-Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
 
 ### Example
 ```kotlin
 // Import classes:
 //import api.discovr.infrastructure.*
 //import api.discovr.models.*
+import api.discovr.DiscovrClient
 
-val discovr = MediaApi()
+// Initialize DiscovrClient (public entry point)
+val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
+// Or manually: val discovr = MediaApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
 val mediaId : kotlin.String = mediaId_example // kotlin.String | The unique identifier of the media item. Use `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
 try {
@@ -99,7 +107,9 @@ try {
 
 ### Authorization
 
-No authorization required
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
 
 ### HTTP request headers
 
@@ -112,7 +122,7 @@ No authorization required
 
 Get profile interaction data for a title
 
-Returns the current profile&#39;s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (&#x60;true&#x60;/&#x60;false&#x60; for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile&#39;s selected region. Pass &#x60;providers&#x3D;true&#x60; to include this. - **Completion**: whether the profile has finished this title (&#x60;completed&#x60;), and for TV shows, which season numbers are fully watched (&#x60;completedSeasons&#x60;).  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+Returns the current profile&#39;s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (&#x60;true&#x60;/&#x60;false&#x60; for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile&#39;s selected region. Pass &#x60;providers&#x3D;true&#x60; to include this. - **Completion**: whether the profile has finished this title (&#x60;completed&#x60;), and for TV shows, which season numbers are fully watched (&#x60;completedSeasons&#x60;).  **This call directly affects the profile&#39;s recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn&#39;t open registers similarly to liking those titles and will skew their recommendations. Pass the item&#39;s &#x60;ref&#x60; when you have one.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
 
 ### Example
 ```kotlin
@@ -166,15 +176,18 @@ Configure BearerAuth:
 
 Get TV season details
 
-Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata (what the profile has watched is &#x60;getSeasonProfileMeta&#x60;), but the call needs a profile. 
 
 ### Example
 ```kotlin
 // Import classes:
 //import api.discovr.infrastructure.*
 //import api.discovr.models.*
+import api.discovr.DiscovrClient
 
-val discovr = MediaApi()
+// Initialize DiscovrClient (public entry point)
+val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
+// Or manually: val discovr = MediaApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
 val mediaId : kotlin.String = mediaId_example // kotlin.String | The unique identifier of the TV show (e.g., `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
 val seasonNumber : kotlin.Int = 1 // kotlin.Int | The season number.
@@ -204,7 +217,9 @@ try {
 
 ### Authorization
 
-No authorization required
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
 
 ### HTTP request headers
 
@@ -271,15 +286,18 @@ Configure BearerAuth:
 
 Get similar titles
 
-Returns titles that are similar to the given movie or TV show. Useful for \&quot;More like this\&quot; sections.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+Returns titles that are similar to the given movie or TV show. Useful for \&quot;More like this\&quot; sections.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The refs on the results are sealed for the profile that asked. 
 
 ### Example
 ```kotlin
 // Import classes:
 //import api.discovr.infrastructure.*
 //import api.discovr.models.*
+import api.discovr.DiscovrClient
 
-val discovr = MediaApi()
+// Initialize DiscovrClient (public entry point)
+val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
+// Or manually: val discovr = MediaApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
 val mediaId : kotlin.String = mediaId_example // kotlin.String | The unique identifier of the media item. Use `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
 val language : kotlin.String = en-US // kotlin.String | Language code for results (e.g., `en-US`).
@@ -309,7 +327,9 @@ try {
 
 ### Authorization
 
-No authorization required
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
 
 ### HTTP request headers
 

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * The Discovr API
- * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`. 
+ * The Discovr API powers personalized recommendation experiences for your streaming app.  **Authentication.** Two tokens, two jobs:  - **Refresh token** (long-lived, 90 days). Used for identity-tier   endpoints — managing profiles, signing out the current device, and   starting browsing sessions. Treat it as a credential. - **Session token** (short-lived, 30 minutes). Scoped to a selected   profile. Used for session-tier endpoints — pages, rows, items, and   writes to profile-scoped data.  Sign in via the web flow or the device-code flow → receive a refresh token → call `POST /auth/session-token` with a chosen `profileId` → use the returned session token for everything else. SDKs handle this transparently; see the [Authentication guide](https://docs.discovr.media/guides/authentication).  **Profiles.** A user can have multiple profiles, each with independent likes, history, playback, and watchlists. The active profile is carried by the session token, so profile-scoped endpoints don\'t accept a `profileId` path parameter — they live under `/profile/_*`.  **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta` records that the viewer opened a title and directly affects the profile\'s recommendations. Only call it when the title screen actually opens — prefetching or calling it on hover/focus registers every loaded tile similarly to the viewer liking the title and will skew their recommendations. Pass the item\'s `ref` when you have one. 
  *
  * The version of the OpenAPI document: 1.0.0-alpha.1
  * Contact: dev@discovr.media
@@ -79,7 +79,7 @@ interface GetSimilarRecommendationsRequest {
 export class MediaApi extends runtime.BaseAPI {
 
     /**
-     * Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).  This is a public endpoint — no authentication required. Returns only generic catalog metadata; personalized fields live under `profile_meta`. 
+     * Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata; the profile\'s own state for the title (lists, playback, completion) is `getMediaProfileMeta`, which is also the call that records the title as opened. 
      * Get media details
      */
     async getMediaRaw(requestParameters: GetMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MediaResponse>> {
@@ -94,6 +94,14 @@ export class MediaApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
 
         let urlPath = `/media/{mediaId}`;
         urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
@@ -109,7 +117,7 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).  This is a public endpoint — no authentication required. Returns only generic catalog metadata; personalized fields live under `profile_meta`. 
+     * Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata; the profile\'s own state for the title (lists, playback, completion) is `getMediaProfileMeta`, which is also the call that records the title as opened. 
      * Get media details
      */
     async getMedia(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MediaResponse> {
@@ -118,7 +126,7 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
      * Get media assets
      */
     async getMediaAssetsRaw(requestParameters: GetMediaAssetsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MediaAssetsResponse>> {
@@ -133,6 +141,14 @@ export class MediaApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
 
         let urlPath = `/media/{mediaId}/assets`;
         urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
@@ -148,7 +164,7 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
      * Get media assets
      */
     async getMediaAssets(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MediaAssetsResponse> {
@@ -157,7 +173,7 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the current profile\'s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile\'s selected region. Pass `providers=true` to include this. - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Returns the current profile\'s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile\'s selected region. Pass `providers=true` to include this. - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).  **This call directly affects the profile\'s recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn\'t open registers similarly to liking those titles and will skew their recommendations. Pass the item\'s `ref` when you have one.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      * Get profile interaction data for a title
      */
     async getMediaProfileMetaRaw(requestParameters: GetMediaProfileMetaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MediaProfileMeta>> {
@@ -199,7 +215,7 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the current profile\'s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile\'s selected region. Pass `providers=true` to include this. - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     * Returns the current profile\'s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile\'s selected region. Pass `providers=true` to include this. - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).  **This call directly affects the profile\'s recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn\'t open registers similarly to liking those titles and will skew their recommendations. Pass the item\'s `ref` when you have one.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      * Get profile interaction data for a title
      */
     async getMediaProfileMeta(mediaId: string, providers?: boolean, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MediaProfileMeta> {
@@ -208,7 +224,7 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     * Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata (what the profile has watched is `getSeasonProfileMeta`), but the call needs a profile. 
      * Get TV season details
      */
     async getSeasonDetailsRaw(requestParameters: GetSeasonDetailsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SeasonDetailsResponse>> {
@@ -234,6 +250,14 @@ export class MediaApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
 
         let urlPath = `/media/{mediaId}/seasons/{seasonNumber}`;
         urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
@@ -250,7 +274,7 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     * Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata (what the profile has watched is `getSeasonProfileMeta`), but the call needs a profile. 
      * Get TV season details
      */
     async getSeasonDetails(mediaId: string, seasonNumber: number, language?: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SeasonDetailsResponse> {
@@ -314,7 +338,7 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns titles that are similar to the given movie or TV show. Useful for \"More like this\" sections.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     * Returns titles that are similar to the given movie or TV show. Useful for \"More like this\" sections.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The refs on the results are sealed for the profile that asked. 
      * Get similar titles
      */
     async getSimilarRecommendationsRaw(requestParameters: GetSimilarRecommendationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SimilarResponse>> {
@@ -337,6 +361,14 @@ export class MediaApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
 
         let urlPath = `/media/{mediaId}/similar`;
         urlPath = urlPath.replace(`{${"mediaId"}}`, encodeURIComponent(String(requestParameters['mediaId'])));
@@ -352,7 +384,7 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns titles that are similar to the given movie or TV show. Useful for \"More like this\" sections.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     * Returns titles that are similar to the given movie or TV show. Useful for \"More like this\" sections.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The refs on the results are sealed for the profile that asked. 
      * Get similar titles
      */
     async getSimilarRecommendations(mediaId: string, language?: string, page?: number, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SimilarResponse> {

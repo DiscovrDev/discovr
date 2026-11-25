@@ -46,6 +46,8 @@ get:
       $ref: "../shared/responses.yaml#/BadRequest"
     "401":
       $ref: "../shared/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../shared/responses.yaml#/Forbidden"
     "404":
       $ref: "../shared/responses.yaml#/NotFound"
     "500":

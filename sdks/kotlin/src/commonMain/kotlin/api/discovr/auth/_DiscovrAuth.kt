@@ -130,6 +130,14 @@ class DeviceCodeDeniedError(message: String = "Device sign-in was declined") : D
  */
 class AuthCancelledError(message: String = "Sign-in was cancelled") : DiscovrError(message)
 class TokenInvalidError(message: String = "Token invalid") : DiscovrError(message)
+/** The account authenticated, and is still on the waitlist (403). */
+class AccessNotGrantedError(message: String = "Account access has not been granted yet") : DiscovrError(message)
+/** The account authenticated, and must accept the latest Terms to continue (403). */
+class LegalAcceptanceRequiredError(message: String = "Please accept the latest Terms to continue") : DiscovrError(message)
+/** The requested profile does not exist under the signed-in account (403). */
+class ProfileNotFoundError(message: String = "Profile not found") : DiscovrError(message)
+/** The pagination cursor or row reference points at results that have since been replaced (409). */
+class CursorExpiredError(message: String = "Pagination cursor expired") : DiscovrError(message)
 class NotSignedInError(message: String = "Not signed in") : DiscovrError(message)
 
 /**
@@ -208,12 +216,12 @@ internal fun retryAfterSeconds(headerValue: String?, body: String? = null): Int 
 /**
  * Map a server error code to the SDK's own typed error.
  *
- * The codes are an implementation detail of the API, so they are translated
- * here and never passed on: an unrecognised code becomes [UnknownApiError]
- * with a generic message, not the code itself.
+ * The `when` branches below are generated from `ApiErrorCode` in the OpenAPI
+ * spec by `emit-error-tables.ts`. Do not edit between the generated markers by hand.
  */
-fun mapApiErrorCode(code: String, message: String? = null): DiscovrError = when (code) {
-    "client-not-found", "CLIENT_NOT_FOUND", "MISSING_CLIENT_ID" ->
+fun mapApiErrorCode(code: String, message: String? = null, retryInSeconds: Int? = null): DiscovrError = when (code) {
+    // <generated:error-table>
+    "client-not-found" ->
         ClientNotFoundError(message ?: "Client not found")
     "device-code-expired", "device-code-not-found" ->
         DeviceCodeExpiredError(message ?: "Device code expired")
@@ -223,12 +231,23 @@ fun mapApiErrorCode(code: String, message: String? = null): DiscovrError = when 
         DeviceCodeDeniedError(message ?: "Device sign-in was declined")
     "authorization-cancelled" ->
         AuthCancelledError(message ?: "Sign-in was cancelled")
-    "session-expired", "session-not-found", "TOKEN_EXPIRED" ->
+    "session-expired", "session-not-found" ->
         SessionExpiredError(message ?: "Authentication session expired")
     "session-already-consumed" ->
         SessionConsumedError(message ?: "Authentication session already consumed")
-    "token-invalid", "TOKEN_INVALID", "WRONG_TOKEN_KIND", "client-mismatch", "code-verifier-invalid" ->
+    "token-invalid", "token-expired", "wrong-token-kind", "client-mismatch", "code-verifier-invalid" ->
         TokenInvalidError(message ?: "Token invalid")
+    "access-not-granted" ->
+        AccessNotGrantedError(message ?: "Account access has not been granted yet")
+    "legal-acceptance-required" ->
+        LegalAcceptanceRequiredError(message ?: "Please accept the latest Terms to continue")
+    "profile-not-found" ->
+        ProfileNotFoundError(message ?: "Profile not found")
+    "cursor-expired" ->
+        CursorExpiredError(message ?: "Pagination cursor expired")
+    "rate-limited" ->
+        RateLimitedError(message ?: "Too many requests — slow down and try again shortly.", retryInSeconds ?: DEFAULT_RETRY_AFTER_SECONDS)
+    // </generated:error-table>
     else -> UnknownApiError(message ?: "Request failed")
 }
 
@@ -236,19 +255,53 @@ private val MACHINE_CODE_REGEX = Regex("^[A-Za-z0-9_-]+$")
 
 /**
  * Translate a non-2xx response into a typed error. The server names failures in
- * the body's `error` field; prose there ("Resource not found") is written for
- * callers and passed on, a machine code we don't know is not.
+ * the body's `error` field (a kebab-case code) with an optional `message`
+ * detail; unknown machine codes are never echoed as user messages.
  */
-internal fun apiErrorFor(status: Int, body: String): DiscovrError {
-    val code = try {
-        Json.parseToJsonElement(body).jsonObject["error"]?.jsonPrimitive?.contentOrNull
+internal fun apiErrorFor(status: Int, body: String, retryAfterHeader: String? = null): DiscovrError {
+    val obj = try {
+        Json.parseToJsonElement(body).jsonObject
     } catch (_: Exception) { null }
+    val code = obj?.get("error")?.jsonPrimitive?.contentOrNull
+    val message = obj?.get("message")?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotEmpty() }
+    val wait = if (status == 429 || code == "rate-limited") {
+        retryAfterSeconds(retryAfterHeader, body)
+    } else {
+        null
+    }
+    if (status == 429) {
+        return RateLimitedError(
+            message ?: "Too many requests — slow down and try again shortly.",
+            wait ?: DEFAULT_RETRY_AFTER_SECONDS,
+        )
+    }
     if (code != null) {
-        val mapped = mapApiErrorCode(code)
+        val mapped = mapApiErrorCode(code, message, wait)
         if (mapped !is UnknownApiError) return mapped
+        if (message != null) return UnknownApiError(message, status)
         if (!MACHINE_CODE_REGEX.matches(code)) return UnknownApiError(code, status)
     }
     return UnknownApiError("Request failed (HTTP $status)", status)
+}
+
+/**
+ * Recognises data-call failures that carry a dedicated typed SDK error
+ * (`access-not-granted`, `legal-acceptance-required`, `profile-not-found`,
+ * `cursor-expired`, `rate-limited`). Returns null for ordinary HTTP errors so
+ * callers that catch [DiscovrException] by status code keep working.
+ */
+internal fun typedApiErrorFor(status: Int, body: String, retryAfterHeader: String? = null): DiscovrError? {
+    if (status == 429) return apiErrorFor(status, body, retryAfterHeader)
+    if (status != 403 && status != 409) return null
+    val mapped = apiErrorFor(status, body, retryAfterHeader)
+    return when (mapped) {
+        is AccessNotGrantedError,
+        is LegalAcceptanceRequiredError,
+        is ProfileNotFoundError,
+        is CursorExpiredError,
+        is RateLimitedError -> mapped
+        else -> null
+    }
 }
 
 /** What a deep link back from the sign-in browser carries. */
@@ -837,9 +890,9 @@ internal class _DiscovrAuth(
     /**
      * Auto-recovery hook for session-tier requests. Pass every 401 response's
      * raw body here — the SDK decides what to do next:
-     *  - TOKEN_EXPIRED tokenKind=session → re-mint, retry
-     *  - TOKEN_EXPIRED tokenKind=refresh → signOut
-     *  - WRONG_TOKEN_KIND → log dev error
+     *  - token-expired tokenKind=session → re-mint, retry
+     *  - token-expired tokenKind=refresh → signOut
+     *  - wrong-token-kind → log dev error
      */
     suspend fun handleSessionErrorBody(rawJson: String): RecoveryAction {
         val body = try {
@@ -855,16 +908,16 @@ internal class _DiscovrAuth(
             return RecoveryAction.SignedOut
         }
         return when {
-            body.error == "TOKEN_EXPIRED" && body.tokenKind == "session" -> {
+            body.error == "token-expired" && body.tokenKind == "session" -> {
                 sessionToken = null; sessionExpiresAt = null
                 RecoveryAction.RetryWithBearer(ensureSessionToken())
             }
-            body.error == "TOKEN_EXPIRED" && body.tokenKind == "refresh" -> {
+            body.error == "token-expired" && body.tokenKind == "refresh" -> {
                 endSession(lapseReason())
                 RecoveryAction.SignedOut
             }
-            body.error == "WRONG_TOKEN_KIND" -> {
-                println("[_DiscovrAuth] WRONG_TOKEN_KIND — SDK sent the wrong token tier. Report this as an SDK bug.")
+            body.error == "wrong-token-kind" -> {
+                println("[_DiscovrAuth] wrong-token-kind — SDK sent the wrong token tier. Report this as an SDK bug.")
                 RecoveryAction.NoOp
             }
             else -> RecoveryAction.NoOp
@@ -880,7 +933,7 @@ internal class _DiscovrAuth(
      * has nothing to recover with: the session ends. Without this, the first
      * call after a demo sandbox lapsed surfaced as a bare 401 while the client
      * went on reporting itself signed in; only the SDK's own requests recovered.
-     * Same two cases as [request]: a refresh-kind `TOKEN_EXPIRED`, and a 401
+     * Same two cases as [request]: a refresh-kind `token-expired`, and a 401
      * whose body cannot be read.
      *
      * @return true if the client was signed out and the caller should throw
@@ -893,7 +946,7 @@ internal class _DiscovrAuth(
             endSession(lapseReason())
             return true
         }
-        if (body.error == "TOKEN_EXPIRED" && body.tokenKind == "refresh") {
+        if (body.error == "token-expired" && body.tokenKind == "refresh") {
             endSession(lapseReason())
             return true
         }
@@ -1023,12 +1076,12 @@ internal class _DiscovrAuth(
                     endSession(lapseReason())
                     throw TokenInvalidError("Refresh token rejected")
                 }
-                if (body.error == "TOKEN_EXPIRED" && body.tokenKind == "refresh") {
+                if (body.error == "token-expired" && body.tokenKind == "refresh") {
                     endSession(lapseReason())
                     throw TokenInvalidError("Refresh token expired")
                 }
             }
-            throw apiErrorFor(code, text)
+            throw apiErrorFor(code, text, response.headers["Retry-After"])
         }
         return text
     }

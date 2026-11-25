@@ -7,16 +7,19 @@
 
 import Foundation
 
-/** A &#x60;429&#x60; body. Same shape as &#x60;ApiError&#x60; plus the wait hint, which &#x60;ApiError&#x60; can&#39;t carry because it forbids extra properties — a strict validator would reject the very body every limiter sends.  */
+/** A &#x60;429&#x60; error body carrying &#x60;error: \&quot;rate-limited\&quot;&#x60; and the wait hint (&#x60;retryAfterSeconds&#x60;), mirroring the &#x60;Retry-After&#x60; header.  */
 public struct RateLimitedError: Sendable, Codable, ParameterConvertible, Hashable {
 
+    public enum ModelError: String, Sendable, Codable, CaseIterable {
+        case rateLimited = "rate-limited"
+    }
     public static let retryAfterSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
-    /** Machine-readable error code. Always `RATE_LIMITED` for a `429`. */
-    public var error: String
+    /** Machine-readable error code. Always `rate-limited` for a `429`. */
+    public var error: ModelError
     /** Seconds until the current limit window rolls over. Mirrors the `Retry-After` header. */
-    public var retryAfterSeconds: Int?
+    public var retryAfterSeconds: Int
 
-    public init(error: String, retryAfterSeconds: Int? = nil) {
+    public init(error: ModelError, retryAfterSeconds: Int) {
         self.error = error
         self.retryAfterSeconds = retryAfterSeconds
     }
@@ -31,7 +34,7 @@ public struct RateLimitedError: Sendable, Codable, ParameterConvertible, Hashabl
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(error, forKey: .error)
-        try container.encodeIfPresent(retryAfterSeconds, forKey: .retryAfterSeconds)
+        try container.encode(retryAfterSeconds, forKey: .retryAfterSeconds)
     }
 }
 

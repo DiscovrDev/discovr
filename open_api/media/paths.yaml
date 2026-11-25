@@ -7,11 +7,12 @@ media:
     description: |
       Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).
 
-      This is a public endpoint — no authentication required. Returns only generic catalog metadata; personalized fields live under `profile_meta`.
+      **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata; the profile's own state for the title (lists, playback, completion) is `getMediaProfileMeta`, which is also the call that records the title as opened.
     operationId: getMedia
-    x-tier: public
+    x-tier: session
     x-cache-policy: session
-    security: [] # Public endpoint - no authentication required
+    security:
+      - BearerAuth: []
     parameters:
       - name: mediaId
         in: path
@@ -32,6 +33,10 @@ media:
               $ref: "./schemas.yaml#/MediaResponse"
       "400":
         $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../shared/responses.yaml#/Forbidden"
       "404":
         $ref: "../shared/responses.yaml#/NotFound"
       "500":
@@ -111,12 +116,13 @@ media/{mediaId}/similar:
     description: |
       Returns titles that are similar to the given movie or TV show. Useful for "More like this" sections.
 
-      This is a public endpoint — no authentication required. Returns only generic catalog metadata.
+      **Auth tier:** session — send your session token in `Authorization: Bearer`. The refs on the results are sealed for the profile that asked.
     operationId: getSimilarRecommendations
-    x-tier: public
+    x-tier: session
     # Results can change over time, so cache by the hour rather than for the whole session.
     x-cache-policy: "ttl:3600"
-    security: [] # Public endpoint - no authentication required
+    security:
+      - BearerAuth: []
     parameters:
       - name: mediaId
         in: path
@@ -153,6 +159,10 @@ media/{mediaId}/similar:
               $ref: "./schemas.yaml#/SimilarResponse"
       "400":
         $ref: "../shared/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../shared/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../shared/responses.yaml#/Forbidden"
       "404":
         $ref: "../shared/responses.yaml#/NotFound"
       "500":

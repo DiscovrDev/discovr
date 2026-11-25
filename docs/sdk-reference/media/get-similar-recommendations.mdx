@@ -5,7 +5,7 @@ description: "Get similar titles"
 
 Returns titles that are similar to the given movie or TV show. Useful for "More like this" sections.
 
-This is a public endpoint — no authentication required. Returns only generic catalog metadata.
+**Auth tier:** session — send your session token in `Authorization: Bearer`. The refs on the results are sealed for the profile that asked.
 
 ## Parameters
 
@@ -69,6 +69,7 @@ import type { SimilarResponse } from "discovr";
 
 const discovr = new DiscovrClient("your-client-id");
 
+// After sign-in and profile selection …
 const response: SimilarResponse = await discovr.getSimilarRecommendations("example", {
 	language: "en-US",
 	page: 1,

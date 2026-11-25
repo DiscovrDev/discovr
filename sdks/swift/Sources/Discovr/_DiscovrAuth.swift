@@ -182,6 +182,14 @@ public enum AuthError: Error, Sendable, Equatable {
     case clientNotFound
     /// The credentials the SDK sent were rejected. Sign in again.
     case tokenInvalid
+    /// The account authenticated, and is still on the waitlist (403).
+    case accessNotGranted
+    /// The account authenticated, and must accept the latest Terms to continue (403).
+    case legalAcceptanceRequired
+    /// The requested profile does not exist under the signed-in account (403).
+    case profileNotFound
+    /// The pagination cursor or row reference points at results that have since been replaced (409).
+    case cursorExpired
     /// Discovr rate-limited the request. `retryInSeconds` is how long until
     /// the current window rolls over.
     ///
@@ -191,6 +199,19 @@ public enum AuthError: Error, Sendable, Equatable {
     /// and retry for you — limits are per minute or per hour, so an automatic
     /// retry either blocks your UI or fires again into a closed window.
     case rateLimited(retryInSeconds: Int)
+}
+
+public extension ErrorResponse {
+    /// Seconds until the current rate-limit window rolls over, when this is a
+    /// `429` response. Convenience for callers using low-level `DiscovrAPI`
+    /// directly; `DiscovrClient` methods throw ``AuthError/rateLimited(retryInSeconds:)``
+    /// on every tier.
+    var retryInSeconds: Int? {
+        guard case let .error(status, data, response, _) = self, status == 429 else {
+            return nil
+        }
+        return _DiscovrAuth.retryAfterSeconds(response, body: data)
+    }
 }
 
 internal actor _DiscovrAuth {
@@ -729,17 +750,17 @@ internal actor _DiscovrAuth {
         let tokenKind = json["tokenKind"] as? String
 
         switch (error, tokenKind) {
-        case ("TOKEN_EXPIRED", "session"):
+        case ("token-expired", "session"):
             sessionToken = nil; sessionExpiresAt = nil
             do { return .retryWithBearer(try await ensureSessionToken()) }
             catch { return .noOp }
 
-        case ("TOKEN_EXPIRED", "refresh"):
+        case ("token-expired", "refresh"):
             await endSession(lapseReason())
             return .signedOut
 
-        case ("WRONG_TOKEN_KIND", _):
-            print("[_DiscovrAuth] WRONG_TOKEN_KIND — SDK sent the wrong token tier. Report this as an SDK bug.")
+        case ("wrong-token-kind", _):
+            print("[_DiscovrAuth] wrong-token-kind — SDK sent the wrong token tier. Report this as an SDK bug.")
             return .noOp
 
         default:
@@ -756,7 +777,7 @@ internal actor _DiscovrAuth {
     /// after a demo sandbox lapsed surfaced as a bare 401 while the client went on
     /// reporting itself signed in; only the SDK's own requests recovered. Same two
     /// cases as ``request(method:path:body:bearer:)``: a refresh-kind
-    /// `TOKEN_EXPIRED`, and a 401 whose body cannot be read.
+    /// `token-expired`, and a 401 whose body cannot be read.
     ///
     /// - Returns: `true` if the client was signed out.
     @discardableResult
@@ -765,7 +786,7 @@ internal actor _DiscovrAuth {
             await endSession(lapseReason())
             return true
         }
-        if json["error"] as? String == "TOKEN_EXPIRED", json["tokenKind"] as? String == "refresh" {
+        if json["error"] as? String == "token-expired", json["tokenKind"] as? String == "refresh" {
             await endSession(lapseReason())
             return true
         }
@@ -861,20 +882,36 @@ internal actor _DiscovrAuth {
 
     /// Translates a non-2xx response into the SDK's own error vocabulary.
     ///
-    /// The server names failures in the response's `error` field. Those codes
-    /// are an implementation detail of the API, so they are mapped here and
-    /// not passed on. Anything unrecognised becomes `.http` with the status
-    /// and a short message.
-    nonisolated static func authError(status: Int, data: Data) -> AuthError {
+    /// The server names failures in the response's `error` field (a kebab-case
+    /// code) with an optional `message` detail. Unknown machine codes are never
+    /// echoed as user messages.
+    nonisolated static func authError(status: Int, data: Data, response: URLResponse? = nil) -> AuthError {
         let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-        return authError(status: status, code: json?["error"] as? String)
+        let code = json?["error"] as? String
+        let message = (json?["message"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        let retry = (status == 429 || code == "rate-limited")
+            ? retryAfterSeconds(response, body: data)
+            : nil
+        if status == 429 {
+            return .rateLimited(retryInSeconds: retry ?? 60)
+        }
+        return authError(status: status, code: code, message: message, retryInSeconds: retry)
     }
 
     /// The same mapping for a code that arrived some other way than a response
     /// body, such as the `error` parameter on a sign-in redirect.
-    nonisolated static func authError(status: Int, code: String?) -> AuthError {
+    ///
+    /// The `switch` cases below are generated from `ApiErrorCode` in the OpenAPI
+    /// spec by `emit-error-tables.ts`. Do not edit between the generated markers by hand.
+    nonisolated static func authError(
+        status: Int,
+        code: String?,
+        message: String? = nil,
+        retryInSeconds: Int? = nil
+    ) -> AuthError {
         switch code {
-        case "client-not-found", "CLIENT_NOT_FOUND", "MISSING_CLIENT_ID":
+        // <generated:error-table>
+        case "client-not-found":
             return .clientNotFound
         case "device-code-expired", "device-code-not-found":
             return .deviceCodeExpired
@@ -884,17 +921,54 @@ internal actor _DiscovrAuth {
             return .deviceCodeDenied
         case "authorization-cancelled":
             return .cancelled
-        case "session-expired", "session-not-found", "TOKEN_EXPIRED":
+        case "session-expired", "session-not-found":
             return .sessionExpired
         case "session-already-consumed":
             return .sessionConsumed
-        case "token-invalid", "TOKEN_INVALID", "WRONG_TOKEN_KIND", "client-mismatch", "code-verifier-invalid":
+        case "token-invalid", "token-expired", "wrong-token-kind", "client-mismatch", "code-verifier-invalid":
             return .tokenInvalid
+        case "access-not-granted":
+            return .accessNotGranted
+        case "legal-acceptance-required":
+            return .legalAcceptanceRequired
+        case "profile-not-found":
+            return .profileNotFound
+        case "cursor-expired":
+            return .cursorExpired
+        case "rate-limited":
+            return .rateLimited(retryInSeconds: retryInSeconds ?? 60)
+        // </generated:error-table>
         default:
+            if let message {
+                return .http(status: status, message: message)
+            }
             // Prose errors ("Resource not found") are written for callers; machine
             // codes we don't know are not, so don't echo them.
             let isCode = code.map { $0.range(of: #"^[A-Za-z0-9_-]+$"#, options: .regularExpression) != nil } ?? true
             return .http(status: status, message: isCode ? "Request failed (HTTP \(status))" : (code ?? ""))
+        }
+    }
+
+    /// Recognises data-call failures that carry a dedicated typed ``AuthError``
+    /// across every tier (identity, session, and public). Returns `nil` for
+    /// ordinary HTTP errors so status-based ``ErrorResponse`` handlers keep working.
+    nonisolated static func typedApiError(
+        status: Int,
+        data: Data?,
+        response: URLResponse?
+    ) -> AuthError? {
+        if status == 429 {
+            return .rateLimited(retryInSeconds: retryAfterSeconds(response, body: data))
+        }
+        guard (status == 403 || status == 409), let data else {
+            return nil
+        }
+        let mapped = authError(status: status, data: data, response: response)
+        switch mapped {
+        case .accessNotGranted, .legalAcceptanceRequired, .profileNotFound, .cursorExpired, .rateLimited:
+            return mapped
+        default:
+            return nil
         }
     }
 
@@ -1016,12 +1090,12 @@ internal actor _DiscovrAuth {
                 }
                 let error = json["error"] as? String
                 let tokenKind = json["tokenKind"] as? String
-                if error == "TOKEN_EXPIRED" && tokenKind == "refresh" {
+                if error == "token-expired" && tokenKind == "refresh" {
                     await endSession(lapseReason())
                     throw AuthError.tokenInvalid
                 }
             }
-            throw Self.authError(status: status, data: data)
+            throw Self.authError(status: status, data: data, response: response)
         }
         return data
     }
@@ -1303,12 +1377,9 @@ final class DiscovrSessionInterceptor: OpenAPIInterceptor, @unchecked Sendable {
     public func retry<T>(urlRequest: URLRequest, urlSession: URLSessionProtocol, requestBuilder: RequestBuilder<T>, data: Data?, response: URLResponse?, error: Error, completion: @escaping (OpenAPIInterceptorRetry) -> Void) {
         // A 429 is never retried here — limit windows are a minute long, so an
         // automatic retry would either stall the caller or fire into a closed
-        // window. It surfaces as `ErrorResponse.error(429, data, response, _)`,
-        // which carries the response, so `Retry-After` is readable from it. It
-        // can't be a typed `AuthError.rateLimited` on this path for the same
-        // reason `.signedOut` can't below: `OpenAPIInterceptorRetry` is generated
-        // infrastructure with no slot for a custom error. Identity-tier calls,
-        // which don't go through this interceptor, do throw the typed case.
+        // window. `_DiscovrClientBase._call` converts the surfaced
+        // `ErrorResponse` into `AuthError.rateLimited(retryInSeconds:)` across
+        // every tier (session, identity, and public).
         guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode == 401, let data = data else {
             completion(.dontRetry)
             return

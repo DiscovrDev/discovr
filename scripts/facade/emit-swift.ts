@@ -34,6 +34,22 @@ export function generateSwift(ops: ParsedOperation[]): string {
 	lines.push("        _auth.publicAPIConfiguration()");
 	lines.push("    }");
 	lines.push("");
+	lines.push("    /// Translates rate limits and known API error codes into typed ``AuthError``");
+	lines.push("    /// cases on every tier (identity, session, and public), leaving ordinary HTTP");
+	lines.push("    /// status failures as ``ErrorResponse``.");
+	lines.push("    private func _call<T>(_ operation: () async throws -> T) async throws -> T {");
+	lines.push("        do {");
+	lines.push("            return try await operation()");
+	lines.push("        } catch let ErrorResponse.error(status, data, response, underlying) {");
+	lines.push(
+		"            if let typed = _DiscovrAuth.typedApiError(status: status, data: data, response: response) {",
+	);
+	lines.push("                throw typed");
+	lines.push("            }");
+	lines.push("            throw ErrorResponse.error(status, data, response, underlying)");
+	lines.push("        }");
+	lines.push("    }");
+	lines.push("");
 
 	const tiers: Array<ParsedOperation["tier"]> = ["identity", "session", "public"];
 
@@ -171,7 +187,7 @@ function buildSwiftCall(op: ParsedOperation, tier: ParsedOperation["tier"]): str
 
 	sdkArgs.push(`apiConfiguration: ${config}`);
 
-	return `try await DiscovrAPI.${op.operationId}(${sdkArgs.join(", ")})`;
+	return `try await self._call { try await DiscovrAPI.${op.operationId}(${sdkArgs.join(", ")}) }`;
 }
 
 function lcFirst(s: string): string {

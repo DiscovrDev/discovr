@@ -4,6 +4,7 @@ export * from './AddHistoryPayload';
 export * from './AddPlaybackPayload';
 export * from './AddSimpleListItemPayload';
 export * from './ApiError';
+export * from './ApiErrorCode';
 export * from './AvatarMediaType';
 export * from './CreatePagePayload';
 export * from './CreatePageResponse';

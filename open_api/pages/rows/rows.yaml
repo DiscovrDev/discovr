@@ -12,7 +12,7 @@ collection:
 
       Row IDs are opaque references — pass them straight back to `GET /pages/{pageId}/rows/{rowId}/items`. They keep working even if recommendations refresh while the user is scrolling, so a rail they've already opened stays readable to the end.
 
-      Pagination continues in the set of results it started with, and only for as long as the user's recommendations haven't turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with `409 CURSOR_EXPIRED`: call `getPage` and `getRows` with no token on the same page ID and replace what you're showing with the result. Rows you already hold are not affected: `GET /pages/{pageId}/rows/{rowId}/items` keeps working for them.
+      Pagination continues in the set of results it started with, and only for as long as the user's recommendations haven't turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with `409 cursor-expired`: call `getPage` and `getRows` with no token on the same page ID and replace what you're showing with the result. Rows you already hold are not affected: `GET /pages/{pageId}/rows/{rowId}/items` keeps working for them.
 
       **Auth tier:** session.
     operationId: getRows
@@ -23,7 +23,7 @@ collection:
       - name: pageId
         in: path
         required: true
-        description: The unique identifier of the page
+        description: The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
         schema:
           type: string
       - name: nextPageToken
@@ -82,7 +82,7 @@ item:
       - name: pageId
         in: path
         required: true
-        description: The unique identifier of the page
+        description: The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
         schema:
           type: string
       - name: rowId
@@ -134,7 +134,7 @@ items:
       - name: pageId
         in: path
         required: true
-        description: The unique identifier of the page
+        description: The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
         schema:
           type: string
       - name: rowId

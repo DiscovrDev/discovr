@@ -70,7 +70,8 @@ post:
           schema:
             $ref: "../../shared/schemas.yaml#/ApiError"
           example:
-            error: "Invalid path structure. Expected: /auth/device-codes/:deviceCode/poll"
+            error: "invalid-input"
+            message: "Invalid path structure. Expected: /auth/device-codes/:deviceCode/poll"
     "401":
       description: |
         Device code expired, already consumed, or declined by the person on their phone.

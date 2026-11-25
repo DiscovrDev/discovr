@@ -23,6 +23,13 @@ info:
     likes, history, playback, and watchlists. The active profile is carried
     by the session token, so profile-scoped endpoints don't accept a
     `profileId` path parameter — they live under `/profile/*`.
+
+    **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta`
+    records that the viewer opened a title and directly affects the profile's
+    recommendations. Only call it when the title screen actually opens —
+    prefetching or calling it on hover/focus registers every loaded tile
+    similarly to the viewer liking the title and will skew their
+    recommendations. Pass the item's `ref` when you have one.
   version: 1.0.0-alpha.1
   license:
     name: Discovr Developer Terms
@@ -296,6 +303,8 @@ components:
       $ref: "./profiles/schemas.yaml#/ScrobbleSkipResponse"
 
     # Errors
+    ApiErrorCode:
+      $ref: "./shared/schemas.yaml#/ApiErrorCode"
     ApiError:
       $ref: "./shared/schemas.yaml#/ApiError"
     RateLimitedError:
@@ -350,6 +359,8 @@ components:
       $ref: "./shared/responses.yaml#/BadRequest"
     Unauthorized:
       $ref: "./shared/responses.yaml#/Unauthorized"
+    Forbidden:
+      $ref: "./shared/responses.yaml#/Forbidden"
     NotFound:
       $ref: "./shared/responses.yaml#/NotFound"
     Conflict:

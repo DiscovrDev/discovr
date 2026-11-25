@@ -26,7 +26,7 @@ import Discovr
 let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
-let pageId: String = "pageId_example" // The unique identifier of the page
+let pageId: String = "pageId_example" // The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
 let rowId: String = "rowId_example" // The unique identifier of the row
 
 Task {
@@ -43,7 +43,7 @@ Task {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **pageId** | **String** | The unique identifier of the page | 
+ **pageId** | **String** | The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) | 
  **rowId** | **String** | The unique identifier of the row | 
 
 ### Return type
@@ -78,7 +78,7 @@ import Discovr
 let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
-let pageId: String = "pageId_example" // The unique identifier of the page
+let pageId: String = "pageId_example" // The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
 let rowId: String = "rowId_example" // The unique identifier of the row
 let nextPageToken: String = "nextPageToken_example" // Opaque pagination token returned from the previous page (optional)
 let limit: Int = 987 // Maximum number of items to return (optional) (default: 10)
@@ -97,7 +97,7 @@ Task {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **pageId** | **String** | The unique identifier of the page | 
+ **pageId** | **String** | The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) | 
  **rowId** | **String** | The unique identifier of the row | 
  **nextPageToken** | **String** | Opaque pagination token returned from the previous page | [optional] 
  **limit** | **Int** | Maximum number of items to return | [optional] [default to 10]
@@ -124,7 +124,7 @@ Name | Type | Description  | Notes
 
 List rows
 
-Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to `GET /pages/{pageId}/rows/{rowId}/items`. They keep working even if recommendations refresh while the user is scrolling, so a rail they've already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user's recommendations haven't turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with `409 CURSOR_EXPIRED`: call `getPage` and `getRows` with no token on the same page ID and replace what you're showing with the result. Rows you already hold are not affected: `GET /pages/{pageId}/rows/{rowId}/items` keeps working for them.  **Auth tier:** session. 
+Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to `GET /pages/{pageId}/rows/{rowId}/items`. They keep working even if recommendations refresh while the user is scrolling, so a rail they've already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user's recommendations haven't turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with `409 cursor-expired`: call `getPage` and `getRows` with no token on the same page ID and replace what you're showing with the result. Rows you already hold are not affected: `GET /pages/{pageId}/rows/{rowId}/items` keeps working for them.  **Auth tier:** session. 
 
 ### Example
 ```swift
@@ -134,7 +134,7 @@ import Discovr
 let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
-let pageId: String = "pageId_example" // The unique identifier of the page
+let pageId: String = "pageId_example" // The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
 let nextPageToken: String = "nextPageToken_example" // Opaque pagination token returned from the previous page (optional)
 let limit: Int = 987 // Maximum number of rows to return (optional) (default: 5)
 
@@ -152,7 +152,7 @@ Task {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **pageId** | **String** | The unique identifier of the page | 
+ **pageId** | **String** | The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) | 
  **nextPageToken** | **String** | Opaque pagination token returned from the previous page | [optional] 
  **limit** | **Int** | Maximum number of rows to return | [optional] [default to 5]
 

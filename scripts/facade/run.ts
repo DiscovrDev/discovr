@@ -10,6 +10,7 @@ import {
 	TS_OUT,
 } from "./config";
 import { emitFacadeSamplesJson } from "./emit-doc-samples";
+import { emitErrorTables } from "./emit-error-tables";
 import { generateKotlin } from "./emit-kotlin";
 import { generateSwift } from "./emit-swift";
 import { generateTypeScript } from "./emit-typescript";
@@ -48,6 +49,9 @@ export function runFacadeGeneration(): void {
 	console.log(`✅  Written: ${path.relative(ROOT, SWIFT_OUT)}`);
 
 	emitFacadeSamplesJson(spec, ops);
+
+	console.log("\n🔁  Generating SDK error tables from ApiErrorCode...");
+	emitErrorTables(spec as unknown as Record<string, unknown>);
 
 	console.log("\n📋  Copying hand-maintained SDK files...");
 	for (const { src, dst } of HAND_MAINTAINED_COPIES) {

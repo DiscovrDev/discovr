@@ -42,7 +42,7 @@ post:
       $ref: "../../shared/responses.yaml#/Unauthorized"
     "403":
       description: |
-        Returned when you send a session token where a refresh token is required (`WRONG_TOKEN_KIND`), or when the `profileId` doesn't belong to the signed-in user (`PROFILE_NOT_FOUND`).
+        Returned when you send a session token where a refresh token is required (`wrong-token-kind`), or when the `profileId` doesn't belong to the signed-in user (`profile-not-found`).
       content:
         application/json:
           schema:

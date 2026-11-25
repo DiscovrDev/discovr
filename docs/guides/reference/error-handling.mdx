@@ -11,8 +11,10 @@ Typical entry points: [`signInWithPopup()`](/sdk-reference/authentication/sign-i
 flowchart TD
     E[Error caught] --> C1{Error type}
     C1 -->|ClientNotFoundError| A1["Check your Client ID\nin DiscovrClient()"]
+    C1 -->|AccessNotGrantedError| A6["Show waitlist screen\n(don't retry)"]
     C1 -->|TokenInvalidError| A2["Prompt: sign in again"]
-    C1 -->|409 CURSOR_EXPIRED| A3["Reload the page: getPage +\ngetRows, same page id"]
+    C1 -->|CursorExpiredError| A3["Reload the page: getPage +\ngetRows, same page id"]
+    C1 -->|RateLimitedError| A7["Back off by retryInSeconds"]
     C1 -->|Network error| A4["Show retry button\nCheck connectivity"]
     C1 -->|Other DiscovrError| A5["Log err.code + message\nShow generic 'try again'"]
 ```
@@ -96,9 +98,9 @@ func handleSignInErrors(client: DiscovrClient) async {
 
 ## When API calls fail
 
-The typed errors above belong to the sign-in flow. Once you're signed in, failures on data calls — [`createPage()`](/sdk-reference/pages/create-page) and every other session-scoped request — mostly arrive as HTTP errors, so branch on the **status code**.
+Every actionable error condition — rate limits, waitlist status, terms acceptance, missing profiles, and expired pagination cursors — surfaces as a **typed SDK error** across all three languages and every tier (auth, identity, session, and public). Everything else arrives as an HTTP status you branch on.
 
-**One exception: rate limits.** TypeScript and Kotlin turn a `429` into a typed `RateLimitedError` before it ever reaches your status check, so a `case 429:` there never fires. Catch the type instead and use the wait it carries:
+**Rate limits** always carry a typed `retryInSeconds` wait from the server:
 
 {/* sample: reference-error-handling-when-api-calls-fail */}
 
@@ -128,36 +130,23 @@ try {
 ```
 
 ```swift Swift
-// Swift is the exception to the exception. On the session tier a 429 surfaces
-// as the generated `ErrorResponse`, not a typed error, so branch on the status
-// as you would for any other data-call failure — see the switch below.
-// Identity-tier calls (sign-in, profile selection) do throw
-// `AuthError.rateLimited(retryInSeconds:)`.
 do {
     _ = try await client.getRows(pageId: pageId)
-} catch ErrorResponse.error(429, _, let response, _) {
-    let retryAfter = (response as? HTTPURLResponse)?.value(forHTTPHeaderField: "Retry-After")
-    print("Slow down — try again in \(retryAfter ?? "a few")s.")
+} catch AuthError.rateLimited(let retryInSeconds) {
+    print("Slow down — try again in \(retryInSeconds)s.")
 }
 ```
 
 </CodeGroup>
 
-<Note>
-	The asymmetry is a platform constraint, not an oversight. Swift's session-tier calls go through
-	generated retry infrastructure whose result type carries no slot for a custom error, so the thrown
-	value can't be swapped for a typed one without changing the code generator itself. It's the same
-	reason a signed-out Swift session surfaces `ErrorResponse` rather than `TokenInvalidError`.
-</Note>
-
-Everything else branches on the status code:
+Catch the typed errors first, then fall back to the HTTP status:
 
 {/* sample: reference-error-handling-when-api-calls-fail-2 */}
 
 <CodeGroup>
 
 ```typescript TypeScript
-// Data-call failures carry the HTTP response. Narrow it before reading the status.
+// Ordinary HTTP failures carry the response. Narrow it before reading the status.
 function httpStatus(err: unknown): number | undefined {
 	const res = (err as { response?: { status?: number } }).response;
 	return typeof res?.status === "number" ? res.status : undefined;
@@ -167,16 +156,26 @@ try {
 	const page = await client.createPage();
 	// Use page normally
 } catch (err) {
+	if (err instanceof AccessNotGrantedError) {
+		// Account is still on the waitlist — show a waitlist screen, don't retry.
+		console.log("Your account isn't active yet.");
+		return;
+	}
+	if (err instanceof LegalAcceptanceRequiredError) {
+		console.log("Please accept the latest Terms to continue.");
+		return;
+	}
+	if (err instanceof CursorExpiredError) {
+		// A pagination token is no longer usable, typically because the
+		// recommendations turned over. The page id is still good: reload the
+		// page (getPage + getRows, no token) and replace what you're showing.
+		await restartPagination();
+		return;
+	}
 	switch (httpStatus(err)) {
 		case 401:
 			// The user is signed out. Nothing else produces a 401 any more.
 			await showSignInUI();
-			break;
-		case 409:
-			// A pagination token is no longer usable, typically because the
-			// recommendations turned over. The page id is still good: reload the
-			// page (getPage + getRows, no token) and replace what you're showing.
-			await restartPagination();
 			break;
 		case 403:
 			// The SDK sent the wrong kind of credential — a bug, not a user problem.
@@ -197,10 +196,15 @@ import api.discovr.DiscovrException
 
 try {
     val page = client.createPage()
+} catch (_: AccessNotGrantedError) {
+    println("Your account isn't active yet.")
+} catch (_: LegalAcceptanceRequiredError) {
+    println("Please accept the latest Terms to continue.")
+} catch (_: CursorExpiredError) {
+    restartPagination()
 } catch (e: DiscovrException) {
     when (e.statusCode) {
         401 -> showSignInUI()
-        409 -> restartPagination()
         403 -> println("Internal error. Please report this if it keeps happening.")
         else -> println("Something went wrong. Try again.")
     }
@@ -220,17 +224,22 @@ func handleAPICallErrors() async {
         let page = try await client.createPage()
         // Use page normally
         print(page.id)
-    } catch ErrorResponse.error(401, _, _, _) {
-        // The user is signed out. Nothing else produces a 401 any more.
-        showSignInUI()
-    } catch ErrorResponse.error(409, _, _, _) {
+    } catch AuthError.accessNotGranted {
+        // Account is still on the waitlist — show a waitlist screen, don't retry.
+        print("Your account isn't active yet.")
+    } catch AuthError.legalAcceptanceRequired {
+        // Account needs to accept the latest Terms before continuing.
+        print("Please accept the latest Terms to continue.")
+    } catch AuthError.cursorExpired {
         // A pagination token is no longer usable, typically because the
         // recommendations turned over. The page id is still good: reload the
         // page (getPage + getRows, no token) and replace what you're showing.
         restartPagination()
-    } catch ErrorResponse.error(429, _, _, _) {
-        // Swift only: TypeScript and Kotlin throw a typed RateLimitedError.
-        print("Too many requests. Try again in a moment.")
+    } catch AuthError.rateLimited(let retryInSeconds) {
+        print("Too many requests. Try again in \(retryInSeconds)s.")
+    } catch ErrorResponse.error(401, _, _, _) {
+        // The user is signed out. Nothing else produces a 401 any more.
+        showSignInUI()
     } catch ErrorResponse.error(403, _, _, _) {
         print("Internal error. Please report this if it keeps happening.")
     } catch {
@@ -248,38 +257,42 @@ func handleAPICallErrors() async {
 
 **Error mapping:**
 
-Sign-in failures arrive as **typed error classes** you can catch by type. Data-call failures arrive as **HTTP statuses** you branch on.
+Actionable failures arrive as **typed error classes** across every tier (sign-in, identity, session, and public). Everything else arrives as an **HTTP status** you branch on.
 
-**Sign-in — catch by type:**
+**Typed errors — catch by type (all tiers):**
 
-| Error class               | Where it occurs         | What to show user                                       |
-| ------------------------- | ----------------------- | ------------------------------------------------------- |
-| `ClientNotFoundError`     | Any sign-in flow        | "Invalid client ID. Check your app configuration."      |
-| `TokenInvalidError`       | Sign-in                 | "Authentication failed. Sign in again."                 |
-| `SessionExpiredError`     | Web sign-in             | "Sign-in window expired. Please try again."             |
-| `SessionConsumedError`    | Web sign-in             | "This sign-in link was already used. Please try again." |
-| `DeviceCodeExpiredError`  | Device code flow        | "Code expired. Generate a new one."                     |
-| `DeviceCodeConsumedError` | Device code polling     | "This code was already used. Generate a new one."       |
-| `DeviceCodeDeniedError`   | Device code polling     | "Sign-in was declined on your phone."                   |
-| `AuthCancelledError`      | Any sign-in flow        | Nothing: the person chose to stop.                      |
-| `NotSignedInError`        | Any call before sign-in | "Please sign in to continue."                           |
+| Error class (TS / Kotlin)      | Swift (`AuthError`)             | Wire code (`error`)            | What to do                                                              |
+| ------------------------------ | ------------------------------- | ------------------------------ | ----------------------------------------------------------------------- |
+| `ClientNotFoundError`          | `.clientNotFound`               | `client-not-found`             | Check your Client ID in `DiscovrClient()`.                              |
+| `TokenInvalidError`            | `.tokenInvalid`                 | `token-invalid`                | Prompt the user to sign in again.                                       |
+| `AccessNotGrantedError`        | `.accessNotGranted`             | `access-not-granted`           | Account is on the waitlist — show a waitlist screen, don't retry.       |
+| `LegalAcceptanceRequiredError` | `.legalAcceptanceRequired`      | `legal-acceptance-required`    | Ask the user to accept the latest Terms before continuing.              |
+| `ProfileNotFoundError`         | `.profileNotFound`              | `profile-not-found`            | The profile no longer exists — return to the profile picker.            |
+| `CursorExpiredError`           | `.cursorExpired`                | `cursor-expired`               | Reload the page (`getPage` + `getRows`, no token) and replace the list. |
+| `RateLimitedError`             | `.rateLimited(retryInSeconds:)` | `rate-limited`                 | Back off by `retryInSeconds`, then retry.                               |
+| `SessionExpiredError`          | `.sessionExpired`               | `session-expired`              | Sign-in window expired — start sign-in again.                           |
+| `SessionConsumedError`         | `.sessionConsumed`              | `session-already-consumed`     | Sign-in link already used — start sign-in again.                        |
+| `DeviceCodeExpiredError`       | `.deviceCodeExpired`            | `device-code-expired`          | Device code expired — request a new one.                                |
+| `DeviceCodeConsumedError`      | `.deviceCodeConsumed`           | `device-code-already-consumed` | Code already used — request a new one.                                  |
+| `DeviceCodeDeniedError`        | `.deviceCodeDenied`             | `device-code-denied`           | Declined on the phone — offer to try again.                             |
+| `AuthCancelledError`           | `.cancelled`                    | `authorization-cancelled`      | Nothing: the person chose to stop.                                      |
+| `NotSignedInError`             | `.notSignedIn`                  | —                              | Prompt the user to sign in.                                             |
 
 <Warning>
 	`SessionExpiredError` is about the **sign-in window**, not a browsing session. A pagination cursor
-	that goes stale surfaces as `409 CURSOR_EXPIRED` on the data call, never as this class.
+	that goes stale surfaces as `CursorExpiredError` (`409 cursor-expired`), never as this class.
 </Warning>
 
-**Data calls — branch on status:**
+**Other HTTP failures — branch on status:**
 
-| Status        | What it means                                                                       | What to do                                                                      |
-| ------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `401`         | The user is signed out. Nothing else produces one.                                  | Show the sign-in UI.                                                            |
-| `403`         | The wrong kind of credential was sent — an SDK bug.                                 | "Internal error." [Report it](https://discoverapi.userjot.com/) if it persists. |
-| `404`         | The page or row doesn't exist.                                                      | Go back to a known-good page.                                                   |
-| `409`         | Your pagination token is no longer usable, usually after a recommendation turnover. | Call `getPage` and `getRows` with no token, and replace what you're showing.    |
-| `429`         | Rate limited. **TypeScript and Kotlin throw `RateLimitedError` instead of this.**   | Back off by `retryInSeconds`, then retry.                                       |
-| `500` / `503` | Discovr had a problem.                                                              | "Something went wrong. Try again."                                              |
-| No status     | The request never left the device.                                                  | "Check your connection and try again."                                          |
+| Status        | Wire code (`error`)                      | What to do                                                                          |
+| ------------- | ---------------------------------------- | ----------------------------------------------------------------------------------- |
+| `401`         | `token-invalid` / `token-expired`        | The user is signed out. Show the sign-in UI.                                        |
+| `403`         | `wrong-token-kind` / `permission-denied` | If not one of the typed 403s above, show a generic error and report if it persists. |
+| `404`         | `not-found`                              | The resource doesn't exist. Go back to a known-good page.                           |
+| `409`         | `duplicate`                              | The item already exists.                                                            |
+| `500` / `503` | `internal-error` / `service-unavailable` | "Something went wrong. Try again."                                                  |
+| No status     | —                                        | The request never left the device. "Check your connection and try again."           |
 
 ## SDK error recovery
 
@@ -288,7 +301,7 @@ SDK automatically handles:
 - **Token refresh:** Before token expires, SDK mints a fresh one. Transparent to your code.
 - **Retry logic:** If token expires mid-request, SDK refreshes and retries. You see no errors.
 
-A `409 CURSOR_EXPIRED` is the one data-call failure the SDK doesn't recover from for you — reload
+A `409 cursor-expired` (`CursorExpiredError` / `AuthError.cursorExpired`) is the one data-call failure the SDK doesn't recover from for you — reload
 that page with `getPage` and `getRows` (no token) and replace what you're showing (see the table
 above and [Recommendations](/guides/recommendations)).
 
@@ -317,7 +330,7 @@ You mainly need to catch:
 - Show technical error messages to users ("TOKEN_EXPIRED_INVALID_SIGNATURE")
 - Log or expose tokens
 - Retry indefinitely without backoff
-- Assume error codes—check for multiple possible codes (e.g., both `TOKEN_INVALID` and `TOKEN_EXPIRED`)
+- Assume error codes—catch the SDK's typed error classes instead of matching wire strings directly
 
 ## Related SDK reference
 
@@ -325,4 +338,4 @@ You mainly need to catch:
 
 ---
 
-Reference — you don't need to read this end to end. See also [Security](/guides/reference/security) for token handling, and [Recommendations](/guides/recommendations) for the `409 CURSOR_EXPIRED` case specifically.
+Reference — you don't need to read this end to end. See also [Security](/guides/reference/security) for token handling, and [Recommendations](/guides/recommendations) for the `409 cursor-expired` case specifically.

@@ -1,11 +1,11 @@
-import { DiscovrClient, ResponseError } from "discovr";
+import { CursorExpiredError, DiscovrClient } from "discovr";
 
 export async function sample(client: DiscovrClient, pageId: string) {
 	// docs:start
 	try {
 		return await client.getRows(pageId, { nextPageToken: token });
 	} catch (err) {
-		if (err instanceof ResponseError && err.response.status === 409) {
+		if (err instanceof CursorExpiredError) {
 			// The recommendations turned over, so this token is done. The page ID is
 			// still good: reload the hero and the first rows, and replace what you
 			// were showing. Don't append them to the old list.

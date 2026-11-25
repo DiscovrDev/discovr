@@ -1,37 +1,89 @@
 # Shared schemas used across all API endpoints
 # Named ApiError to avoid conflict with language built-ins (Error in TS/Kotlin/Swift)
 
+ApiErrorCode:
+  type: string
+  description: Machine-readable kebab-case error code returned in the `error` field of every API error response.
+  enum:
+    - not-found
+    - duplicate
+    - invalid-input
+    - permission-denied
+    - method-not-allowed
+    - internal-error
+    - data-integrity
+    - upstream-unavailable
+    - service-unavailable
+    - demo-unavailable
+    - direct-access-denied
+    - rate-limited
+    - profile-not-found
+    - cursor-expired
+    - session-expired
+    - session-already-consumed
+    - session-not-found
+    - device-code-expired
+    - device-code-already-consumed
+    - device-code-denied
+    - device-code-busy
+    - device-code-not-found
+    - token-invalid
+    - token-expired
+    - wrong-token-kind
+    - client-not-found
+    - client-mismatch
+    - redirect-uri-not-registered
+    - redirect-uri-invalid
+    - opener-origin-not-allowed
+    - code-challenge-required
+    - code-challenge-invalid
+    - code-verifier-invalid
+    - access-not-granted
+    - legal-acceptance-required
+
 ApiError:
   type: object
-  description: "An API error response. `error` is either a machine-readable code or a plain description of what went wrong. The SDKs translate the codes into typed errors, so most apps never read it directly."
+  description: "An API error response. `error` is a machine-readable kebab-case code from `ApiErrorCode`; `message` is an optional developer-facing detail. The SDKs translate these codes into typed errors, so most apps never read the raw JSON."
   required:
     - error
   properties:
     error:
+      $ref: "#/ApiErrorCode"
+    message:
       type: string
-      description: |
-        Why the request failed. Authentication endpoints return one of these codes:
-        `session-expired`, `session-already-consumed`, `session-not-found`,
-        `client-not-found`, `client-mismatch`, `device-code-not-found`,
-        `device-code-expired`, `device-code-already-consumed`,
-        `device-code-denied`, `code-verifier-invalid`, `token-invalid`. Other endpoints return a
-        plain description.
-      example: "device-code-expired"
-  additionalProperties: true
+      description: Optional human-readable detail for debugging. Omitted on `500` responses.
+    retryAfterSeconds:
+      type: integer
+      minimum: 1
+      description: Present on `429 rate-limited` responses. Seconds until the current limit window rolls over.
+    tokenKind:
+      type: string
+      enum:
+        - session
+        - refresh
+      description: Present on `401 token-expired` responses. Identifies which credential expired.
+    expected:
+      type: string
+      enum:
+        - session
+        - refresh
+      description: Present on `403 wrong-token-kind` responses. Identifies which credential tier the endpoint expected.
+  additionalProperties: false
 
 RateLimitedError:
   type: object
   description: |
-    A `429` body. Same shape as `ApiError` plus the wait hint, which `ApiError`
-    can't carry because it forbids extra properties — a strict validator would
-    reject the very body every limiter sends.
+    A `429` error body carrying `error: "rate-limited"` and the wait hint (`retryAfterSeconds`), mirroring the `Retry-After` header.
   required:
     - error
+    - retryAfterSeconds
   properties:
     error:
       type: string
-      description: Machine-readable error code. Always `RATE_LIMITED` for a `429`.
-      example: "RATE_LIMITED"
+      enum:
+        - rate-limited
+      description: Machine-readable error code. Always `rate-limited` for a `429`.
+      example: "rate-limited"
     retryAfterSeconds:
       type: integer
       minimum: 1

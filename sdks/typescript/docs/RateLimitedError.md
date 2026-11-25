@@ -1,7 +1,7 @@
 
 # RateLimitedError
 
-A `429` body. Same shape as `ApiError` plus the wait hint, which `ApiError` can\'t carry because it forbids extra properties — a strict validator would reject the very body every limiter sends. 
+A `429` error body carrying `error: \"rate-limited\"` and the wait hint (`retryAfterSeconds`), mirroring the `Retry-After` header. 
 
 ## Properties
 
@@ -17,7 +17,7 @@ import type { RateLimitedError } from 'discovr'
 
 // TODO: Update the object below with actual values
 const example = {
-  "error": RATE_LIMITED,
+  "error": rate-limited,
   "retryAfterSeconds": 14,
 } satisfies RateLimitedError
 

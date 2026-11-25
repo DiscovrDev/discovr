@@ -41,7 +41,8 @@ post:
           examples:
             missingField:
               value:
-                error: "Missing or invalid required field: codeVerifier"
+                error: "invalid-input"
+                message: "Missing or invalid required field: codeVerifier"
             malformed:
               value:
                 error: "invalid-input"

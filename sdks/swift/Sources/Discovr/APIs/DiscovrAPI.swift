@@ -977,7 +977,10 @@ open class DiscovrAPI {
     /**
      Get media details
      - GET /media/{mediaId}
-     - Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).  This is a public endpoint — no authentication required. Returns only generic catalog metadata; personalized fields live under `profile_meta`. 
+     - Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata; the profile's own state for the title (lists, playback, completion) is `getMediaProfileMeta`, which is also the call that records the title as opened. 
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
      - parameter mediaId: (path) The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
      - parameter apiConfiguration: The configuration for the http request.
      - returns: RequestBuilder<MediaResponse> 
@@ -1000,7 +1003,7 @@ open class DiscovrAPI {
 
         let localVariableRequestBuilder: RequestBuilder<MediaResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -1018,7 +1021,10 @@ open class DiscovrAPI {
     /**
      Get media assets
      - GET /media/{mediaId}/assets
-     - Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     - Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
      - parameter mediaId: (path) The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
      - parameter apiConfiguration: The configuration for the http request.
      - returns: RequestBuilder<MediaAssetsResponse> 
@@ -1041,7 +1047,7 @@ open class DiscovrAPI {
 
         let localVariableRequestBuilder: RequestBuilder<MediaAssetsResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -1060,7 +1066,7 @@ open class DiscovrAPI {
     /**
      Get profile interaction data for a title
      - GET /media/{mediaId}/profile_meta
-     - Returns the current profile's interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile's selected region. Pass `providers=true` to include this. - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
+     - Returns the current profile's interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (`true`/`false` for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile's selected region. Pass `providers=true` to include this. - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).  **This call directly affects the profile's recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn't open registers similarly to liking those titles and will skew their recommendations. Pass the item's `ref` when you have one.  **Auth tier:** session — send your session token in `Authorization: Bearer`. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -1314,7 +1320,7 @@ open class DiscovrAPI {
     /**
      Get a row
      
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter rowId: (path) The unique identifier of the row 
      - parameter apiConfiguration: The configuration for the http request.
      - returns: Row
@@ -1331,7 +1337,7 @@ open class DiscovrAPI {
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter rowId: (path) The unique identifier of the row 
      - parameter apiConfiguration: The configuration for the http request.
      - returns: RequestBuilder<Row> 
@@ -1363,7 +1369,7 @@ open class DiscovrAPI {
     /**
      List row items
      
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter rowId: (path) The unique identifier of the row 
      - parameter nextPageToken: (query) Opaque pagination token returned from the previous page (optional)
      - parameter limit: (query) Maximum number of items to return (optional, default to 10)
@@ -1382,7 +1388,7 @@ open class DiscovrAPI {
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter rowId: (path) The unique identifier of the row 
      - parameter nextPageToken: (query) Opaque pagination token returned from the previous page (optional)
      - parameter limit: (query) Maximum number of items to return (optional, default to 10)
@@ -1420,7 +1426,7 @@ open class DiscovrAPI {
     /**
      List rows
      
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter nextPageToken: (query) Opaque pagination token returned from the previous page (optional)
      - parameter limit: (query) Maximum number of rows to return (optional, default to 5)
      - parameter apiConfiguration: The configuration for the http request.
@@ -1434,11 +1440,11 @@ open class DiscovrAPI {
     /**
      List rows
      - GET /pages/{pageId}/rows
-     - Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to `GET /pages/{pageId}/rows/{rowId}/items`. They keep working even if recommendations refresh while the user is scrolling, so a rail they've already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user's recommendations haven't turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with `409 CURSOR_EXPIRED`: call `getPage` and `getRows` with no token on the same page ID and replace what you're showing with the result. Rows you already hold are not affected: `GET /pages/{pageId}/rows/{rowId}/items` keeps working for them.  **Auth tier:** session. 
+     - Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to `GET /pages/{pageId}/rows/{rowId}/items`. They keep working even if recommendations refresh while the user is scrolling, so a rail they've already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user's recommendations haven't turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with `409 cursor-expired`: call `getPage` and `getRows` with no token on the same page ID and replace what you're showing with the result. Rows you already hold are not affected: `GET /pages/{pageId}/rows/{rowId}/items` keeps working for them.  **Auth tier:** session. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter nextPageToken: (query) Opaque pagination token returned from the previous page (optional)
      - parameter limit: (query) Maximum number of rows to return (optional, default to 5)
      - parameter apiConfiguration: The configuration for the http request.
@@ -1486,7 +1492,10 @@ open class DiscovrAPI {
     /**
      Get TV season details
      - GET /media/{mediaId}/seasons/{seasonNumber}
-     - Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     - Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata (what the profile has watched is `getSeasonProfileMeta`), but the call needs a profile. 
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
      - parameter mediaId: (path) The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
      - parameter seasonNumber: (path) The season number. 
      - parameter language: (query) ISO 639-1 language code for localised results (e.g., &#x60;en&#x60;). (optional)
@@ -1517,7 +1526,7 @@ open class DiscovrAPI {
 
         let localVariableRequestBuilder: RequestBuilder<SeasonDetailsResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -1586,7 +1595,10 @@ open class DiscovrAPI {
     /**
      Get similar titles
      - GET /media/{mediaId}/similar
-     - Returns titles that are similar to the given movie or TV show. Useful for \"More like this\" sections.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     - Returns titles that are similar to the given movie or TV show. Useful for \"More like this\" sections.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The refs on the results are sealed for the profile that asked. 
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
      - parameter mediaId: (path) The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations.  
      - parameter language: (query) Language code for results (e.g., &#x60;en-US&#x60;). (optional)
      - parameter page: (query) Page number for pagination (default: 1). (optional, default to 1)
@@ -1615,7 +1627,7 @@ open class DiscovrAPI {
 
         let localVariableRequestBuilder: RequestBuilder<SimilarResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -2218,7 +2230,7 @@ open class DiscovrAPI {
     /**
      Start a demo session
      - POST /auth/demo-session
-     - Gives you a working Discovr account in one call — no sign-up, no credentials, nothing to configure. Use it while you build: to explore the API, prototype against realistic data, or try requests right here in the docs. It's a development tool, not something to put in front of your users.  You get a private sandbox pre-loaded with profiles, watchlists, and viewing history, so recommendation rows are populated from the very first request. It behaves like any other account: writes really do save, and reading them back returns what you'd expect.  The response is a refresh token. From here you're on the normal path — call [`POST /auth/session-token`](/api-reference/discovr/mint-session-token) with a profile ID to start browsing. Nothing else about your integration changes, which is the point: code you write against a demo session works unchanged against a real one.  Two things to keep in mind: - **Sandboxes are temporary.** Yours lasts 30 minutes (you can ask for a shorter one with `ttlMs`, never a longer one) and everything in it is deleted afterwards. Once it has ended, requests made with its token fail with `401` `TOKEN_EXPIRED`. Don't build anything that expects it to still be there tomorrow. - **Sandboxes are rate limited.** You can start five per hour from the same network address, and that allowance is shared with the demo button on Discovr's sign-in screens and with a TV's device-code demo. When it runs out you get a `429` with a `Retry-After` header, so hold on to the token you're given rather than requesting a new one per request.  You do still need a `clientId` — the same one your SDK constructor already takes regardless of demo mode, so this asks nothing new of a real integration. Trying this endpoint directly from this page? Use `discovr-docs-playground`, a client id that's always available for exactly that.  It also powers the \"Continue as Demo\" button that Discovr's sign-in screens show to a client created with `demoMode`, which is meant for development builds.  **Auth tier:** none — this is the one endpoint you can call without a credential. 
+     - Gives you a working Discovr account in one call — no sign-up, no credentials, nothing to configure. Use it while you build: to explore the API, prototype against realistic data, or try requests right here in the docs. It's a development tool, not something to put in front of your users.  You get a private sandbox pre-loaded with profiles, watchlists, and viewing history, so recommendation rows are populated from the very first request. It behaves like any other account: writes really do save, and reading them back returns what you'd expect.  The response is a refresh token. From here you're on the normal path — call [`POST /auth/session-token`](/api-reference/discovr/mint-session-token) with a profile ID to start browsing. Nothing else about your integration changes, which is the point: code you write against a demo session works unchanged against a real one.  Two things to keep in mind: - **Sandboxes are temporary.** Yours lasts 30 minutes (you can ask for a shorter one with `ttlMs`, never a longer one) and everything in it is deleted afterwards. Once it has ended, requests made with its token fail with `401` `token-expired`. Don't build anything that expects it to still be there tomorrow. - **Sandboxes are rate limited.** You can start five per hour from the same network address, and that allowance is shared with the demo button on Discovr's sign-in screens and with a TV's device-code demo. When it runs out you get a `429` with a `Retry-After` header, so hold on to the token you're given rather than requesting a new one per request.  You do still need a `clientId` — the same one your SDK constructor already takes regardless of demo mode, so this asks nothing new of a real integration. Trying this endpoint directly from this page? Use `discovr-docs-playground`, a client id that's always available for exactly that.  It also powers the \"Continue as Demo\" button that Discovr's sign-in screens show to a client created with `demoMode`, which is meant for development builds.  **Auth tier:** none — this is the one endpoint you can call without a credential. 
      - parameter demoSessionRequest: (body)  
      - parameter apiConfiguration: The configuration for the http request.
      - returns: RequestBuilder<DemoSessionResponse> 

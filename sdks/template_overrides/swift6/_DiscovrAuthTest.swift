@@ -243,7 +243,7 @@ final class DiscovrAuthTest: XCTestCase {
     }
 
     func testRetryAfterSecondsReadsTheBodyWhenThereIsNoHeader() {
-        let body = Data(#"{"error":"RATE_LIMITED","retryAfterSeconds":14}"#.utf8)
+        let body = Data(#"{"error":"rate-limited","retryAfterSeconds":14}"#.utf8)
         XCTAssertEqual(_DiscovrAuth.retryAfterSeconds(response(retryAfter: nil), body: body), 14)
     }
 
@@ -260,8 +260,6 @@ final class DiscovrAuthTest: XCTestCase {
 
     func testAuthErrorMapsServerCodesToTypedCases() {
         XCTAssertEqual(mapped("client-not-found"), .clientNotFound)
-        XCTAssertEqual(mapped("CLIENT_NOT_FOUND"), .clientNotFound)
-        XCTAssertEqual(mapped("MISSING_CLIENT_ID"), .clientNotFound)
         XCTAssertEqual(mapped("device-code-expired", status: 401), .deviceCodeExpired)
         XCTAssertEqual(mapped("device-code-not-found", status: 404), .deviceCodeExpired)
         XCTAssertEqual(mapped("device-code-already-consumed", status: 401), .deviceCodeConsumed)
@@ -270,8 +268,50 @@ final class DiscovrAuthTest: XCTestCase {
         XCTAssertEqual(mapped("session-expired", status: 401), .sessionExpired)
         XCTAssertEqual(mapped("session-already-consumed", status: 401), .sessionConsumed)
         XCTAssertEqual(mapped("token-invalid", status: 401), .tokenInvalid)
-        XCTAssertEqual(mapped("TOKEN_INVALID", status: 401), .tokenInvalid)
+        XCTAssertEqual(mapped("token-expired", status: 401), .tokenInvalid)
+        XCTAssertEqual(mapped("wrong-token-kind", status: 403), .tokenInvalid)
         XCTAssertEqual(mapped("client-mismatch", status: 403), .tokenInvalid)
+        XCTAssertEqual(mapped("access-not-granted", status: 403), .accessNotGranted)
+        XCTAssertEqual(mapped("legal-acceptance-required", status: 403), .legalAcceptanceRequired)
+        XCTAssertEqual(mapped("profile-not-found", status: 403), .profileNotFound)
+        XCTAssertEqual(mapped("cursor-expired", status: 409), .cursorExpired)
+        XCTAssertEqual(
+            _DiscovrAuth.authError(
+                status: 429,
+                data: Data(#"{"error":"rate-limited","retryAfterSeconds":12}"#.utf8)
+            ),
+            .rateLimited(retryInSeconds: 12)
+        )
+    }
+
+    func testTypedApiErrorMapsDataCallRateLimitsAndTypedErrors() {
+        let rateLimited = _DiscovrAuth.typedApiError(
+            status: 429,
+            data: Data(#"{"error":"rate-limited","retryAfterSeconds":19}"#.utf8),
+            response: response(retryAfter: "19")
+        )
+        XCTAssertEqual(rateLimited, .rateLimited(retryInSeconds: 19))
+
+        let waitlisted = _DiscovrAuth.typedApiError(
+            status: 403,
+            data: Data(#"{"error":"access-not-granted"}"#.utf8),
+            response: nil
+        )
+        XCTAssertEqual(waitlisted, .accessNotGranted)
+
+        let expiredCursor = _DiscovrAuth.typedApiError(
+            status: 409,
+            data: Data(#"{"error":"cursor-expired"}"#.utf8),
+            response: nil
+        )
+        XCTAssertEqual(expiredCursor, .cursorExpired)
+
+        let notFound = _DiscovrAuth.typedApiError(
+            status: 404,
+            data: Data(#"{"error":"not-found"}"#.utf8),
+            response: nil
+        )
+        XCTAssertNil(notFound)
     }
 
     func testAuthErrorDoesNotEchoUnknownMachineCodes() {
@@ -328,7 +368,7 @@ final class DiscovrAuthTest: XCTestCase {
         return await iterator.next()
     }
 
-    private let refreshExpired = Data(#"{"error":"TOKEN_EXPIRED","tokenKind":"refresh"}"#.utf8)
+    private let refreshExpired = Data(#"{"error":"token-expired","tokenKind":"refresh"}"#.utf8)
 
     func testARefreshTokenThatExpiredOnAnIdentityCallSignsTheClientOut() async {
         let a = await signedInAuth()
@@ -372,7 +412,7 @@ final class DiscovrAuthTest: XCTestCase {
     func testAUnauthorizedThatIsNotAboutTheRefreshTokenLeavesTheClientSignedIn() async {
         let a = await signedInAuth()
 
-        let signedOut = await a.handleIdentityErrorBody(Data(#"{"error":"TOKEN_INVALID"}"#.utf8))
+        let signedOut = await a.handleIdentityErrorBody(Data(#"{"error":"token-invalid"}"#.utf8))
 
         XCTAssertFalse(signedOut)
         let state = await currentState(a)

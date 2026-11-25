@@ -240,12 +240,52 @@ export abstract class _DiscovrClientBase {
     return this._auth.sessionApi().deleteHistoryItem(mediaId, options?.season, options?.episode);
   }
 
+  getMedia(mediaId: string, options?: { bypassCache?: boolean }): Promise<MediaResponse> {
+    return this._cache.wrap(
+      "getMedia",
+      { mediaId },
+      undefined,
+      options?.bypassCache,
+      () => this._auth.sessionApi().getMedia(mediaId),
+    );
+  }
+
+  getMediaAssets(mediaId: string, options?: { bypassCache?: boolean }): Promise<MediaAssetsResponse> {
+    return this._cache.wrap(
+      "getMediaAssets",
+      { mediaId },
+      undefined,
+      options?.bypassCache,
+      () => this._auth.sessionApi().getMediaAssets(mediaId),
+    );
+  }
+
   getMediaProfileMeta(mediaId: string, options?: { providers?: boolean }): Promise<MediaProfileMeta> {
     return this._auth.sessionApi().getMediaProfileMeta(mediaId, options?.providers);
   }
 
+  getSeasonDetails(mediaId: string, seasonNumber: number, options?: { language?: string; bypassCache?: boolean }): Promise<SeasonDetailsResponse> {
+    return this._cache.wrap(
+      "getSeasonDetails",
+      { mediaId, seasonNumber, language: options?.language },
+      undefined,
+      options?.bypassCache,
+      () => this._auth.sessionApi().getSeasonDetails(mediaId, seasonNumber, options?.language),
+    );
+  }
+
   getSeasonProfileMeta(mediaId: string, seasonNumber: number): Promise<SeasonProfileMeta> {
     return this._auth.sessionApi().getSeasonProfileMeta(mediaId, seasonNumber);
+  }
+
+  getSimilarRecommendations(mediaId: string, options?: { language?: string; page?: number; bypassCache?: boolean }): Promise<SimilarResponse> {
+    return this._cache.wrap(
+      "getSimilarRecommendations",
+      { mediaId, language: options?.language, page: options?.page },
+      3600000,
+      options?.bypassCache,
+      () => this._auth.sessionApi().getSimilarRecommendations(mediaId, options?.language, options?.page),
+    );
   }
 
   searchMedia(options?: { query?: string; q?: string; page?: number; bypassCache?: boolean }): Promise<SearchResponse> {
@@ -278,46 +318,6 @@ export abstract class _DiscovrClientBase {
 
   startDemoSession(clientId: string, options?: { ttlMs?: number }): Promise<DemoSessionResponse> {
     return this._auth.publicApi().startDemoSession({ clientId, ttlMs: options?.ttlMs });
-  }
-
-  getMedia(mediaId: string, options?: { bypassCache?: boolean }): Promise<MediaResponse> {
-    return this._cache.wrap(
-      "getMedia",
-      { mediaId },
-      undefined,
-      options?.bypassCache,
-      () => this._auth.publicApi().getMedia(mediaId),
-    );
-  }
-
-  getMediaAssets(mediaId: string, options?: { bypassCache?: boolean }): Promise<MediaAssetsResponse> {
-    return this._cache.wrap(
-      "getMediaAssets",
-      { mediaId },
-      undefined,
-      options?.bypassCache,
-      () => this._auth.publicApi().getMediaAssets(mediaId),
-    );
-  }
-
-  getSeasonDetails(mediaId: string, seasonNumber: number, options?: { language?: string; bypassCache?: boolean }): Promise<SeasonDetailsResponse> {
-    return this._cache.wrap(
-      "getSeasonDetails",
-      { mediaId, seasonNumber, language: options?.language },
-      undefined,
-      options?.bypassCache,
-      () => this._auth.publicApi().getSeasonDetails(mediaId, seasonNumber, options?.language),
-    );
-  }
-
-  getSimilarRecommendations(mediaId: string, options?: { language?: string; page?: number; bypassCache?: boolean }): Promise<SimilarResponse> {
-    return this._cache.wrap(
-      "getSimilarRecommendations",
-      { mediaId, language: options?.language, page: options?.page },
-      3600000,
-      options?.bypassCache,
-      () => this._auth.publicApi().getSimilarRecommendations(mediaId, options?.language, options?.page),
-    );
   }
 
   getProfileImages(options?: { limit?: number; pageToken?: string; bypassCache?: boolean }): Promise<ProfileImagesResponse> {

@@ -187,7 +187,7 @@ class DiscovrAuthTest {
 
     @Test
     fun retryAfterSecondsReadsTheBodyWhenThereIsNoHeader() {
-        assertEquals(14, retryAfterSeconds(null, """{"error":"RATE_LIMITED","retryAfterSeconds":14}"""))
+        assertEquals(14, retryAfterSeconds(null, """{"error":"rate-limited","retryAfterSeconds":14}"""))
     }
 
     @Test
@@ -199,8 +199,6 @@ class DiscovrAuthTest {
     fun apiErrorForMapsServerCodesToTypedErrors() {
         fun mapped(code: String, status: Int = 400) = apiErrorFor(status, """{"error":"$code"}""")
         assertTrue(mapped("client-not-found") is ClientNotFoundError)
-        assertTrue(mapped("CLIENT_NOT_FOUND") is ClientNotFoundError)
-        assertTrue(mapped("MISSING_CLIENT_ID") is ClientNotFoundError)
         assertTrue(mapped("device-code-expired", 401) is DeviceCodeExpiredError)
         assertTrue(mapped("device-code-not-found", 404) is DeviceCodeExpiredError)
         assertTrue(mapped("device-code-already-consumed", 401) is DeviceCodeConsumedError)
@@ -209,8 +207,16 @@ class DiscovrAuthTest {
         assertTrue(mapped("session-expired", 401) is SessionExpiredError)
         assertTrue(mapped("session-already-consumed", 401) is SessionConsumedError)
         assertTrue(mapped("token-invalid", 401) is TokenInvalidError)
-        assertTrue(mapped("TOKEN_INVALID", 401) is TokenInvalidError)
+        assertTrue(mapped("token-expired", 401) is TokenInvalidError)
+        assertTrue(mapped("wrong-token-kind", 403) is TokenInvalidError)
         assertTrue(mapped("client-mismatch", 403) is TokenInvalidError)
+        assertTrue(mapped("access-not-granted", 403) is AccessNotGrantedError)
+        assertTrue(mapped("legal-acceptance-required", 403) is LegalAcceptanceRequiredError)
+        assertTrue(mapped("profile-not-found", 403) is ProfileNotFoundError)
+        assertTrue(mapped("cursor-expired", 409) is CursorExpiredError)
+        val rateLimited = apiErrorFor(429, """{"error":"rate-limited","retryAfterSeconds":12}""")
+        assertTrue(rateLimited is RateLimitedError)
+        assertEquals(12, (rateLimited as RateLimitedError).retryInSeconds)
     }
 
     @Test
@@ -251,7 +257,7 @@ class DiscovrAuthTest {
         )
     }
 
-    private val refreshExpired = """{"error":"TOKEN_EXPIRED","tokenKind":"refresh"}"""
+    private val refreshExpired = """{"error":"token-expired","tokenKind":"refresh"}"""
 
     @Test
     fun aRefreshTokenThatExpiredOnAnIdentityCallSignsTheClientOut() = runTest {
@@ -296,7 +302,7 @@ class DiscovrAuthTest {
     fun aUnauthorizedThatIsNotAboutTheRefreshTokenLeavesTheClientSignedIn() = runTest {
         val auth = signedInAuth()
 
-        assertFalse(auth.handleIdentityErrorBody("""{"error":"TOKEN_INVALID"}"""))
+        assertFalse(auth.handleIdentityErrorBody("""{"error":"token-invalid"}"""))
 
         assertTrue(auth.isSignedIn)
         assertNull(auth.state.value.signOutReason)
@@ -576,5 +582,31 @@ class DiscovrAuthTest {
         val sent = assertNotNull(deviceIdIn(seen.first { it.path.endsWith("/poll") }.body))
         assertTrue(deviceIdShape.matches(sent))
         assertEquals(sent, storage.get("discovr_device_id"))
+    }
+
+    @Test
+    fun typedApiErrorForMapsDataCallRateLimitsAndTypedErrors() {
+        val rateLimited = typedApiErrorFor(
+            429,
+            """{"error":"rate-limited","retryAfterSeconds":42}""",
+            retryAfterHeader = "42",
+        )
+        assertTrue(rateLimited is RateLimitedError)
+        assertEquals(42, rateLimited.retryInSeconds)
+
+        val accessDenied = typedApiErrorFor(403, """{"error":"access-not-granted"}""")
+        assertTrue(accessDenied is AccessNotGrantedError)
+
+        val legalRequired = typedApiErrorFor(403, """{"error":"legal-acceptance-required"}""")
+        assertTrue(legalRequired is LegalAcceptanceRequiredError)
+
+        val profileMissing = typedApiErrorFor(403, """{"error":"profile-not-found"}""")
+        assertTrue(profileMissing is ProfileNotFoundError)
+
+        val cursorExpired = typedApiErrorFor(409, """{"error":"cursor-expired"}""")
+        assertTrue(cursorExpired is CursorExpiredError)
+
+        assertNull(typedApiErrorFor(404, """{"error":"not-found"}"""))
+        assertNull(typedApiErrorFor(409, """{"error":"duplicate"}"""))
     }
 }

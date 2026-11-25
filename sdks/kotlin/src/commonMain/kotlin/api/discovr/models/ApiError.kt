@@ -15,25 +15,61 @@
 
 package api.discovr.models
 
+import api.discovr.models.ApiErrorCode
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 
 /**
- * An API error response. `error` is either a machine-readable code or a plain description of what went wrong. The SDKs translate the codes into typed errors, so most apps never read it directly.
+ * An API error response. `error` is a machine-readable kebab-case code from `ApiErrorCode`; `message` is an optional developer-facing detail. The SDKs translate these codes into typed errors, so most apps never read the raw JSON.
  *
- * @param error Why the request failed. Authentication endpoints return one of these codes: `session-expired`, `session-already-consumed`, `session-not-found`, `client-not-found`, `client-mismatch`, `device-code-not-found`, `device-code-expired`, `device-code-already-consumed`, `device-code-denied`, `code-verifier-invalid`, `token-invalid`. Other endpoints return a plain description. 
+ * @param error 
+ * @param message Optional human-readable detail for debugging. Omitted on `500` responses.
+ * @param retryAfterSeconds Present on `429 rate-limited` responses. Seconds until the current limit window rolls over.
+ * @param tokenKind Present on `401 token-expired` responses. Identifies which credential expired.
+ * @param expected Present on `403 wrong-token-kind` responses. Identifies which credential tier the endpoint expected.
  */
 @Serializable
 
 data class ApiError (
 
-    /* Why the request failed. Authentication endpoints return one of these codes: `session-expired`, `session-already-consumed`, `session-not-found`, `client-not-found`, `client-mismatch`, `device-code-not-found`, `device-code-expired`, `device-code-already-consumed`, `device-code-denied`, `code-verifier-invalid`, `token-invalid`. Other endpoints return a plain description.  */
-    @SerialName(value = "error") @Required val error: kotlin.String
+    @SerialName(value = "error") @Required val error: ApiErrorCode,
+
+    /* Optional human-readable detail for debugging. Omitted on `500` responses. */
+    @SerialName(value = "message") val message: kotlin.String? = null,
+
+    /* Present on `429 rate-limited` responses. Seconds until the current limit window rolls over. */
+    @SerialName(value = "retryAfterSeconds") val retryAfterSeconds: kotlin.Int? = null,
+
+    /* Present on `401 token-expired` responses. Identifies which credential expired. */
+    @SerialName(value = "tokenKind") val tokenKind: ApiError.TokenKind? = null,
+
+    /* Present on `403 wrong-token-kind` responses. Identifies which credential tier the endpoint expected. */
+    @SerialName(value = "expected") val expected: ApiError.Expected? = null
 
 ) {
 
+    /**
+     * Present on `401 token-expired` responses. Identifies which credential expired.
+     *
+     * Values: session,refresh
+     */
+    @Serializable
+    enum class TokenKind(val value: kotlin.String) {
+        @SerialName(value = "session") session("session"),
+        @SerialName(value = "refresh") refresh("refresh");
+    }
+    /**
+     * Present on `403 wrong-token-kind` responses. Identifies which credential tier the endpoint expected.
+     *
+     * Values: session,refresh
+     */
+    @Serializable
+    enum class Expected(val value: kotlin.String) {
+        @SerialName(value = "session") session("session"),
+        @SerialName(value = "refresh") refresh("refresh");
+    }
 
 }
 

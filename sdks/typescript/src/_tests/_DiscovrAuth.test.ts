@@ -10,10 +10,16 @@
 import { createHash } from "node:crypto";
 import _DiscovrAuth, { createPkcePair, deviceCodePath } from "../auth";
 import {
+	AccessNotGrantedError,
 	AuthCancelledError,
+	CursorExpiredError,
 	DeviceCodeDeniedError,
 	DeviceCodeExpiredError,
+	LegalAcceptanceRequiredError,
+	ProfileNotFoundError,
+	RateLimitedError,
 	apiErrorFor,
+	typedDataErrorFor,
 } from "../errors";
 
 function jsonResponse(body: unknown, ok = true, status?: number): Response {
@@ -142,7 +148,7 @@ describe("_DiscovrAuth refresh-token-expired recovery", () => {
 	it("signs out and throws a recognizable error when the refresh token itself has expired", async () => {
 		fetchMock
 			.mockResolvedValueOnce(jsonResponse({ refreshToken: "rt_abc", expiresAt: 123 }))
-			.mockResolvedValueOnce(errorResponse(401, { error: "TOKEN_EXPIRED", tokenKind: "refresh" }))
+			.mockResolvedValueOnce(errorResponse(401, { error: "token-expired", tokenKind: "refresh" }))
 			.mockResolvedValueOnce(jsonResponse({}));
 		const auth = new _DiscovrAuth("my-client-id", { demoMode: true });
 		await auth.signInWithDemo();
@@ -187,7 +193,7 @@ describe("_DiscovrAuth refresh-token-expired recovery", () => {
 
 		await expect(
 			handleSessionResponse({
-				response: errorResponse(401, { error: "TOKEN_EXPIRED", tokenKind: "refresh" }),
+				response: errorResponse(401, { error: "token-expired", tokenKind: "refresh" }),
 				init: { method: "GET" },
 				url: "https://api.discovr.media/pages/abc/rows",
 			}),
@@ -954,8 +960,8 @@ describe("_DiscovrAuth rate limiting", () => {
 			ok: false,
 			status: 429,
 			headers: new Headers(retryAfter ? { "Retry-After": retryAfter } : {}),
-			json: async () => ({ error: "RATE_LIMITED", retryAfterSeconds: Number(retryAfter) }),
-			text: async () => JSON.stringify({ error: "RATE_LIMITED" }),
+			json: async () => ({ error: "rate-limited", retryAfterSeconds: Number(retryAfter) }),
+			text: async () => JSON.stringify({ error: "rate-limited" }),
 			clone() {
 				return rateLimited(retryAfter);
 			},
@@ -1065,8 +1071,6 @@ describe("apiErrorFor", () => {
 
 	it("maps server codes to the SDK's typed errors", () => {
 		expect(mapped("client-not-found").name).toBe("ClientNotFoundError");
-		expect(mapped("CLIENT_NOT_FOUND").name).toBe("ClientNotFoundError");
-		expect(mapped("MISSING_CLIENT_ID").name).toBe("ClientNotFoundError");
 		expect(mapped("device-code-expired", 401).name).toBe("DeviceCodeExpiredError");
 		expect(mapped("device-code-not-found", 404).name).toBe("DeviceCodeExpiredError");
 		expect(mapped("device-code-already-consumed", 401).name).toBe("DeviceCodeConsumedError");
@@ -1075,8 +1079,16 @@ describe("apiErrorFor", () => {
 		expect(mapped("session-expired", 401).name).toBe("SessionExpiredError");
 		expect(mapped("session-already-consumed", 401).name).toBe("SessionConsumedError");
 		expect(mapped("token-invalid", 401).name).toBe("TokenInvalidError");
-		expect(mapped("TOKEN_INVALID", 401).name).toBe("TokenInvalidError");
+		expect(mapped("token-expired", 401).name).toBe("TokenInvalidError");
+		expect(mapped("wrong-token-kind", 403).name).toBe("TokenInvalidError");
 		expect(mapped("client-mismatch", 403).name).toBe("TokenInvalidError");
+		expect(mapped("access-not-granted", 403).name).toBe("AccessNotGrantedError");
+		expect(mapped("legal-acceptance-required", 403).name).toBe("LegalAcceptanceRequiredError");
+		expect(mapped("profile-not-found", 403).name).toBe("ProfileNotFoundError");
+		expect(mapped("cursor-expired", 409).name).toBe("CursorExpiredError");
+		expect(
+			apiErrorFor(429, JSON.stringify({ error: "rate-limited", retryAfterSeconds: 12 })),
+		).toMatchObject({ name: "RateLimitedError", retryInSeconds: 12 });
 	});
 
 	it("does not echo an unknown machine code", () => {
@@ -1128,7 +1140,7 @@ describe("retry hint from the response body", () => {
 
 	it("reads retryAfterSeconds when there is no header", async () => {
 		await expect(
-			throwOn(limited({ error: "RATE_LIMITED", retryAfterSeconds: 14 })),
+			throwOn(limited({ error: "rate-limited", retryAfterSeconds: 14 })),
 		).rejects.toMatchObject({ retryInSeconds: 14 });
 	});
 
@@ -1165,7 +1177,7 @@ describe("_DiscovrAuth lapsed credential", () => {
 		} as unknown as Response;
 	}
 
-	const refreshExpired = { error: "TOKEN_EXPIRED", tokenKind: "refresh" };
+	const refreshExpired = { error: "token-expired", tokenKind: "refresh" };
 
 	beforeEach(() => {
 		calls = [];
@@ -1236,7 +1248,7 @@ describe("_DiscovrAuth lapsed credential", () => {
 	});
 
 	it("leaves a 401 that is not about the refresh token alone", async () => {
-		fetchMock.mockImplementation(async () => res(401, { error: "TOKEN_INVALID" }));
+		fetchMock.mockImplementation(async () => res(401, { error: "token-invalid" }));
 		const auth = new _DiscovrAuth("my-client-id");
 		(auth as unknown as { refreshToken: string }).refreshToken = "rt_real";
 
@@ -1645,7 +1657,7 @@ describe("_DiscovrAuth device-code sign-in", () => {
 		it("backs off by the retry window when told to slow down, not by its own interval", async () => {
 			fetchMock
 				.mockResolvedValueOnce(
-					jsonResponse({ error: "RATE_LIMITED", retryAfterSeconds: 30 }, false, 429),
+					jsonResponse({ error: "rate-limited", retryAfterSeconds: 30 }, false, 429),
 				)
 				.mockResolvedValue(jsonResponse({ status: "pending", interval: 5 }));
 			const result = await new _DiscovrAuth("my-client-id").signInWithDeviceCode();
@@ -1692,5 +1704,85 @@ describe("_DiscovrAuth device-code sign-in", () => {
 				process.off("unhandledRejection", unhandled);
 			}
 		});
+	});
+});
+
+describe("_DiscovrAuth typed data-call errors across every tier", () => {
+	let fetchMock: jest.Mock;
+
+	beforeEach(() => {
+		fetchMock = jest.fn();
+		global.fetch = fetchMock as unknown as typeof fetch;
+	});
+
+	it("maps typed 403/409 contract codes via typedDataErrorFor and returns null for ordinary statuses", () => {
+		expect(typedDataErrorFor(403, '{"error":"access-not-granted"}')).toBeInstanceOf(
+			AccessNotGrantedError,
+		);
+		expect(typedDataErrorFor(403, '{"error":"legal-acceptance-required"}')).toBeInstanceOf(
+			LegalAcceptanceRequiredError,
+		);
+		expect(typedDataErrorFor(403, '{"error":"profile-not-found"}')).toBeInstanceOf(
+			ProfileNotFoundError,
+		);
+		expect(typedDataErrorFor(409, '{"error":"cursor-expired"}')).toBeInstanceOf(CursorExpiredError);
+		expect(typedDataErrorFor(404, '{"error":"not-found"}')).toBeNull();
+		expect(typedDataErrorFor(409, '{"error":"duplicate"}')).toBeNull();
+	});
+
+	it("surfaces 429 on publicApi() as RateLimitedError carrying retryInSeconds", async () => {
+		const res = {
+			ok: false,
+			status: 429,
+			headers: new Headers({ "content-type": "application/json", "Retry-After": "42" }),
+			json: async () => ({ error: "rate-limited", retryAfterSeconds: 42 }),
+			text: async () => '{"error":"rate-limited","retryAfterSeconds":42}',
+			clone() {
+				return res;
+			},
+		} as unknown as Response;
+		fetchMock.mockResolvedValueOnce(res);
+
+		const auth = new _DiscovrAuth("my-client-id");
+		const err = await auth
+			.publicApi()
+			.getProfileImages()
+			.catch((e: unknown) => e);
+		expect(err).toBeInstanceOf(RateLimitedError);
+		expect((err as RateLimitedError).retryInSeconds).toBe(42);
+	});
+
+	it("surfaces 403 access-not-granted and 409 cursor-expired on sessionApi()", async () => {
+		const auth = new _DiscovrAuth("my-client-id");
+		(auth as unknown as { refreshToken: string }).refreshToken = "rt_valid";
+		// Seed a fresh session token via a mint response, then fire session calls.
+		fetchMock
+			.mockResolvedValueOnce(
+				jsonResponse({
+					sessionToken: "st_live",
+					expiresAt: Math.floor(Date.now() / 1000) + 1800,
+					snapshotId: "snap_1",
+				}),
+			)
+			.mockResolvedValueOnce(jsonResponse({ error: "access-not-granted" }, false, 403));
+
+		await auth.selectProfile("prof_1");
+		await expect(auth.sessionApi().getPage("movie")).rejects.toBeInstanceOf(AccessNotGrantedError);
+
+		fetchMock.mockResolvedValueOnce(jsonResponse({ error: "cursor-expired" }, false, 409));
+		await expect(auth.sessionApi().getRows("movie", "stale")).rejects.toBeInstanceOf(
+			CursorExpiredError,
+		);
+	});
+
+	it("surfaces 403 access-not-granted and 409 cursor-expired on identityApi()", async () => {
+		const auth = new _DiscovrAuth("my-client-id");
+		(auth as unknown as { refreshToken: string }).refreshToken = "rt_valid";
+
+		fetchMock.mockResolvedValueOnce(jsonResponse({ error: "access-not-granted" }, false, 403));
+		await expect(auth.identityApi().getProfiles()).rejects.toBeInstanceOf(AccessNotGrantedError);
+
+		fetchMock.mockResolvedValueOnce(jsonResponse({ error: "cursor-expired" }, false, 409));
+		await expect(auth.identityApi().getProfiles()).rejects.toBeInstanceOf(CursorExpiredError);
 	});
 });

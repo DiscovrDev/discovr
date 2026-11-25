@@ -12,7 +12,7 @@ open class RowsAPI {
     /**
      Get a row
      
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter rowId: (path) The unique identifier of the row 
      - parameter apiConfiguration: The configuration for the http request.
      - returns: Row
@@ -29,7 +29,7 @@ open class RowsAPI {
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter rowId: (path) The unique identifier of the row 
      - parameter apiConfiguration: The configuration for the http request.
      - returns: RequestBuilder<Row> 
@@ -61,7 +61,7 @@ open class RowsAPI {
     /**
      List row items
      
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter rowId: (path) The unique identifier of the row 
      - parameter nextPageToken: (query) Opaque pagination token returned from the previous page (optional)
      - parameter limit: (query) Maximum number of items to return (optional, default to 10)
@@ -80,7 +80,7 @@ open class RowsAPI {
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter rowId: (path) The unique identifier of the row 
      - parameter nextPageToken: (query) Opaque pagination token returned from the previous page (optional)
      - parameter limit: (query) Maximum number of items to return (optional, default to 10)
@@ -118,7 +118,7 @@ open class RowsAPI {
     /**
      List rows
      
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter nextPageToken: (query) Opaque pagination token returned from the previous page (optional)
      - parameter limit: (query) Maximum number of rows to return (optional, default to 5)
      - parameter apiConfiguration: The configuration for the http request.
@@ -132,11 +132,11 @@ open class RowsAPI {
     /**
      List rows
      - GET /pages/{pageId}/rows
-     - Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to `GET /pages/{pageId}/rows/{rowId}/items`. They keep working even if recommendations refresh while the user is scrolling, so a rail they've already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user's recommendations haven't turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with `409 CURSOR_EXPIRED`: call `getPage` and `getRows` with no token on the same page ID and replace what you're showing with the result. Rows you already hold are not affected: `GET /pages/{pageId}/rows/{rowId}/items` keeps working for them.  **Auth tier:** session. 
+     - Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to `GET /pages/{pageId}/rows/{rowId}/items`. They keep working even if recommendations refresh while the user is scrolling, so a rail they've already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user's recommendations haven't turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with `409 cursor-expired`: call `getPage` and `getRows` with no token on the same page ID and replace what you're showing with the result. Rows you already hold are not affected: `GET /pages/{pageId}/rows/{rowId}/items` keeps working for them.  **Auth tier:** session. 
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - parameter pageId: (path) The unique identifier of the page 
+     - parameter pageId: (path) The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) 
      - parameter nextPageToken: (query) Opaque pagination token returned from the previous page (optional)
      - parameter limit: (query) Maximum number of rows to return (optional, default to 5)
      - parameter apiConfiguration: The configuration for the http request.

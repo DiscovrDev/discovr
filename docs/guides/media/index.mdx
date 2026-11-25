@@ -10,7 +10,7 @@ Opening a movie or TV title gives you a Discovr **`mediaId`** (**`MV_…`** · *
 - **Optional rail:** **[`getSimilarRecommendations()`](/sdk-reference/media/get-similar-recommendations)** for related titles—skip the section when it’s empty.
 
 <Note>
-	These calls need an active profile, so
+	These calls need an active profile (they answer `401` without one), so
 	**[`selectProfile()`](/sdk-reference/authentication/select-profile)** has to have run first — see
 	[Profiles](/guides/profiles). Examples use **TypeScript / Kotlin / Swift** tabs.
 </Note>

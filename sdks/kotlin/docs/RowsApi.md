@@ -28,7 +28,7 @@ import api.discovr.DiscovrClient
 val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
 // Or manually: val discovr = RowsApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
-val pageId : kotlin.String = pageId_example // kotlin.String | The unique identifier of the page
+val pageId : kotlin.String = pageId_example // kotlin.String | The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
 val rowId : kotlin.String = rowId_example // kotlin.String | The unique identifier of the row
 try {
     val result : Row = discovr.getRow(pageId, rowId)
@@ -43,7 +43,7 @@ try {
 ```
 
 ### Parameters
-| **pageId** | **kotlin.String**| The unique identifier of the page | |
+| **pageId** | **kotlin.String**| The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) | |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |
 | **rowId** | **kotlin.String**| The unique identifier of the row | |
@@ -82,7 +82,7 @@ import api.discovr.DiscovrClient
 val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
 // Or manually: val discovr = RowsApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
-val pageId : kotlin.String = pageId_example // kotlin.String | The unique identifier of the page
+val pageId : kotlin.String = pageId_example // kotlin.String | The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
 val rowId : kotlin.String = rowId_example // kotlin.String | The unique identifier of the row
 val nextPageToken : kotlin.String = nextPageToken_example // kotlin.String | Opaque pagination token returned from the previous page
 val limit : kotlin.Int = 56 // kotlin.Int | Maximum number of items to return
@@ -99,7 +99,7 @@ try {
 ```
 
 ### Parameters
-| **pageId** | **kotlin.String**| The unique identifier of the page | |
+| **pageId** | **kotlin.String**| The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) | |
 | **rowId** | **kotlin.String**| The unique identifier of the row | |
 | **nextPageToken** | **kotlin.String**| Opaque pagination token returned from the previous page | [optional] |
 | Name | Type | Description  | Notes |
@@ -127,7 +127,7 @@ Configure BearerAuth:
 
 List rows
 
-Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60;. They keep working even if recommendations refresh while the user is scrolling, so a rail they&#39;ve already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user&#39;s recommendations haven&#39;t turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with &#x60;409 CURSOR_EXPIRED&#x60;: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token on the same page ID and replace what you&#39;re showing with the result. Rows you already hold are not affected: &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60; keeps working for them.  **Auth tier:** session. 
+Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60;. They keep working even if recommendations refresh while the user is scrolling, so a rail they&#39;ve already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user&#39;s recommendations haven&#39;t turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with &#x60;409 cursor-expired&#x60;: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token on the same page ID and replace what you&#39;re showing with the result. Rows you already hold are not affected: &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60; keeps working for them.  **Auth tier:** session. 
 
 ### Example
 ```kotlin
@@ -140,7 +140,7 @@ import api.discovr.DiscovrClient
 val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStorageImpl)
 // Or manually: val discovr = RowsApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
-val pageId : kotlin.String = pageId_example // kotlin.String | The unique identifier of the page
+val pageId : kotlin.String = pageId_example // kotlin.String | The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
 val nextPageToken : kotlin.String = nextPageToken_example // kotlin.String | Opaque pagination token returned from the previous page
 val limit : kotlin.Int = 56 // kotlin.Int | Maximum number of rows to return
 try {
@@ -156,7 +156,7 @@ try {
 ```
 
 ### Parameters
-| **pageId** | **kotlin.String**| The unique identifier of the page | |
+| **pageId** | **kotlin.String**| The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) | |
 | **nextPageToken** | **kotlin.String**| Opaque pagination token returned from the previous page | [optional] |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |

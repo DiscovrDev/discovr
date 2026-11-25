@@ -23,6 +23,13 @@ info:
     likes, history, playback, and watchlists. The active profile is carried
     by the session token, so profile-scoped endpoints don't accept a
     `profileId` path parameter — they live under `/profile/*`.
+
+    **Title opens & recommendations.** Calling `GET /media/{mediaId}/profile_meta`
+    records that the viewer opened a title and directly affects the profile's
+    recommendations. Only call it when the title screen actually opens —
+    prefetching or calling it on hover/focus registers every loaded tile
+    similarly to the viewer liking the title and will skew their
+    recommendations. Pass the item's `ref` when you have one.
   version: 1.0.0-alpha.1
   license:
     name: Discovr Developer Terms
@@ -135,7 +142,8 @@ paths:
               examples:
                 missingClientID:
                   value:
-                    error: ClientID is required and cannot be empty
+                    error: invalid-input
+                    message: "Missing or invalid required field: clientID"
                 clientNotFound:
                   summary: clientID is not registered
                   value:
@@ -251,7 +259,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
               example:
-                error: "Invalid path structure. Expected: /auth/device-codes/:deviceCode/poll"
+                error: invalid-input
+                message: "Invalid path structure. Expected: /auth/device-codes/:deviceCode/poll"
         "401":
           description: |
             Device code expired, already consumed, or declined by the person on their phone.
@@ -439,7 +448,8 @@ paths:
               examples:
                 missingClientID:
                   value:
-                    error: "Missing or invalid required query parameter: clientID"
+                    error: invalid-input
+                    message: "Missing or invalid required query parameter: clientID"
                 clientNotFound:
                   summary: clientID is not registered
                   value:
@@ -526,7 +536,8 @@ paths:
               examples:
                 missingField:
                   value:
-                    error: "Missing or invalid required field: codeVerifier"
+                    error: invalid-input
+                    message: "Missing or invalid required field: codeVerifier"
                 malformed:
                   value:
                     error: invalid-input
@@ -639,7 +650,7 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           description: |
-            Returned when you send a session token where a refresh token is required (`WRONG_TOKEN_KIND`), or when the `profileId` doesn't belong to the signed-in user (`PROFILE_NOT_FOUND`).
+            Returned when you send a session token where a refresh token is required (`wrong-token-kind`), or when the `profileId` doesn't belong to the signed-in user (`profile-not-found`).
           content:
             application/json:
               schema:
@@ -701,7 +712,7 @@ paths:
         The response is a refresh token. From here you're on the normal path — call [`POST /auth/session-token`](/api-reference/discovr/mint-session-token) with a profile ID to start browsing. Nothing else about your integration changes, which is the point: code you write against a demo session works unchanged against a real one.
 
         Two things to keep in mind:
-        - **Sandboxes are temporary.** Yours lasts 30 minutes (you can ask for a shorter one with `ttlMs`, never a longer one) and everything in it is deleted afterwards. Once it has ended, requests made with its token fail with `401` `TOKEN_EXPIRED`. Don't build anything that expects it to still be there tomorrow.
+        - **Sandboxes are temporary.** Yours lasts 30 minutes (you can ask for a shorter one with `ttlMs`, never a longer one) and everything in it is deleted afterwards. Once it has ended, requests made with its token fail with `401` `token-expired`. Don't build anything that expects it to still be there tomorrow.
         - **Sandboxes are rate limited.** You can start five per hour from the same network address, and that allowance is shared with the demo button on Discovr's sign-in screens and with a TV's device-code demo. When it runs out you get a `429` with a `Retry-After` header, so hold on to the token you're given rather than requesting a new one per request.
 
         You do still need a `clientId` — the same one your SDK constructor already takes regardless of demo mode, so this asks nothing new of a real integration. Trying this endpoint directly from this page? Use `discovr-docs-playground`, a client id that's always available for exactly that.
@@ -1023,7 +1034,7 @@ paths:
 
         Row IDs are opaque references — pass them straight back to `GET /pages/{pageId}/rows/{rowId}/items`. They keep working even if recommendations refresh while the user is scrolling, so a rail they've already opened stays readable to the end.
 
-        Pagination continues in the set of results it started with, and only for as long as the user's recommendations haven't turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with `409 CURSOR_EXPIRED`: call `getPage` and `getRows` with no token on the same page ID and replace what you're showing with the result. Rows you already hold are not affected: `GET /pages/{pageId}/rows/{rowId}/items` keeps working for them.
+        Pagination continues in the set of results it started with, and only for as long as the user's recommendations haven't turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with `409 cursor-expired`: call `getPage` and `getRows` with no token on the same page ID and replace what you're showing with the result. Rows you already hold are not affected: `GET /pages/{pageId}/rows/{rowId}/items` keeps working for them.
 
         **Auth tier:** session.
       operationId: getRows
@@ -1034,7 +1045,7 @@ paths:
         - name: pageId
           in: path
           required: true
-          description: The unique identifier of the page
+          description: The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
           schema:
             type: string
         - name: nextPageToken
@@ -1124,7 +1135,7 @@ paths:
         - name: pageId
           in: path
           required: true
-          description: The unique identifier of the page
+          description: The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
           schema:
             type: string
         - name: rowId
@@ -1207,7 +1218,7 @@ paths:
         - name: pageId
           in: path
           required: true
-          description: The unique identifier of the page
+          description: The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
           schema:
             type: string
         - name: rowId
@@ -3824,11 +3835,12 @@ paths:
       description: |
         Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass `MV_<id>` for movies or `TV_<id>` for TV shows (e.g., `MV_550`, `TV_1396`).
 
-        This is a public endpoint — no authentication required. Returns only generic catalog metadata; personalized fields live under `profile_meta`.
+        **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata; the profile's own state for the title (lists, playback, completion) is `getMediaProfileMeta`, which is also the call that records the title as opened.
       operationId: getMedia
-      x-tier: public
+      x-tier: session
       x-cache-policy: session
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - name: mediaId
           in: path
@@ -3849,6 +3861,10 @@ paths:
                 $ref: "#/components/schemas/MediaResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "429":
@@ -3866,6 +3882,7 @@ paths:
 
             const discovr = new DiscovrClient("your-client-id");
 
+            // After sign-in and profile selection …
             const response: MediaResponse = await discovr.getMedia("example");
             console.log(response);
         - lang: kotlin
@@ -3898,11 +3915,12 @@ paths:
       description: |
         Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.
 
-        This is a public endpoint — no authentication required. Returns only generic catalog metadata.
+        **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it.
       operationId: getMediaAssets
-      x-tier: public
+      x-tier: session
       x-cache-policy: session
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - name: mediaId
           in: path
@@ -3923,6 +3941,10 @@ paths:
                 $ref: "#/components/schemas/MediaAssetsResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "429":
@@ -3940,6 +3962,7 @@ paths:
 
             const discovr = new DiscovrClient("your-client-id");
 
+            // After sign-in and profile selection …
             const response: MediaAssetsResponse = await discovr.getMediaAssets("example");
             console.log(response);
         - lang: kotlin
@@ -3978,6 +4001,8 @@ paths:
         - **Providers** *(optional)*: the streaming services where this title is available for the profile's selected region. Pass `providers=true` to include this.
         - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).
 
+        **This call directly affects the profile's recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn't open registers similarly to liking those titles and will skew their recommendations. Pass the item's `ref` when you have one.
+
         **Auth tier:** session — send your session token in `Authorization: Bearer`.
       operationId: getMediaProfileMeta
       x-sdk-group: Profile Meta
@@ -4012,6 +4037,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "429":
@@ -4062,11 +4089,12 @@ paths:
       description: |
         Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.
 
-        This is a public endpoint — no authentication required. Returns only generic catalog metadata.
+        **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata (what the profile has watched is `getSeasonProfileMeta`), but the call needs a profile.
       operationId: getSeasonDetails
-      x-tier: public
+      x-tier: session
       x-cache-policy: session
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - name: mediaId
           in: path
@@ -4101,6 +4129,10 @@ paths:
                 $ref: "#/components/schemas/SeasonDetailsResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "429":
@@ -4118,6 +4150,7 @@ paths:
 
             const discovr = new DiscovrClient("your-client-id");
 
+            // After sign-in and profile selection …
             const response: SeasonDetailsResponse = await discovr.getSeasonDetails("example", 1, { language: "en" });
             console.log(response);
         - lang: kotlin
@@ -4189,6 +4222,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "429":
@@ -4239,11 +4274,12 @@ paths:
       description: |
         Returns titles that are similar to the given movie or TV show. Useful for "More like this" sections.
 
-        This is a public endpoint — no authentication required. Returns only generic catalog metadata.
+        **Auth tier:** session — send your session token in `Authorization: Bearer`. The refs on the results are sealed for the profile that asked.
       operationId: getSimilarRecommendations
-      x-tier: public
+      x-tier: session
       x-cache-policy: ttl:3600
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - name: mediaId
           in: path
@@ -4280,6 +4316,10 @@ paths:
                 $ref: "#/components/schemas/SimilarResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "429":
@@ -4297,6 +4337,7 @@ paths:
 
             const discovr = new DiscovrClient("your-client-id");
 
+            // After sign-in and profile selection …
             const response: SimilarResponse = await discovr.getSimilarRecommendations("example", { language: "en-US", page: 1 });
             console.log(response);
         - lang: kotlin
@@ -5440,36 +5481,87 @@ components:
           description: Always `"ok"` on success.
           example: ok
       additionalProperties: false
+    ApiErrorCode:
+      type: string
+      description: Machine-readable kebab-case error code returned in the `error` field of every API error response.
+      enum:
+        - not-found
+        - duplicate
+        - invalid-input
+        - permission-denied
+        - method-not-allowed
+        - internal-error
+        - data-integrity
+        - upstream-unavailable
+        - service-unavailable
+        - demo-unavailable
+        - direct-access-denied
+        - rate-limited
+        - profile-not-found
+        - cursor-expired
+        - session-expired
+        - session-already-consumed
+        - session-not-found
+        - device-code-expired
+        - device-code-already-consumed
+        - device-code-denied
+        - device-code-busy
+        - device-code-not-found
+        - token-invalid
+        - token-expired
+        - wrong-token-kind
+        - client-not-found
+        - client-mismatch
+        - redirect-uri-not-registered
+        - redirect-uri-invalid
+        - opener-origin-not-allowed
+        - code-challenge-required
+        - code-challenge-invalid
+        - code-verifier-invalid
+        - access-not-granted
+        - legal-acceptance-required
     ApiError:
       type: object
-      description: An API error response. `error` is either a machine-readable code or a plain description of what went wrong. The SDKs translate the codes into typed errors, so most apps never read it directly.
+      description: An API error response. `error` is a machine-readable kebab-case code from `ApiErrorCode`; `message` is an optional developer-facing detail. The SDKs translate these codes into typed errors, so most apps never read the raw JSON.
       required:
         - error
       properties:
         error:
+          $ref: "#/components/schemas/ApiErrorCode"
+        message:
           type: string
-          description: |
-            Why the request failed. Authentication endpoints return one of these codes:
-            `session-expired`, `session-already-consumed`, `session-not-found`,
-            `client-not-found`, `client-mismatch`, `device-code-not-found`,
-            `device-code-expired`, `device-code-already-consumed`,
-            `device-code-denied`, `code-verifier-invalid`, `token-invalid`. Other endpoints return a
-            plain description.
-          example: device-code-expired
-      additionalProperties: true
+          description: Optional human-readable detail for debugging. Omitted on `500` responses.
+        retryAfterSeconds:
+          type: integer
+          minimum: 1
+          description: Present on `429 rate-limited` responses. Seconds until the current limit window rolls over.
+        tokenKind:
+          type: string
+          enum:
+            - session
+            - refresh
+          description: Present on `401 token-expired` responses. Identifies which credential expired.
+        expected:
+          type: string
+          enum:
+            - session
+            - refresh
+          description: Present on `403 wrong-token-kind` responses. Identifies which credential tier the endpoint expected.
+      additionalProperties: false
     RateLimitedError:
       type: object
       description: |
-        A `429` body. Same shape as `ApiError` plus the wait hint, which `ApiError`
-        can't carry because it forbids extra properties — a strict validator would
-        reject the very body every limiter sends.
+        A `429` error body carrying `error: "rate-limited"` and the wait hint (`retryAfterSeconds`), mirroring the `Retry-After` header.
       required:
         - error
+        - retryAfterSeconds
       properties:
         error:
           type: string
-          description: Machine-readable error code. Always `RATE_LIMITED` for a `429`.
-          example: RATE_LIMITED
+          enum:
+            - rate-limited
+          description: Machine-readable error code. Always `rate-limited` for a `429`.
+          example: rate-limited
         retryAfterSeconds:
           type: integer
           minimum: 1
@@ -7142,7 +7234,7 @@ components:
           description: Average audience rating out of 10.
   responses:
     BadRequest:
-      description: The request is missing a required field or contains an invalid value. Check the `error` field for details.
+      description: The request is missing a required field or contains an invalid value. Check `error` and optional `message` for details.
       content:
         application/json:
           schema:
@@ -7150,7 +7242,8 @@ components:
           examples:
             default:
               value:
-                error: "Missing or invalid required field: clientID"
+                error: invalid-input
+                message: "Missing or invalid required field: clientID"
     Unauthorized:
       description: Authentication failed — the token is missing, expired, or invalid.
       content:
@@ -7160,7 +7253,17 @@ components:
           examples:
             default:
               value:
-                error: Invalid ClientID
+                error: token-invalid
+    Forbidden:
+      description: "The token is valid but this account can't use the API right now: it's still on the waitlist (`access-not-granted`), has to accept the current Terms (`legal-acceptance-required`), or the profile in the token no longer exists (`profile-not-found`). Re-authenticating won't change the answer; show the user what the `error` code says."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          examples:
+            default:
+              value:
+                error: access-not-granted
     NotFound:
       description: The requested resource wasn't found.
       content:
@@ -7170,7 +7273,8 @@ components:
           examples:
             default:
               value:
-                error: Device code not found
+                error: not-found
+                message: Resource not found
     Conflict:
       description: The request conflicts with existing data.
       content:
@@ -7180,7 +7284,7 @@ components:
           examples:
             default:
               value:
-                error: Watched item already exists. Use editWatched to update count.
+                error: duplicate
     InternalServerError:
       description: Something went wrong on Discovr's end. Try again, and contact support if the issue persists.
       content:
@@ -7190,7 +7294,7 @@ components:
           examples:
             default:
               value:
-                error: Internal server error
+                error: internal-error
     RateLimited:
       description: Too many requests. Back off and retry after a short delay — limits are scoped per client and per endpoint, so this doesn't affect other clients.
       headers:
@@ -7206,7 +7310,7 @@ components:
           examples:
             default:
               value:
-                error: RATE_LIMITED
+                error: rate-limited
                 retryAfterSeconds: 14
     ServiceUnavailable:
       description: The API is temporarily unavailable — an operator-triggered safety measure, not a routine outage. Retry after a delay; check Discovr's status page if this persists.
@@ -7217,7 +7321,7 @@ components:
           examples:
             default:
               value:
-                error: SERVICE_UNAVAILABLE
+                error: service-unavailable
     CursorExpired:
       description: |
         Your pagination cursor or row reference points at a set of results that has since been replaced. The page itself is fine and its ID is still valid. For rows this is what a recommendation turnover looks like: call `getPage` and `getRows` with no token and replace what you're showing, rather than merging the result into the old list. For a row's items it means the set was cleaned up; start that row's pagination again from the beginning.
@@ -7228,4 +7332,4 @@ components:
           examples:
             default:
               value:
-                error: CURSOR_EXPIRED
+                error: cursor-expired

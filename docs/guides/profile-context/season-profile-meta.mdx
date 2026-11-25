@@ -23,7 +23,7 @@ That's what **`getSeasonProfileMeta()`** does. Call it for one season of a `TV_�
 | Which episodes are finished             | [`getSeasonProfileMeta()`](/sdk-reference/media/get-season-profile-meta) |
 | Whole-title state (liked, watchlisted…) | [`getMediaProfileMeta()`](/guides/profile-context/media-profile-meta)    |
 
-A typical season screen fetches `getSeasonDetails()` first — it needs no profile — to render the episode list right away, then layers `getSeasonProfileMeta()` on top for the checkmarks once a profile is active.
+A typical season screen fetches `getSeasonDetails()` first to render the episode list right away, then layers `getSeasonProfileMeta()` on top for the checkmarks. Both need an active profile, so they can run in parallel.
 
 ## What you get back
 

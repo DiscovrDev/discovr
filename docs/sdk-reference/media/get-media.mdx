@@ -5,7 +5,7 @@ description: "Get media details"
 
 Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass `MV_&lt;id&gt;` for movies or `TV_&lt;id&gt;` for TV shows (e.g., `MV_550`, `TV_1396`).
 
-This is a public endpoint — no authentication required. Returns only generic catalog metadata; personalized fields live under `profile_meta`.
+**Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata; the profile's own state for the title (lists, playback, completion) is `getMediaProfileMeta`, which is also the call that records the title as opened.
 
 ## Parameters
 
@@ -135,6 +135,7 @@ import type { MediaResponse } from "discovr";
 
 const discovr = new DiscovrClient("your-client-id");
 
+// After sign-in and profile selection …
 const response: MediaResponse = await discovr.getMedia("example");
 console.log(response);
 ```

@@ -12,6 +12,8 @@ Response includes:
 - **Providers** _(optional)_: the streaming services where this title is available for the profile's selected region. Pass `providers=true` to include this.
 - **Completion**: whether the profile has finished this title (`completed`), and for TV shows, which season numbers are fully watched (`completedSeasons`).
 
+**This call directly affects the profile's recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn't open registers similarly to liking those titles and will skew their recommendations. Pass the item's `ref` when you have one.
+
 **Auth tier:** session — send your session token in `Authorization: Bearer`.
 
 ## Parameters

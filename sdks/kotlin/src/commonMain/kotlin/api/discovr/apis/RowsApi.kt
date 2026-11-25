@@ -49,7 +49,7 @@ open class RowsApi : ApiClient {
     /**
      * Get a row
      * Returns metadata for a specific row.  A row ID keeps resolving after recommendations refresh, so a rail the user has already opened stays usable. It&#39;s only readable by the profile it was built for.  **Auth tier:** session. 
-     * @param pageId The unique identifier of the page
+     * @param pageId The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
      * @param rowId The unique identifier of the row
      * @return Row
      */
@@ -83,7 +83,7 @@ open class RowsApi : ApiClient {
     /**
      * List row items
      * Returns paginated items within a row. Items include the full display metadata needed to render a media card — title, poster, backdrop, type, and more.  Row IDs stay valid across a recommendations refresh, so a user can finish scrolling a rail they&#39;ve already opened.  **Auth tier:** session. 
-     * @param pageId The unique identifier of the page
+     * @param pageId The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
      * @param rowId The unique identifier of the row
      * @param nextPageToken Opaque pagination token returned from the previous page (optional)
      * @param limit Maximum number of items to return (optional, default to 10)
@@ -120,8 +120,8 @@ open class RowsApi : ApiClient {
 
     /**
      * List rows
-     * Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60;. They keep working even if recommendations refresh while the user is scrolling, so a rail they&#39;ve already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user&#39;s recommendations haven&#39;t turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with &#x60;409 CURSOR_EXPIRED&#x60;: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token on the same page ID and replace what you&#39;re showing with the result. Rows you already hold are not affected: &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60; keeps working for them.  **Auth tier:** session. 
-     * @param pageId The unique identifier of the page
+     * Returns paginated rows for a page. Each row is a labeled group of media titles — the building blocks of your recommendation UI.  Row IDs are opaque references — pass them straight back to &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60;. They keep working even if recommendations refresh while the user is scrolling, so a rail they&#39;ve already opened stays readable to the end.  Pagination continues in the set of results it started with, and only for as long as the user&#39;s recommendations haven&#39;t turned over. After a turnover (or, rarely, once the set has been cleaned up) the token is refused with &#x60;409 cursor-expired&#x60;: call &#x60;getPage&#x60; and &#x60;getRows&#x60; with no token on the same page ID and replace what you&#39;re showing with the result. Rows you already hold are not affected: &#x60;GET /pages/{pageId}/rows/{rowId}/items&#x60; keeps working for them.  **Auth tier:** session. 
+     * @param pageId The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does)
      * @param nextPageToken Opaque pagination token returned from the previous page (optional)
      * @param limit Maximum number of rows to return (optional, default to 5)
      * @return GetRowsResponse

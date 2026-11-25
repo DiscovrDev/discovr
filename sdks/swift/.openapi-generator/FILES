@@ -31,6 +31,7 @@ Sources/Discovr/Models/AddHistoryPayload.swift
 Sources/Discovr/Models/AddPlaybackPayload.swift
 Sources/Discovr/Models/AddSimpleListItemPayload.swift
 Sources/Discovr/Models/ApiError.swift
+Sources/Discovr/Models/ApiErrorCode.swift
 Sources/Discovr/Models/AvatarMediaType.swift
 Sources/Discovr/Models/CreatePagePayload.swift
 Sources/Discovr/Models/CreatePageResponse.swift
@@ -112,6 +113,7 @@ docs/AddHistoryPayload.md
 docs/AddPlaybackPayload.md
 docs/AddSimpleListItemPayload.md
 docs/ApiError.md
+docs/ApiErrorCode.md
 docs/AuthenticationAPI.md
 docs/AvatarMediaType.md
 docs/CreatePagePayload.md

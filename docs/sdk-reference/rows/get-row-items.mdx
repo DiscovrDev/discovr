@@ -11,12 +11,12 @@ Row IDs stay valid across a recommendations refresh, so a user can finish scroll
 
 ## Parameters
 
-| Name          | Type      | Required | Description                                             |
-| ------------- | --------- | -------- | ------------------------------------------------------- |
-| pageId        | `string`  | Yes      | The unique identifier of the page                       |
-| rowId         | `string`  | Yes      | The unique identifier of the row                        |
-| nextPageToken | `string`  | No       | Opaque pagination token returned from the previous page |
-| limit         | `integer` | No       | Maximum number of items to return                       |
+| Name          | Type      | Required | Description                                                                                         |
+| ------------- | --------- | -------- | --------------------------------------------------------------------------------------------------- |
+| pageId        | `string`  | Yes      | The page id, or the ref a navigation or provider tile handed back (a ref works wherever an id does) |
+| rowId         | `string`  | Yes      | The unique identifier of the row                                                                    |
+| nextPageToken | `string`  | No       | Opaque pagination token returned from the previous page                                             |
+| limit         | `integer` | No       | Maximum number of items to return                                                                   |
 
 ## Returns
 

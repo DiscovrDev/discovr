@@ -147,6 +147,7 @@ All URIs are relative to *https://api.discovr.media*
 - [AddPlaybackPayload](docs/AddPlaybackPayload.md)
 - [AddSimpleListItemPayload](docs/AddSimpleListItemPayload.md)
 - [ApiError](docs/ApiError.md)
+- [ApiErrorCode](docs/ApiErrorCode.md)
 - [AvatarMediaType](docs/AvatarMediaType.md)
 - [CreatePagePayload](docs/CreatePagePayload.md)
 - [CreatePageResponse](docs/CreatePageResponse.md)

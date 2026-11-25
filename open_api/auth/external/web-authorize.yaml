@@ -103,7 +103,8 @@ get:
           examples:
             missingClientID:
               value:
-                error: "Missing or invalid required query parameter: clientID"
+                error: "invalid-input"
+                message: "Missing or invalid required query parameter: clientID"
             clientNotFound:
               summary: clientID is not registered
               value:

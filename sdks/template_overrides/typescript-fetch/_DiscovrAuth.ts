@@ -40,6 +40,7 @@ import {
 	NotSignedInError,
 	RateLimitedError,
 	TokenInvalidError,
+	typedDataErrorFor,
 } from "./errors";
 import { _RequestLoopGuard, type LoopGuardConfig } from "./_RequestLoopGuard";
 
@@ -273,7 +274,7 @@ const DEFAULT_DEMO_SESSION_TTL_MS = 15 * 60 * 1000;
  * decisions off these codes — opaque error messages from the legacy stack are
  * intentionally unsupported.
  */
-type ApiErrorCode = "TOKEN_INVALID" | "TOKEN_EXPIRED" | "WRONG_TOKEN_KIND";
+type ApiErrorCode = "token-invalid" | "token-expired" | "wrong-token-kind";
 
 interface ApiErrorBody {
 	error?: ApiErrorCode | string;
@@ -385,7 +386,12 @@ export class _DiscovrAuth {
 	public publicApi(): DiscovrApi {
 		const config = new Configuration({
 			basePath: this.basePath,
-			middleware: [{ pre: async (context) => this.guardRequest(context) }],
+			middleware: [
+				{
+					pre: async (context) => this.guardRequest(context),
+					post: async (context) => this.handlePublicResponse(context),
+				},
+			],
 		});
 		return new DiscovrApi(config);
 	}
@@ -1107,20 +1113,12 @@ export class _DiscovrAuth {
 	}
 
 	/**
-	 * Per-request middleware for the session-tier API: catches 401s and
-	 * runs the auto-recovery matrix.
+	 * Shared non-401 error handling across every tier (session, identity, public):
+	 * turns 429 into a typed `RateLimitedError` carrying `retryInSeconds`, and
+	 * turns known 403/409 codes (`access-not-granted`, `legal-acceptance-required`,
+	 * `profile-not-found`, `cursor-expired`) into their typed errors.
 	 */
-	private async handleSessionResponse(context: {
-		response: Response;
-		init: RequestInit;
-		url: string;
-	}): Promise<Response | undefined> {
-		const res = context.response;
-
-		// Rate limits reach every session-tier call, so they are handled here
-		// rather than at each call site. Thrown as a typed error rather than
-		// waited out: a limit window is a minute long, so retrying inside the SDK
-		// would either block the caller's UI or fire again into a closed window.
+	private async throwIfTypedErrorResponse(res: Response): Promise<void> {
 		if (res.status === 429) {
 			throw new RateLimitedError(
 				"Too many requests — slow down and try again shortly.",
@@ -1133,6 +1131,28 @@ export class _DiscovrAuth {
 				),
 			);
 		}
+		if (res.status === 403 || res.status === 409) {
+			const txt = await res
+				.clone()
+				.text()
+				.catch(() => "");
+			const typed = typedDataErrorFor(res.status, txt);
+			if (typed) throw typed;
+		}
+	}
+
+	/**
+	 * Per-request middleware for the session-tier API: catches 429s, typed
+	 * 403/409 errors, and 401s (running the auto-recovery matrix).
+	 */
+	private async handleSessionResponse(context: {
+		response: Response;
+		init: RequestInit;
+		url: string;
+	}): Promise<Response | undefined> {
+		const res = context.response;
+
+		await this.throwIfTypedErrorResponse(res);
 
 		if (res.status !== 401) return res;
 
@@ -1148,20 +1168,22 @@ export class _DiscovrAuth {
 			// rather than falling through to `return res` below, which would hand
 			// back the raw failed response for the generated runtime to wrap in an
 			// untyped, unrecognizable error — the same "stuck forever" bug the
-			// TOKEN_EXPIRED/refresh branch below exists to prevent.
+			// token-expired/refresh branch below exists to prevent.
 			await this.endSession(this.lapseReason());
 			throw new TokenInvalidError("Session authentication failed");
 		}
 
-		if (body.error === "TOKEN_EXPIRED" && body.tokenKind === "session") {
+		if (body.error === "token-expired" && body.tokenKind === "session") {
 			// Re-mint and retry once.
 			this.sessionToken = null;
 			this.sessionExpiresAt = null;
 			const fresh = await this.ensureSessionToken();
-			return await fetch(context.url, this.withBearer(context.init, fresh));
+			const retried = await fetch(context.url, this.withBearer(context.init, fresh));
+			await this.throwIfTypedErrorResponse(retried);
+			return retried;
 		}
 
-		if (body.error === "TOKEN_EXPIRED" && body.tokenKind === "refresh") {
+		if (body.error === "token-expired" && body.tokenKind === "refresh") {
 			// Same recovery as the proactive path in fetch() below: sign out AND
 			// throw a typed error the consuming app's isAuthError()-style checks
 			// recognize. Returning the raw (still-401) response here would let it
@@ -1188,9 +1210,9 @@ export class _DiscovrAuth {
 		// page the app held, each of which then 401'd and rotated the session
 		// again. The recovery caused the failure it was recovering from.
 
-		if (body.error === "WRONG_TOKEN_KIND") {
+		if (body.error === "wrong-token-kind") {
 			console.error(
-				"[_DiscovrAuth] WRONG_TOKEN_KIND — endpoint expected a different token tier than the SDK sent. This indicates an SDK bug; please report it.",
+				"[_DiscovrAuth] wrong-token-kind — endpoint expected a different token tier than the SDK sent. This indicates an SDK bug; please report it.",
 				{ url: context.url, expected: body },
 			);
 		}
@@ -1200,21 +1222,15 @@ export class _DiscovrAuth {
 
 	/**
 	 * Per-request middleware for the identity-tier API (`getProfiles`, the
-	 * session list, ...). These calls carry the refresh token itself, so a 401
-	 * saying it expired has nothing to recover with: end the session and throw
-	 * the typed error.
-	 *
-	 * Without this, a call made through the generated identity client — the
-	 * first one after a demo sandbox lapsed, say — surfaced as a bare 401 while
-	 * the client went on reporting itself signed in. Only the SDK's own requests
-	 * (session-token minting) recovered. Same two cases as {@link fetch}: a
-	 * refresh-kind `TOKEN_EXPIRED`, and a 401 whose body cannot be read.
+	 * session list, ...). Handles 429 and typed 403/409 errors, and ends the
+	 * session on a refresh-token 401.
 	 */
 	private async handleIdentityResponse(context: {
 		response: Response;
 		url: string;
 	}): Promise<Response | undefined> {
 		const res = context.response;
+		await this.throwIfTypedErrorResponse(res);
 		if (res.status !== 401) return res;
 
 		let body: ApiErrorBody = {};
@@ -1224,11 +1240,20 @@ export class _DiscovrAuth {
 			await this.endSession(this.lapseReason());
 			throw new TokenInvalidError("Refresh token rejected");
 		}
-		if (body.error === "TOKEN_EXPIRED" && body.tokenKind === "refresh") {
+		if (body.error === "token-expired" && body.tokenKind === "refresh") {
 			await this.endSession(this.lapseReason());
 			throw new TokenInvalidError("Refresh token expired");
 		}
 		return res;
+	}
+
+	/** Per-request middleware for public endpoints (`/profile-images`, `/gif-search`). */
+	private async handlePublicResponse(context: {
+		response: Response;
+		url: string;
+	}): Promise<Response | undefined> {
+		await this.throwIfTypedErrorResponse(context.response);
+		return context.response;
 	}
 
 	private withBearer(init: RequestInit, token: string): RequestInit {
@@ -1310,7 +1335,7 @@ export class _DiscovrAuth {
 					await this.endSession(this.lapseReason());
 					throw new TokenInvalidError("Refresh token rejected");
 				}
-				if (parsed.error === "TOKEN_EXPIRED" && parsed.tokenKind === "refresh") {
+				if (parsed.error === "token-expired" && parsed.tokenKind === "refresh") {
 					await this.endSession(this.lapseReason());
 					throw new TokenInvalidError("Refresh token expired");
 				}

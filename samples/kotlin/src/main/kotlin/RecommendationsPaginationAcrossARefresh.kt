@@ -8,8 +8,7 @@ private suspend fun sample(client: DiscovrClient, pageId: String) {
     // docs:start
     try {
         client.getRows(pageId, nextPageToken = token)
-    } catch (err: DiscovrException) {
-        if (err.statusCode != 409) throw err
+    } catch (_: CursorExpiredError) {
         // The recommendations turned over, so this token is done. The page ID is
         // still good: reload the hero and the first rows, and replace what you
         // were showing. Don't append them to the old list.

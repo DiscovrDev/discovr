@@ -5,6 +5,7 @@ docs/AddHistoryPayload.md
 docs/AddPlaybackPayload.md
 docs/AddSimpleListItemPayload.md
 docs/ApiError.md
+docs/ApiErrorCode.md
 docs/AuthenticationApi.md
 docs/AvatarMediaType.md
 docs/CreatePagePayload.md
@@ -124,6 +125,7 @@ src/commonMain/kotlin/api/discovr/models/AddHistoryPayload.kt
 src/commonMain/kotlin/api/discovr/models/AddPlaybackPayload.kt
 src/commonMain/kotlin/api/discovr/models/AddSimpleListItemPayload.kt
 src/commonMain/kotlin/api/discovr/models/ApiError.kt
+src/commonMain/kotlin/api/discovr/models/ApiErrorCode.kt
 src/commonMain/kotlin/api/discovr/models/AvatarMediaType.kt
 src/commonMain/kotlin/api/discovr/models/CreatePagePayload.kt
 src/commonMain/kotlin/api/discovr/models/CreatePageResponse.kt

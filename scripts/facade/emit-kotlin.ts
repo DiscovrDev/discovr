@@ -11,10 +11,11 @@ export function generateKotlin(ops: ParsedOperation[]): string {
 	lines.push("import api.discovr.apis.DiscovrApi");
 	lines.push("import api.discovr.auth._DiscovrAuth");
 	lines.push("import api.discovr.auth.TokenInvalidError");
-	// Both live in `api.discovr.auth`; the 429 branch below is emitted into
-	// `api.discovr`, so without these the generated base class doesn't compile.
+	// All live in `api.discovr.auth`; the error/429 branches below are emitted
+	// into `api.discovr`, so without these the generated base class doesn't compile.
 	lines.push("import api.discovr.auth.RateLimitedError");
 	lines.push("import api.discovr.auth.retryAfterSeconds");
+	lines.push("import api.discovr.auth.typedApiErrorFor");
 	lines.push("import api.discovr.infrastructure.HttpResponse");
 
 	const modelImports = new Set<string>();
@@ -51,29 +52,41 @@ export function generateKotlin(ops: ParsedOperation[]): string {
 	lines.push("    internal abstract val _sessionApi: DiscovrApi");
 	lines.push("    internal abstract val _identityApi: DiscovrApi");
 	lines.push("");
-	lines.push("    // ── Internal session-tier call helper with auto-recovery ──────────────────");
+	lines.push("    // ── Internal call helpers with 429, typed-error, and 401 recovery ─────────");
+	lines.push("");
+	// Rate limits and known 403/409 contract errors reach every tier, so they
+	// are mapped in one helper rather than left to each caller to recognise by
+	// status code. Thrown, never waited out: a limit window is a minute long, so
+	// retrying inside the SDK would block the caller or fire again into a closed
+	// window.
+	lines.push(
+		"    internal fun throwForFailure(status: Int, rawBody: String, retryAfterHeader: String?): Nothing {",
+	);
+	lines.push("        if (status == 429) throw RateLimitedError(");
+	lines.push('            "Too many requests — slow down and try again shortly.",');
+	lines.push("            retryAfterSeconds(retryAfterHeader, rawBody),");
+	lines.push("        )");
+	lines.push("        typedApiErrorFor(status, rawBody, retryAfterHeader)?.let { throw it }");
+	lines.push("        throw DiscovrException(status, rawBody)");
+	lines.push("    }");
 	lines.push("");
 	lines.push("    internal suspend inline fun <reified T : Any> sessionApiCall(");
 	lines.push("        crossinline call: suspend DiscovrApi.() -> HttpResponse<T>,");
 	lines.push("    ): T {");
 	lines.push("        val resp = _sessionApi.call()");
 	lines.push("        if (resp.success) return resp.body()");
-	// Rate limits reach every session-tier call, so they are mapped here rather
-	// than left to each caller to recognise by status code. Thrown, never waited
-	// out: a limit window is a minute long, so retrying inside the SDK would
-	// block the caller or fire again into a closed window.
-	lines.push("        if (resp.status == 429) throw RateLimitedError(");
-	lines.push('            "Too many requests — slow down and try again shortly.",');
-	lines.push('            retryAfterSeconds(resp.response.headers["Retry-After"]),');
-	lines.push("        )");
-	lines.push("        if (resp.status != 401) throw DiscovrException(resp.status)");
 	lines.push("        val rawBody = resp.response.bodyAsText()");
+	lines.push(
+		'        if (resp.status != 401) throwForFailure(resp.status, rawBody, resp.response.headers["Retry-After"])',
+	);
 	lines.push("        val action = _auth.handleSessionErrorBody(rawBody)");
 	lines.push("        return when (action) {");
 	lines.push("            is _DiscovrAuth.RecoveryAction.RetryWithBearer -> {");
 	lines.push("                val retry = _sessionApi.call()");
+	lines.push("                if (retry.success) return retry.body()");
+	lines.push("                val retryBody = retry.response.bodyAsText()");
 	lines.push(
-		"                if (retry.success) retry.body() else throw DiscovrException(retry.status)",
+		'                throwForFailure(retry.status, retryBody, retry.response.headers["Retry-After"])',
 	);
 	lines.push("            }");
 	// _auth.handleSessionErrorBody already called signOut() for this action —
@@ -96,18 +109,27 @@ export function generateKotlin(ops: ParsedOperation[]): string {
 	lines.push("    ): T {");
 	lines.push("        val resp = _identityApi.call()");
 	lines.push("        if (resp.success) return resp.body()");
+	lines.push("        val rawBody = resp.response.bodyAsText()");
 	// A refresh-token 401 ends the session. Only the SDK's own requests used to
 	// recover from it; a call through here (getProfiles, the session list)
 	// surfaced as an untyped 401 while the client went on reporting itself
 	// signed in.
 	lines.push("        if (resp.status == 401) {");
-	lines.push("            val rawBody = resp.response.bodyAsText()");
 	lines.push(
 		'            if (_auth.handleIdentityErrorBody(rawBody)) throw TokenInvalidError("Refresh token expired")',
 	);
 	lines.push("            throw DiscovrException(resp.status, rawBody)");
 	lines.push("        }");
-	lines.push("        throw DiscovrException(resp.status)");
+	lines.push('        throwForFailure(resp.status, rawBody, resp.response.headers["Retry-After"])');
+	lines.push("    }");
+	lines.push("");
+	lines.push("    internal suspend inline fun <reified T : Any> publicApiCall(");
+	lines.push("        crossinline call: suspend DiscovrApi.() -> HttpResponse<T>,");
+	lines.push("    ): T {");
+	lines.push("        val resp = _auth.publicApi().call()");
+	lines.push("        if (resp.success) return resp.body()");
+	lines.push("        val rawBody = resp.response.bodyAsText()");
+	lines.push('        throwForFailure(resp.status, rawBody, resp.response.headers["Retry-After"])');
 	lines.push("    }");
 	lines.push("");
 
@@ -209,10 +231,6 @@ function buildKtCall(op: ParsedOperation, tier: ParsedOperation["tier"]): string
 				: "sessionApiCall";
 
 	const sdkArgs = buildKtSdkArgs(op);
-
-	if (tier === "public") {
-		return `_auth.publicApi().${op.operationId}(${sdkArgs}).body()`;
-	}
 
 	return `${callHelper} { ${op.operationId}(${sdkArgs}) }`;
 }

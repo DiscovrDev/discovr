@@ -51,14 +51,14 @@ open class MediaApi : ApiClient {
 
     /**
      * Get media details
-     * Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  This is a public endpoint — no authentication required. Returns only generic catalog metadata; personalized fields live under &#x60;profile_meta&#x60;. 
+     * Returns full details for a movie or TV show — title, overview, genres, release date, runtime, cast, crew, watch providers, and more. Pass &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata; the profile&#39;s own state for the title (lists, playback, completion) is &#x60;getMediaProfileMeta&#x60;, which is also the call that records the title as opened. 
      * @param mediaId The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
      * @return MediaResponse
      */
     @Suppress("UNCHECKED_CAST")
     open suspend fun getMedia(mediaId: kotlin.String): HttpResponse<MediaResponse> {
 
-        val localVariableAuthNames = listOf<String>()
+        val localVariableAuthNames = listOf<String>("BearerAuth")
 
         val localVariableBody = 
             io.ktor.client.utils.EmptyContent
@@ -71,7 +71,7 @@ open class MediaApi : ApiClient {
             "/media/{mediaId}".replace("{" + "mediaId" + "}", "$mediaId"),
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = false,
+            requiresAuthentication = true,
         )
 
         return request(
@@ -84,14 +84,14 @@ open class MediaApi : ApiClient {
 
     /**
      * Get media assets
-     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
      * @param mediaId The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
      * @return MediaAssetsResponse
      */
     @Suppress("UNCHECKED_CAST")
     open suspend fun getMediaAssets(mediaId: kotlin.String): HttpResponse<MediaAssetsResponse> {
 
-        val localVariableAuthNames = listOf<String>()
+        val localVariableAuthNames = listOf<String>("BearerAuth")
 
         val localVariableBody = 
             io.ktor.client.utils.EmptyContent
@@ -104,7 +104,7 @@ open class MediaApi : ApiClient {
             "/media/{mediaId}/assets".replace("{" + "mediaId" + "}", "$mediaId"),
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = false,
+            requiresAuthentication = true,
         )
 
         return request(
@@ -117,7 +117,7 @@ open class MediaApi : ApiClient {
 
     /**
      * Get profile interaction data for a title
-     * Returns the current profile&#39;s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (&#x60;true&#x60;/&#x60;false&#x60; for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile&#39;s selected region. Pass &#x60;providers&#x3D;true&#x60; to include this. - **Completion**: whether the profile has finished this title (&#x60;completed&#x60;), and for TV shows, which season numbers are fully watched (&#x60;completedSeasons&#x60;).  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
+     * Returns the current profile&#39;s interaction data for a title — everything you need to render the right UI state for that title.  Response includes: - **List status**: whether the title is liked, disliked, super-liked, watchlisted, or in watch history (&#x60;true&#x60;/&#x60;false&#x60; for each). - **Playback**: whether the title has a saved position, and the position details (progress 0–100, updated timestamp, season/episode for TV shows). - **Providers** *(optional)*: the streaming services where this title is available for the profile&#39;s selected region. Pass &#x60;providers&#x3D;true&#x60; to include this. - **Completion**: whether the profile has finished this title (&#x60;completed&#x60;), and for TV shows, which season numbers are fully watched (&#x60;completedSeasons&#x60;).  **This call directly affects the profile&#39;s recommendations.** It records that the viewer opened the title (and is the only endpoint that does), so only call it when the title screen actually opens — never prefetch or hover-load it. Calling it for tiles the viewer didn&#39;t open registers similarly to liking those titles and will skew their recommendations. Pass the item&#39;s &#x60;ref&#x60; when you have one.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. 
      * @param mediaId The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
      * @param providers Set to &#x60;true&#x60; to include streaming provider availability in the response. (optional, default to false)
      * @return MediaProfileMeta
@@ -152,7 +152,7 @@ open class MediaApi : ApiClient {
 
     /**
      * Get TV season details
-     * Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     * Returns episode details for a specific TV season — episode titles, overviews, air dates, and episode numbers.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata (what the profile has watched is &#x60;getSeasonProfileMeta&#x60;), but the call needs a profile. 
      * @param mediaId The unique identifier of the TV show (e.g., &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
      * @param seasonNumber The season number.
      * @param language ISO 639-1 language code for localised results (e.g., &#x60;en&#x60;). (optional)
@@ -161,7 +161,7 @@ open class MediaApi : ApiClient {
     @Suppress("UNCHECKED_CAST")
     open suspend fun getSeasonDetails(mediaId: kotlin.String, seasonNumber: kotlin.Int, language: kotlin.String? = null): HttpResponse<SeasonDetailsResponse> {
 
-        val localVariableAuthNames = listOf<String>()
+        val localVariableAuthNames = listOf<String>("BearerAuth")
 
         val localVariableBody = 
             io.ktor.client.utils.EmptyContent
@@ -175,7 +175,7 @@ open class MediaApi : ApiClient {
             "/media/{mediaId}/seasons/{seasonNumber}".replace("{" + "mediaId" + "}", "$mediaId").replace("{" + "seasonNumber" + "}", "$seasonNumber"),
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = false,
+            requiresAuthentication = true,
         )
 
         return request(
@@ -222,7 +222,7 @@ open class MediaApi : ApiClient {
 
     /**
      * Get similar titles
-     * Returns titles that are similar to the given movie or TV show. Useful for \&quot;More like this\&quot; sections.  This is a public endpoint — no authentication required. Returns only generic catalog metadata. 
+     * Returns titles that are similar to the given movie or TV show. Useful for \&quot;More like this\&quot; sections.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The refs on the results are sealed for the profile that asked. 
      * @param mediaId The unique identifier of the media item. Use &#x60;MV_&lt;id&gt;&#x60; for movies or &#x60;TV_&lt;id&gt;&#x60; for TV shows (e.g., &#x60;MV_550&#x60;, &#x60;TV_1396&#x60;).  Also accepts an item&#39;s &#x60;ref&#x60; in place of the id. Prefer the &#x60;ref&#x60; when you have one — it resolves to the same title and sharpens the user&#39;s recommendations. 
      * @param language Language code for results (e.g., &#x60;en-US&#x60;). (optional)
      * @param page Page number for pagination (default: 1). (optional, default to 1)
@@ -231,7 +231,7 @@ open class MediaApi : ApiClient {
     @Suppress("UNCHECKED_CAST")
     open suspend fun getSimilarRecommendations(mediaId: kotlin.String, language: kotlin.String? = null, page: kotlin.Int? = 1): HttpResponse<SimilarResponse> {
 
-        val localVariableAuthNames = listOf<String>()
+        val localVariableAuthNames = listOf<String>("BearerAuth")
 
         val localVariableBody = 
             io.ktor.client.utils.EmptyContent
@@ -246,7 +246,7 @@ open class MediaApi : ApiClient {
             "/media/{mediaId}/similar".replace("{" + "mediaId" + "}", "$mediaId"),
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = false,
+            requiresAuthentication = true,
         )
 
         return request(

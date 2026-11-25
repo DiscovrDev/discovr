@@ -12,17 +12,22 @@ func handleAPICallErrors() async {
         let page = try await client.createPage()
         // Use page normally
         print(page.id)
-    } catch ErrorResponse.error(401, _, _, _) {
-        // The user is signed out. Nothing else produces a 401 any more.
-        showSignInUI()
-    } catch ErrorResponse.error(409, _, _, _) {
+    } catch AuthError.accessNotGranted {
+        // Account is still on the waitlist — show a waitlist screen, don't retry.
+        print("Your account isn't active yet.")
+    } catch AuthError.legalAcceptanceRequired {
+        // Account needs to accept the latest Terms before continuing.
+        print("Please accept the latest Terms to continue.")
+    } catch AuthError.cursorExpired {
         // A pagination token is no longer usable, typically because the
         // recommendations turned over. The page id is still good: reload the
         // page (getPage + getRows, no token) and replace what you're showing.
         restartPagination()
-    } catch ErrorResponse.error(429, _, _, _) {
-        // Swift only: TypeScript and Kotlin throw a typed RateLimitedError.
-        print("Too many requests. Try again in a moment.")
+    } catch AuthError.rateLimited(let retryInSeconds) {
+        print("Too many requests. Try again in \(retryInSeconds)s.")
+    } catch ErrorResponse.error(401, _, _, _) {
+        // The user is signed out. Nothing else produces a 401 any more.
+        showSignInUI()
     } catch ErrorResponse.error(403, _, _, _) {
         print("Internal error. Please report this if it keeps happening.")
     } catch {

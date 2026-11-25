@@ -108,6 +108,45 @@ export class TokenInvalidError extends DiscovrError {
 	}
 }
 
+/** The account authenticated, and is still on the waitlist (403). */
+export class AccessNotGrantedError extends DiscovrError {
+	constructor(message = "Account access has not been granted yet") {
+		super("access-not-granted", message);
+		this.name = "AccessNotGrantedError";
+		Object.setPrototypeOf(this, new.target.prototype);
+	}
+}
+
+/** The account authenticated, and must accept the latest Terms to continue (403). */
+export class LegalAcceptanceRequiredError extends DiscovrError {
+	constructor(message = "Please accept the latest Terms to continue") {
+		super("legal-acceptance-required", message);
+		this.name = "LegalAcceptanceRequiredError";
+		Object.setPrototypeOf(this, new.target.prototype);
+	}
+}
+
+/** The requested profile does not exist under the signed-in account (403). */
+export class ProfileNotFoundError extends DiscovrError {
+	constructor(message = "Profile not found") {
+		super("profile-not-found", message);
+		this.name = "ProfileNotFoundError";
+		Object.setPrototypeOf(this, new.target.prototype);
+	}
+}
+
+/**
+ * The pagination cursor or row reference points at a set of results that has
+ * since been replaced (409). Reload the page with no token on the same page id.
+ */
+export class CursorExpiredError extends DiscovrError {
+	constructor(message = "Pagination cursor expired") {
+		super("cursor-expired", message);
+		this.name = "CursorExpiredError";
+		Object.setPrototypeOf(this, new.target.prototype);
+	}
+}
+
 /** Called an auth-required method before signing in. */
 export class NotSignedInError extends DiscovrError {
 	constructor(message = "Not signed in") {
@@ -190,15 +229,17 @@ export class RateLimitedError extends DiscovrError {
 /**
  * Map a server error code to the SDK's own typed error.
  *
- * The codes are an implementation detail of the API, so they are translated
- * here and never passed on: an unrecognised code becomes a plain
- * `DiscovrError` with a generic message, not the code itself.
+ * The switch below is generated from `ApiErrorCode` in the OpenAPI spec by
+ * `emit-error-tables.ts`. Do not edit between the generated markers by hand.
  */
-export function mapApiErrorCode(code: string, message?: string): DiscovrError {
+export function mapApiErrorCode(
+	code: string,
+	message?: string,
+	retryInSeconds?: number,
+): DiscovrError {
 	switch (code) {
+		// <generated:error-table>
 		case "client-not-found":
-		case "CLIENT_NOT_FOUND":
-		case "MISSING_CLIENT_ID":
 			return new ClientNotFoundError(message);
 		case "device-code-expired":
 		case "device-code-not-found":
@@ -211,16 +252,29 @@ export function mapApiErrorCode(code: string, message?: string): DiscovrError {
 			return new AuthCancelledError(message);
 		case "session-expired":
 		case "session-not-found":
-		case "TOKEN_EXPIRED":
 			return new SessionExpiredError(message);
 		case "session-already-consumed":
 			return new SessionConsumedError(message);
-		case "code-verifier-invalid":
 		case "token-invalid":
-		case "TOKEN_INVALID":
-		case "WRONG_TOKEN_KIND":
+		case "token-expired":
+		case "wrong-token-kind":
 		case "client-mismatch":
+		case "code-verifier-invalid":
 			return new TokenInvalidError(message);
+		case "access-not-granted":
+			return new AccessNotGrantedError(message);
+		case "legal-acceptance-required":
+			return new LegalAcceptanceRequiredError(message);
+		case "profile-not-found":
+			return new ProfileNotFoundError(message);
+		case "cursor-expired":
+			return new CursorExpiredError(message);
+		case "rate-limited":
+			return new RateLimitedError(
+				message ?? "Too many requests — slow down and try again shortly.",
+				retryInSeconds ?? 60,
+			);
+		// </generated:error-table>
 		default:
 			return new DiscovrError("unknown-error", message ?? "Request failed");
 	}
@@ -230,21 +284,59 @@ const MACHINE_CODE = /^[A-Za-z0-9_-]+$/;
 
 /**
  * Translate a non-2xx response into a typed error. The server names failures in
- * the body's `error` field; prose there ("Resource not found") is written for
- * callers and passed on, a machine code we don't know is not.
+ * the body's `error` field (a kebab-case code) with an optional `message`
+ * detail; unknown machine codes are never echoed as user messages.
  */
-export function apiErrorFor(status: number, body: string): DiscovrError {
+export function apiErrorFor(status: number, body: string, retryInSeconds?: number): DiscovrError {
 	let code: string | undefined;
+	let message: string | undefined;
+	let bodyRetry: number | undefined;
 	try {
-		const parsed = JSON.parse(body) as { error?: unknown };
+		const parsed = JSON.parse(body) as {
+			error?: unknown;
+			message?: unknown;
+			retryAfterSeconds?: unknown;
+		};
 		if (typeof parsed.error === "string") code = parsed.error;
+		if (typeof parsed.message === "string" && parsed.message.length > 0) message = parsed.message;
+		if (typeof parsed.retryAfterSeconds === "number" && parsed.retryAfterSeconds > 0) {
+			bodyRetry = Math.min(Math.floor(parsed.retryAfterSeconds), 300);
+		}
 	} catch {
 		// An unparseable body (e.g. an HTML block page) has no code to read.
 	}
+	const wait = retryInSeconds ?? bodyRetry;
+	if (status === 429) {
+		return new RateLimitedError(
+			message ?? "Too many requests — slow down and try again shortly.",
+			wait ?? 60,
+		);
+	}
 	if (code !== undefined) {
-		const mapped = mapApiErrorCode(code);
+		const mapped = mapApiErrorCode(code, message, wait);
 		if (mapped.code !== "unknown-error") return mapped;
+		if (message !== undefined) return new DiscovrError("unknown-error", message);
 		if (!MACHINE_CODE.test(code)) return new DiscovrError("unknown-error", code);
 	}
 	return new DiscovrError("unknown-error", `Request failed (HTTP ${status})`);
+}
+
+/**
+ * Recognises data-call failures that have a dedicated typed SDK error
+ * (`access-not-granted`, `legal-acceptance-required`, `profile-not-found`,
+ * `cursor-expired`). Returns `null` for ordinary status errors so callers that
+ * branch on `ResponseError` status codes keep working.
+ */
+export function typedDataErrorFor(status: number, body: string): DiscovrError | null {
+	if (status !== 403 && status !== 409) return null;
+	const err = apiErrorFor(status, body);
+	if (
+		err instanceof AccessNotGrantedError ||
+		err instanceof LegalAcceptanceRequiredError ||
+		err instanceof ProfileNotFoundError ||
+		err instanceof CursorExpiredError
+	) {
+		return err;
+	}
+	return null;
 }

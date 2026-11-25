@@ -79,7 +79,8 @@ post:
           examples:
             missingClientID:
               value:
-                error: "ClientID is required and cannot be empty"
+                error: "invalid-input"
+                message: "Missing or invalid required field: clientID"
             clientNotFound:
               summary: clientID is not registered
               value:

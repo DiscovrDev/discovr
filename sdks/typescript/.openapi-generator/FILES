@@ -6,6 +6,7 @@ docs/AddHistoryPayload.md
 docs/AddPlaybackPayload.md
 docs/AddSimpleListItemPayload.md
 docs/ApiError.md
+docs/ApiErrorCode.md
 docs/AuthenticationApi.md
 docs/AvatarMediaType.md
 docs/CreatePagePayload.md
@@ -110,6 +111,7 @@ src/models/AddHistoryPayload.ts
 src/models/AddPlaybackPayload.ts
 src/models/AddSimpleListItemPayload.ts
 src/models/ApiError.ts
+src/models/ApiErrorCode.ts
 src/models/AvatarMediaType.ts
 src/models/CreatePagePayload.ts
 src/models/CreatePageResponse.ts
