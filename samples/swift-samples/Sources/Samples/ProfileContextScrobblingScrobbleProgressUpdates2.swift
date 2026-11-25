@@ -6,7 +6,7 @@ private func sample(client: DiscovrClient, mediaId: String, progress: Double) as
     try await client.scrobble(
         mediaId: mediaId,
         progress: progress,
-        tv: ScrobbleTv(season: 1, episode: 5)
+        tv: EpisodeRef(season: 1, episode: 5)
     )
     // docs:end
 }

@@ -2,7 +2,7 @@ import { DiscovrClient } from "discovr";
 
 export async function sample(client: DiscovrClient) {
 	// docs:start
-	const page = await client.createPage({ name: "Home" });
+	const page = await client.createPage();
 	const { rows } = await client.getRows(page.id, { limit: 10 });
 
 	console.log(`Got ${rows.length} recommendation rows:`);

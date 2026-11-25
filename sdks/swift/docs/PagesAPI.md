@@ -25,7 +25,7 @@ import Discovr
 let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
-let createPagePayload: CreatePagePayload = CreatePagePayload(pageFilters: FilterSpec(genres: [123], keywords: [123], mediaType: "mediaType_example", region: ["region_example"], withRuntimeGte: 123, withRuntimeLte: 123, withReleaseDateGte: Date(), withReleaseDateLte: Date(), withWatchProviders: ["withWatchProviders_example"]), name: "name_example") //  (optional)
+let createPagePayload: CreatePagePayload = CreatePagePayload(pageFilters: FilterSpec(genres: [123], keywords: [123], mediaType: "mediaType_example", region: ["region_example"], withRuntimeGte: 123, withRuntimeLte: 123, withReleaseDateGte: Date(), withReleaseDateLte: Date(), withWatchProviders: ["withWatchProviders_example"])) //  (optional)
 
 Task {
     do {

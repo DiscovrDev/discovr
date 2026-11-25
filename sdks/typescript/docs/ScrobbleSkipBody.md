@@ -10,7 +10,7 @@ Name | Type
 `from` | number
 `to` | number
 `duration` | number
-`tv` | [ScrobbleTv](ScrobbleTv.md)
+`tv` | [EpisodeRef](EpisodeRef.md)
 
 ## Example
 

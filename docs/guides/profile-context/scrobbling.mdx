@@ -58,14 +58,14 @@ await client.scrobble(mediaId, progress, {
 ```
 
 ```kotlin Kotlin
-client.scrobble(mediaId, progress, tv = ScrobbleTv(season = 1, episode = 5))
+client.scrobble(mediaId, progress, tv = EpisodeRef(season = 1, episode = 5))
 ```
 
 ```swift Swift
 try await client.scrobble(
     mediaId: mediaId,
     progress: progress,
-    tv: ScrobbleTv(season: 1, episode: 5)
+    tv: EpisodeRef(season: 1, episode: 5)
 )
 ```
 
@@ -238,7 +238,7 @@ await client.scrobble(mediaId, 100, { tv: { season: 2, episode: 5 } });
 client.scrobble(mediaId, 100.0)
 
 // One episode of a show.
-client.scrobble(mediaId, 100.0, tv = ScrobbleTv(season = 2, episode = 5))
+client.scrobble(mediaId, 100.0, tv = EpisodeRef(season = 2, episode = 5))
 ```
 
 ```swift Swift
@@ -249,7 +249,7 @@ try await client.scrobble(mediaId: mediaId, progress: 100)
 try await client.scrobble(
     mediaId: mediaId,
     progress: 100,
-    tv: ScrobbleTv(season: 2, episode: 5)
+    tv: EpisodeRef(season: 2, episode: 5)
 )
 ```
 

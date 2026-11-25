@@ -1,6 +1,7 @@
 
 # MediaResponseTvSeason
 
+Summary of one season on a TV show\'s details. Use `getSeasonDetails` for full episode listings.
 
 ## Properties
 

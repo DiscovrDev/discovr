@@ -9,14 +9,12 @@ import api.discovr.models.FilterSpec
 
 // docs:start
 suspend fun bootstrapPages(client: DiscovrClient) {
-    val home = client.createPage(name = "Home")
+    val home = client.createPage()
     val movies = client.createPage(
-        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.movie),
-        name = "Movies"
+        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.movie)
     )
     val series = client.createPage(
-        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.tv),
-        name = "Series"
+        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.tv)
     )
     println("$home $movies $series")
 }

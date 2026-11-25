@@ -32,14 +32,12 @@ Create each page once and reuse its ID. Switching tabs doesn't recreate the page
 ```typescript TypeScript
 // Create pages for each tab once, on app launch or after sign-in
 const tabs = {
-	home: await client.createPage({ name: "Home" }),
+	home: await client.createPage(),
 	movies: await client.createPage({
 		pageFilters: { mediaType: "movie" },
-		name: "Movies",
 	}),
 	series: await client.createPage({
 		pageFilters: { mediaType: "tv" },
-		name: "Series",
 	}),
 };
 
@@ -51,14 +49,12 @@ renderPage(moviesData); // Display Movies tab rows
 ```kotlin Kotlin
 // Create pages for each tab once, on app launch or after sign-in
 val tabs = mapOf(
-    "home" to client.createPage(name = "Home"),
+    "home" to client.createPage(),
     "movies" to client.createPage(
-        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.movie),
-        name = "Movies"
+        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.movie)
     ),
     "series" to client.createPage(
-        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.tv),
-        name = "Series"
+        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.tv)
     )
 )
 
@@ -70,14 +66,12 @@ renderPage(moviesData) // Display Movies tab rows
 ```swift Swift
 // Create pages for each tab once, on app launch or after sign-in
 let tabs = [
-    "home": try await client.createPage(name: "Home"),
+    "home": try await client.createPage(),
     "movies": try await client.createPage(
-        pageFilters: FilterSpec(mediaType: .movie),
-        name: "Movies"
+        pageFilters: FilterSpec(mediaType: .movie)
     ),
     "series": try await client.createPage(
-        pageFilters: FilterSpec(mediaType: .tv),
-        name: "Series"
+        pageFilters: FilterSpec(mediaType: .tv)
     ),
 ]
 
@@ -223,9 +217,9 @@ renderPage(pageData)
 
 ## Breadcrumbs
 
-Each page's `name` field **is** the breadcrumb for that level—"Home", "Movies", "Anime", "Romance". [`getPage()`](/sdk-reference/pages/get-page) returns it directly, so you don't need to maintain a separate label list.
+Each built-in or navigation-tile page carries a `name` field you can use as a breadcrumb (for example, `"Movies & Series • Anime"`). [`getPage()`](/sdk-reference/pages/get-page) returns it directly, so you don't need to maintain a separate label list for those.
 
-`name` is set when you passed one to [`createPage()`](/sdk-reference/pages/create-page), and on pages you reached through a navigation tile, which carry their own. It's optional on the response, so fall back to a label of your own when it's absent.
+Pages created from filters alone with [`createPage()`](/sdk-reference/pages/create-page) don't carry a `name`. It's optional on the response, so fall back to a label of your own when it's absent.
 
 To build the full breadcrumb trail ("Home > Movies > Anime"), map your navigation stack (page IDs you've already loaded) to their titles:
 

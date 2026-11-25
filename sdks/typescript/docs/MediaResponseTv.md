@@ -21,7 +21,7 @@ Name | Type
 `voteAverage` | number
 `voteCount` | number
 `popularity` | number
-`genres` | [Array&lt;MediaResponseTvGenre&gt;](MediaResponseTvGenre.md)
+`genres` | [Array&lt;Genre&gt;](Genre.md)
 `tagline` | string
 `status` | string
 `homepage` | string

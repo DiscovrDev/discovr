@@ -20,14 +20,14 @@ public struct Episode: Sendable, Codable, ParameterConvertible, Hashable {
     public var overview: String?
     /** Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     public var stillPath: [String: String]?
-    /** Original air date of the episode. */
+    /** Original air date of the episode, as `YYYY-MM-DD`, or `null` when unknown. */
     public var airDate: Date?
     /** Episode runtime in minutes. */
     public var runtime: Int?
     /** Season this episode belongs to. */
     public var seasonNumber: Int
-    /** Numeric identifier for the parent TV show. */
-    public var showId: Int
+    /** The parent TV show identifier (e.g., `TV_1396`). */
+    public var showId: String
     /** Production code for the episode. */
     public var productionCode: String?
     /** Community rating for the episode. */
@@ -35,11 +35,11 @@ public struct Episode: Sendable, Codable, ParameterConvertible, Hashable {
     /** Number of ratings for the episode. */
     public var voteCount: Int?
     /** Crew members for this episode. */
-    public var crew: [JSONValue]?
+    public var crew: [EpisodeCrewMember]?
     /** Guest cast for this episode. */
-    public var guestStars: [JSONValue]?
+    public var guestStars: [EpisodeGuestStar]?
 
-    public init(episodeTmdbId: Int, episodeNumber: Int, name: String, overview: String? = nil, stillPath: [String: String]? = nil, airDate: Date? = nil, runtime: Int? = nil, seasonNumber: Int, showId: Int, productionCode: String? = nil, voteAverage: Double? = nil, voteCount: Int? = nil, crew: [JSONValue]? = nil, guestStars: [JSONValue]? = nil) {
+    public init(episodeTmdbId: Int, episodeNumber: Int, name: String, overview: String? = nil, stillPath: [String: String]? = nil, airDate: Date? = nil, runtime: Int? = nil, seasonNumber: Int, showId: String, productionCode: String? = nil, voteAverage: Double? = nil, voteCount: Int? = nil, crew: [EpisodeCrewMember]? = nil, guestStars: [EpisodeGuestStar]? = nil) {
         self.episodeTmdbId = episodeTmdbId
         self.episodeNumber = episodeNumber
         self.name = name

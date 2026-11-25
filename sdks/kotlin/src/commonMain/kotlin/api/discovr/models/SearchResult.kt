@@ -35,8 +35,8 @@ import kotlinx.serialization.encoding.*
  * @param overview Short synopsis. Not present for `person` results.
  * @param posterPath Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Absent for `person` results.
  * @param backdropPath Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Absent for `person` results.
- * @param releaseDate Release date for `movie` results, as `YYYY-MM-DD`.
- * @param firstAirDate First air date for `tv` results, as `YYYY-MM-DD`.
+ * @param releaseDate Release date for `movie` results, as `YYYY-MM-DD`, or `null` when unknown.
+ * @param firstAirDate First air date for `tv` results, as `YYYY-MM-DD`, or `null` when unknown.
  * @param popularity Relative popularity score. Comparable between results, but has no fixed upper bound, so treat it as a sort key rather than something to display.
  * @param voteAverage Average audience rating out of 10. Not present for `person` results.
  * @param voteCount How many ratings `vote_average` is based on. Not present for `person` results.
@@ -81,10 +81,10 @@ data class SearchResult (
     /* Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Absent for `person` results. */
     @SerialName(value = "backdrop_path") val backdropPath: kotlin.collections.Map<kotlin.String, kotlin.String>? = null,
 
-    /* Release date for `movie` results, as `YYYY-MM-DD`. */
+    /* Release date for `movie` results, as `YYYY-MM-DD`, or `null` when unknown. */
     @SerialName(value = "release_date") val releaseDate: kotlinx.datetime.LocalDate? = null,
 
-    /* First air date for `tv` results, as `YYYY-MM-DD`. */
+    /* First air date for `tv` results, as `YYYY-MM-DD`, or `null` when unknown. */
     @SerialName(value = "first_air_date") val firstAirDate: kotlinx.datetime.LocalDate? = null,
 
     /* Relative popularity score. Comparable between results, but has no fixed upper bound, so treat it as a sort key rather than something to display. */

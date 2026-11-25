@@ -464,7 +464,7 @@ async function switchProfile(newProfileId: string) {
 	await client.selectProfile(newProfileId);
 
 	// Load new home page
-	const newHome = await client.createPage({ name: "Home" });
+	const newHome = await client.createPage();
 	await loadHomePageEfficiently(newHome.id);
 }
 ```
@@ -478,7 +478,7 @@ suspend fun switchProfile(newProfileId: String) {
     client.selectProfile(newProfileId)
 
     // Load new home
-    val newHome = client.createPage(name = "Home")
+    val newHome = client.createPage()
     loadHomePageEfficiently(newHome.id)
 }
 ```
@@ -492,7 +492,7 @@ func switchProfile(newProfileId: String) async throws {
     try await client.selectProfile(profileId: newProfileId)
 
     // Load new home
-    let newHome = try await client.createPage(name: "Home")
+    let newHome = try await client.createPage()
     try await loadHomePageEfficiently(homePageId: newHome.id)
 }
 ```

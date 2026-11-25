@@ -29,12 +29,11 @@ import kotlinx.serialization.encoding.*
  * @param id Season identifier.
  * @param seasonNumber The number of the season
  * @param episodes List of episodes in the season
- * @param tmdbInternalId Image asset identifier for the season.
  * @param seasonTmdbId Alias for `id`.
  * @param name Name of the season
  * @param overview Overview of the season
  * @param posterPath Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
- * @param airDate Air date of the season
+ * @param airDate Air date of the season, as `YYYY-MM-DD`, or `null` when unknown.
  */
 @Serializable
 
@@ -55,9 +54,6 @@ data class SeasonDetailsResponse (
     /* List of episodes in the season */
     @SerialName(value = "episodes") @Required val episodes: kotlin.collections.List<Episode>,
 
-    /* Image asset identifier for the season. */
-    @SerialName(value = "tmdb_internal_id") val tmdbInternalId: kotlin.String? = null,
-
     /* Alias for `id`. */
     @SerialName(value = "season_tmdb_id") val seasonTmdbId: kotlin.Int? = null,
 
@@ -70,7 +66,7 @@ data class SeasonDetailsResponse (
     /* Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     @SerialName(value = "poster_path") val posterPath: kotlin.collections.Map<kotlin.String, kotlin.String>? = null,
 
-    /* Air date of the season */
+    /* Air date of the season, as `YYYY-MM-DD`, or `null` when unknown. */
     @SerialName(value = "air_date") val airDate: kotlinx.datetime.LocalDate? = null
 
 ) {

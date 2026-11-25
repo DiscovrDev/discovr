@@ -27,7 +27,7 @@ import kotlinx.serialization.encoding.*
  * @param id Stable identifier for the page. Safe to store, bookmark or put in a URL.
  * @param createdAt When this view of the page was built. Moves when recommendations refresh; it is not the page's own age.
  * @param hero Array of exactly 10 featured HeroItems for the hero section
- * @param name Human-readable page title, suitable for a breadcrumb (e.g. \"Movies & Series • Anime • Fantasy\").  Present only for pages that carry their own name — navigation tiles and built-in pages. A `name` you pass to `POST /pages` is a label for your own use and is not returned here. Absent otherwise — read it defensively. 
+ * @param name Human-readable page title, suitable for a breadcrumb (e.g. \"Movies & Series • Anime • Fantasy\").  Present only for pages that carry their own name — navigation tiles and built-in pages. `POST /pages` takes no name, so a page you create from filters alone has none. Absent otherwise — read it defensively. 
  */
 @Serializable
 
@@ -42,7 +42,7 @@ data class Page (
     /* Array of exactly 10 featured HeroItems for the hero section */
     @SerialName(value = "hero") @Required val hero: kotlin.collections.List<HeroItem>,
 
-    /* Human-readable page title, suitable for a breadcrumb (e.g. \"Movies & Series • Anime • Fantasy\").  Present only for pages that carry their own name — navigation tiles and built-in pages. A `name` you pass to `POST /pages` is a label for your own use and is not returned here. Absent otherwise — read it defensively.  */
+    /* Human-readable page title, suitable for a breadcrumb (e.g. \"Movies & Series • Anime • Fantasy\").  Present only for pages that carry their own name — navigation tiles and built-in pages. `POST /pages` takes no name, so a page you create from filters alone has none. Absent otherwise — read it defensively.  */
     @SerialName(value = "name") val name: kotlin.String? = null
 
 ) {

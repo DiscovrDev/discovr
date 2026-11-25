@@ -26,10 +26,29 @@ of waiting out the timeout.
 
 ## Returns
 
-`PollDeviceCode200Response` — Poll result. Two possible shapes:
+[`DeviceCodePollResponse`](/sdk-reference/types/authentication#devicecodepollresponse) — Poll result. Two possible shapes:
 
 - **Authorized**: device code was approved — contains `refreshToken`, `publicId`, `expiresAt`.
 - **Pending**: user has not yet approved — contains `status: "pending"` and the `interval` to wait. Keep polling.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+// RefreshTokenResponse
+{
+  "refreshToken": "string",
+  "publicId": "string",
+  "expiresAt": 1733088000
+}
+// — OR —
+// DeviceCodePendingResponse
+{
+  "status": "pending",
+  "interval": 10
+}
+```
+</Accordion>
+</AccordionGroup>
 
 ## Example
 
@@ -37,11 +56,11 @@ of waiting out the timeout.
 
 ```typescript TypeScript
 import { DiscovrClient } from "discovr";
-import type { DevicePollPayload, PollDeviceCode200Response } from "discovr";
+import type { DeviceCodePollResponse, DevicePollPayload } from "discovr";
 
 const discovr = new DiscovrClient("your-client-id");
 
-const response: PollDeviceCode200Response = await discovr.pollDeviceCode("dvc_abc123xyz789", {
+const response: DeviceCodePollResponse = await discovr.pollDeviceCode("dvc_abc123xyz789", {
 	deviceId: "7f3a91c2d4e85b60a1c97e24f8d03b5a",
 });
 console.log(response);
@@ -49,12 +68,12 @@ console.log(response);
 
 ```kotlin Kotlin
 import api.discovr.DiscovrClient
+import api.discovr.models.DeviceCodePollResponse
 import api.discovr.models.DevicePollPayload
-import api.discovr.models.PollDeviceCode200Response
 
 // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
 suspend fun example(client: DiscovrClient) {
-    val response: PollDeviceCode200Response = client.pollDeviceCode(deviceCode = "dvc_abc123xyz789", deviceId = "7f3a91c2d4e85b60a1c97e24f8d03b5a")
+    val response: DeviceCodePollResponse = client.pollDeviceCode(deviceCode = "dvc_abc123xyz789", deviceId = "7f3a91c2d4e85b60a1c97e24f8d03b5a")
     println(response)
 }
 ```
@@ -64,8 +83,8 @@ import Discovr
 
 let client = DiscovrClient(clientId: "your-client-id")
 // Response / argument types:
-// DevicePollPayload, PollDeviceCode200Response
-let response: PollDeviceCode200Response = try await client.pollDeviceCode(deviceCode: "dvc_abc123xyz789", deviceId: "7f3a91c2d4e85b60a1c97e24f8d03b5a")
+// DeviceCodePollResponse, DevicePollPayload
+let response: DeviceCodePollResponse = try await client.pollDeviceCode(deviceCode: "dvc_abc123xyz789", deviceId: "7f3a91c2d4e85b60a1c97e24f8d03b5a")
 print(response)
 ```
 

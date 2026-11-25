@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { ScrobbleTv } from './ScrobbleTv';
+import type { EpisodeRef } from './EpisodeRef';
 import {
-    ScrobbleTvFromJSON,
-    ScrobbleTvFromJSONTyped,
-    ScrobbleTvToJSON,
-    ScrobbleTvToJSONTyped,
-} from './ScrobbleTv';
+    EpisodeRefFromJSON,
+    EpisodeRefFromJSONTyped,
+    EpisodeRefToJSON,
+    EpisodeRefToJSONTyped,
+} from './EpisodeRef';
 
 /**
  * Body form of a skip report, for the route that already carries the title in its path.
@@ -47,10 +47,10 @@ export interface ScrobbleSkipBody {
     duration: number;
     /**
      * Which episode is playing. Required for TV shows, omitted for movies.
-     * @type {ScrobbleTv}
+     * @type {EpisodeRef}
      * @memberof ScrobbleSkipBody
      */
-    tv?: ScrobbleTv;
+    tv?: EpisodeRef;
 }
 
 /**
@@ -76,7 +76,7 @@ export function ScrobbleSkipBodyFromJSONTyped(json: any, ignoreDiscriminator: bo
         'from': json['from'],
         'to': json['to'],
         'duration': json['duration'],
-        'tv': json['tv'] == null ? undefined : ScrobbleTvFromJSON(json['tv']),
+        'tv': json['tv'] == null ? undefined : EpisodeRefFromJSON(json['tv']),
     };
 }
 
@@ -94,7 +94,7 @@ export function ScrobbleSkipBodyToJSONTyped(value?: ScrobbleSkipBody | null, ign
         'from': value['from'],
         'to': value['to'],
         'duration': value['duration'],
-        'tv': ScrobbleTvToJSON(value['tv']),
+        'tv': EpisodeRefToJSON(value['tv']),
     };
 }
 

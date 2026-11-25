@@ -40,12 +40,6 @@ export interface SeasonDetailsResponse {
      */
     showTmdbId: number;
     /**
-     * Image asset identifier for the season.
-     * @type {string}
-     * @memberof SeasonDetailsResponse
-     */
-    tmdbInternalId?: string;
-    /**
      * Season identifier.
      * @type {number}
      * @memberof SeasonDetailsResponse
@@ -82,7 +76,7 @@ export interface SeasonDetailsResponse {
      */
     seasonNumber: number;
     /**
-     * Air date of the season
+     * Air date of the season, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof SeasonDetailsResponse
      */
@@ -119,7 +113,6 @@ export function SeasonDetailsResponseFromJSONTyped(json: any, ignoreDiscriminato
         
         'showId': json['show_id'],
         'showTmdbId': json['show_tmdb_id'],
-        'tmdbInternalId': json['tmdb_internal_id'] == null ? undefined : json['tmdb_internal_id'],
         'id': json['id'],
         'seasonTmdbId': json['season_tmdb_id'] == null ? undefined : json['season_tmdb_id'],
         'name': json['name'] == null ? undefined : json['name'],
@@ -144,7 +137,6 @@ export function SeasonDetailsResponseToJSONTyped(value?: SeasonDetailsResponse |
         
         'show_id': value['showId'],
         'show_tmdb_id': value['showTmdbId'],
-        'tmdb_internal_id': value['tmdbInternalId'],
         'id': value['id'],
         'season_tmdb_id': value['seasonTmdbId'],
         'name': value['name'],

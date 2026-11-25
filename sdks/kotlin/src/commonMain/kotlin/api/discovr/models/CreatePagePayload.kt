@@ -25,17 +25,13 @@ import kotlinx.serialization.encoding.*
  * Optional filters to shape the recommendation page. Omit for a default page based on the profile's full taste history.
  *
  * @param pageFilters Filters that shape which titles appear in the page's rows.
- * @param name Optional label for your own use. It doesn't affect the page you get back and isn't stored — keep your own mapping from page ID to display name if you need one.  A page's identity comes from its filters alone. Two calls with the same filters return the **same page** whatever you call it, so give pages that should be distinct distinct filters. 
  */
 @Serializable
 
 data class CreatePagePayload (
 
     /* Filters that shape which titles appear in the page's rows. */
-    @SerialName(value = "pageFilters") val pageFilters: FilterSpec? = null,
-
-    /* Optional label for your own use. It doesn't affect the page you get back and isn't stored — keep your own mapping from page ID to display name if you need one.  A page's identity comes from its filters alone. Two calls with the same filters return the **same page** whatever you call it, so give pages that should be distinct distinct filters.  */
-    @SerialName(value = "name") val name: kotlin.String? = null
+    @SerialName(value = "pageFilters") val pageFilters: FilterSpec? = null
 
 ) {
 

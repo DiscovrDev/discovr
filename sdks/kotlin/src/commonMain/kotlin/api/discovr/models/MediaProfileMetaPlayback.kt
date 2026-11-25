@@ -15,7 +15,7 @@
 
 package api.discovr.models
 
-import api.discovr.models.SchemasPlaybackItem
+import api.discovr.models.PlaybackProgress
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
@@ -34,7 +34,7 @@ data class MediaProfileMetaPlayback (
     /* Whether the profile has started this title. When `false`, `data` is null and there's no progress to show. */
     @SerialName(value = "inlist") @Required val inlist: kotlin.Boolean,
 
-    @SerialName(value = "data") val `data`: SchemasPlaybackItem? = null
+    @SerialName(value = "data") val `data`: PlaybackProgress? = null
 
 ) {
 

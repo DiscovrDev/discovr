@@ -131,7 +131,7 @@ GetProfilesResponse:
   additionalProperties: false
 
 # Scrobble Schemas
-ScrobbleTv:
+EpisodeRef:
   type: object
   description: Episode context for TV show scrobbles.
   required:
@@ -150,28 +150,6 @@ ScrobbleTv:
       example: 5
   additionalProperties: false
 
-ScrobbleProgressPayload:
-  type: object
-  description: Reports how far through a title the viewer is. Send this as the user watches.
-  required:
-    - mediaId
-    - progress
-  properties:
-    mediaId:
-      type: string
-      description: The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).
-      example: "TV_1396"
-    progress:
-      type: number
-      minimum: 0
-      maximum: 100
-      description: Current playback position as a percentage (0–100).
-      example: 42.5
-    tv:
-      description: Which episode is playing. Required for TV shows, omitted for movies.
-      $ref: "#/ScrobbleTv"
-  additionalProperties: false
-
 ScrobbleProgressBody:
   type: object
   description: Body form of a progress report, for the route that already carries the title in its path.
@@ -186,7 +164,7 @@ ScrobbleProgressBody:
       example: 42.5
     tv:
       description: Which episode is playing. Required for TV shows, omitted for movies.
-      $ref: "#/ScrobbleTv"
+      $ref: "#/EpisodeRef"
   additionalProperties: false
 
 ScrobbleSkipBody:
@@ -216,7 +194,7 @@ ScrobbleSkipBody:
       example: 20
     tv:
       description: Which episode is playing. Required for TV shows, omitted for movies.
-      $ref: "#/ScrobbleTv"
+      $ref: "#/EpisodeRef"
   additionalProperties: false
 
 ScrobbleResponse:

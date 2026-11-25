@@ -2615,7 +2615,7 @@ example().catch(console.error);
 
 ## pollDeviceCode
 
-> PollDeviceCode200Response pollDeviceCode(deviceCode, devicePollPayload)
+> DeviceCodePollResponse pollDeviceCode(deviceCode, devicePollPayload)
 
 Poll for auth token
 
@@ -2650,7 +2650,7 @@ example().catch(console.error);
 
 ### Return type
 
-[**PollDeviceCode200Response**](PollDeviceCode200Response.md)
+[**DeviceCodePollResponse**](DeviceCodePollResponse.md)
 
 ### Authorization
 
@@ -2998,7 +2998,7 @@ example().catch(console.error);
 
 ## signOutSession
 
-> SignOutSession200Response signOutSession()
+> SignOutResponse signOutSession()
 
 Sign out the current device
 
@@ -3030,7 +3030,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**SignOutSession200Response**](SignOutSession200Response.md)
+[**SignOutResponse**](SignOutResponse.md)
 
 ### Authorization
 

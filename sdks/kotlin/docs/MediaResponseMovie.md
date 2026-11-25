@@ -11,12 +11,12 @@
 | **overview** | **kotlin.String** | Short synopsis, suitable for a detail sheet. |  [optional] |
 | **posterPath** | **kotlin.collections.Map&lt;kotlin.String, kotlin.String&gt;** | Poster image URLs keyed by width bucket (&#x60;w45&#x60;, &#x60;w92&#x60;, &#x60;w154&#x60;, &#x60;w185&#x60;, &#x60;w300&#x60;, &#x60;w342&#x60;, &#x60;w500&#x60;, &#x60;w780&#x60;, &#x60;w1280&#x60;, &#x60;original&#x60;). |  [optional] |
 | **backdropPath** | **kotlin.collections.Map&lt;kotlin.String, kotlin.String&gt;** | Backdrop image URLs keyed by width bucket (&#x60;w45&#x60;, &#x60;w92&#x60;, &#x60;w154&#x60;, &#x60;w185&#x60;, &#x60;w300&#x60;, &#x60;w342&#x60;, &#x60;w500&#x60;, &#x60;w780&#x60;, &#x60;w1280&#x60;, &#x60;original&#x60;). |  [optional] |
-| **releaseDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | Theatrical or first release date, as &#x60;YYYY-MM-DD&#x60;. |  [optional] |
-| **runtime** | **kotlin.Int** | Length in whole minutes. |  [optional] |
+| **releaseDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | Theatrical or first release date, as &#x60;YYYY-MM-DD&#x60;, or &#x60;null&#x60; when unknown. |  [optional] |
+| **runtime** | **kotlin.Int** | Length in whole minutes, or &#x60;null&#x60; when unknown. |  [optional] |
 | **voteAverage** | **kotlin.Double** | Average audience rating out of 10. |  [optional] |
 | **voteCount** | **kotlin.Int** | How many ratings &#x60;vote_average&#x60; is based on — useful for deciding whether to show the score at all. |  [optional] |
 | **popularity** | **kotlin.Double** | Relative popularity score. Comparable between titles, but has no fixed upper bound, so treat it as a sort key rather than something to display. |  [optional] |
-| **genres** | [**kotlin.collections.List&lt;MediaResponseMovieGenre&gt;**](MediaResponseMovieGenre.md) | Genres this movie belongs to. |  [optional] |
+| **genres** | [**kotlin.collections.List&lt;Genre&gt;**](Genre.md) | Genres this movie belongs to. |  [optional] |
 | **tagline** | **kotlin.String** | Short marketing line, where one exists. |  [optional] |
 | **status** | **kotlin.String** | Release status, such as &#x60;Released&#x60;, &#x60;In Production&#x60;, or &#x60;Post Production&#x60;. |  [optional] |
 | **budget** | **kotlin.Int** | Production budget in US dollars. &#x60;0&#x60; when unknown. |  [optional] |

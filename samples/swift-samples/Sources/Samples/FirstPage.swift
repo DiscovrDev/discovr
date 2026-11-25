@@ -2,7 +2,7 @@ import Discovr
 
 private func sample(client: DiscovrClient) async throws {
     // docs:start
-    let page = try await client.createPage(name: "Home")
+    let page = try await client.createPage()
     let bundle = try await client.getRows(pageId: page.id, limit: 10)
 
     print("Got \(bundle.rows.count) recommendation rows:")

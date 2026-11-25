@@ -171,7 +171,7 @@ Name | Type | Description  | Notes
 
 # **pollDeviceCode**
 ```swift
-    open class func pollDeviceCode(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, completion: @escaping (_ data: PollDeviceCode200Response?, _ error: Error?) -> Void)
+    open class func pollDeviceCode(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, completion: @escaping (_ data: DeviceCodePollResponse?, _ error: Error?) -> Void)
 ```
 
 Poll for auth token
@@ -206,7 +206,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**PollDeviceCode200Response**](PollDeviceCode200Response.md)
+[**DeviceCodePollResponse**](DeviceCodePollResponse.md)
 
 ### Authorization
 
@@ -273,7 +273,7 @@ No authorization required
 
 # **signOutSession**
 ```swift
-    open class func signOutSession(completion: @escaping (_ data: SignOutSession200Response?, _ error: Error?) -> Void)
+    open class func signOutSession(completion: @escaping (_ data: SignOutResponse?, _ error: Error?) -> Void)
 ```
 
 Sign out the current device
@@ -304,7 +304,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**SignOutSession200Response**](SignOutSession200Response.md)
+[**SignOutResponse**](SignOutResponse.md)
 
 ### Authorization
 

@@ -44,7 +44,7 @@ open class _DiscovrClientBase: @unchecked Sendable {
     }
 
     @discardableResult
-    public func signOutSession() async throws -> SignOutSession200Response {
+    public func signOutSession() async throws -> SignOutResponse {
         return try await self._call { try await DiscovrAPI.signOutSession(apiConfiguration: self._identityConfig) }
     }
 
@@ -94,14 +94,14 @@ open class _DiscovrClientBase: @unchecked Sendable {
     // ── Session tier — session token bearer ─────────────────────────────────────────────────────
 
     @discardableResult
-    public func createPage(pageFilters: FilterSpec? = nil, name: String? = nil, bypassCache: Bool = false) async throws -> CreatePageResponse {
+    public func createPage(pageFilters: FilterSpec? = nil, bypassCache: Bool = false) async throws -> CreatePageResponse {
         return try await _cache.wrap(
             operationId: "createPage",
-            keyParams: ["pageFilters": String(describing: pageFilters), "name": String(describing: name)],
+            keyParams: ["pageFilters": String(describing: pageFilters)],
             ttlSeconds: nil,
             bypass: bypassCache
         ) {
-            try await self._call { try await DiscovrAPI.createPage(createPagePayload: CreatePagePayload(pageFilters: pageFilters, name: name), apiConfiguration: self._sessionConfig) }
+            try await self._call { try await DiscovrAPI.createPage(createPagePayload: CreatePagePayload(pageFilters: pageFilters), apiConfiguration: self._sessionConfig) }
         }
     }
 
@@ -230,12 +230,12 @@ open class _DiscovrClientBase: @unchecked Sendable {
     }
 
     @discardableResult
-    public func scrobble(mediaId: String, progress: Double, tv: ScrobbleTv? = nil) async throws -> ScrobbleResponse {
+    public func scrobble(mediaId: String, progress: Double, tv: EpisodeRef? = nil) async throws -> ScrobbleResponse {
         return try await self._call { try await DiscovrAPI.scrobble(mediaId: mediaId, scrobbleProgressBody: ScrobbleProgressBody(progress: progress, tv: tv), apiConfiguration: self._sessionConfig) }
     }
 
     @discardableResult
-    public func scrobbleSkip(mediaId: String, from: Double, to: Double, duration: Double, tv: ScrobbleTv? = nil) async throws -> ScrobbleSkipResponse {
+    public func scrobbleSkip(mediaId: String, from: Double, to: Double, duration: Double, tv: EpisodeRef? = nil) async throws -> ScrobbleSkipResponse {
         return try await self._call { try await DiscovrAPI.scrobbleSkip(mediaId: mediaId, scrobbleSkipBody: ScrobbleSkipBody(from: from, to: to, duration: duration, tv: tv), apiConfiguration: self._sessionConfig) }
     }
 
@@ -333,7 +333,7 @@ open class _DiscovrClientBase: @unchecked Sendable {
     }
 
     @discardableResult
-    public func pollDeviceCode(deviceCode: String, deviceId: String? = nil) async throws -> PollDeviceCode200Response {
+    public func pollDeviceCode(deviceCode: String, deviceId: String? = nil) async throws -> DeviceCodePollResponse {
         return try await self._call { try await DiscovrAPI.pollDeviceCode(deviceCode: deviceCode, devicePollPayload: DevicePollPayload(deviceId: deviceId), apiConfiguration: self._publicConfig) }
     }
 

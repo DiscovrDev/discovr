@@ -431,7 +431,7 @@ import Discovr
 let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
-let createPagePayload: CreatePagePayload = CreatePagePayload(pageFilters: FilterSpec(genres: [123], keywords: [123], mediaType: "mediaType_example", region: ["region_example"], withRuntimeGte: 123, withRuntimeLte: 123, withReleaseDateGte: Date(), withReleaseDateLte: Date(), withWatchProviders: ["withWatchProviders_example"]), name: "name_example") //  (optional)
+let createPagePayload: CreatePagePayload = CreatePagePayload(pageFilters: FilterSpec(genres: [123], keywords: [123], mediaType: "mediaType_example", region: ["region_example"], withRuntimeGte: 123, withRuntimeLte: 123, withReleaseDateGte: Date(), withReleaseDateLte: Date(), withWatchProviders: ["withWatchProviders_example"])) //  (optional)
 
 Task {
     do {
@@ -2118,7 +2118,7 @@ Name | Type | Description  | Notes
 
 # **pollDeviceCode**
 ```swift
-    open class func pollDeviceCode(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, completion: @escaping (_ data: PollDeviceCode200Response?, _ error: Error?) -> Void)
+    open class func pollDeviceCode(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, completion: @escaping (_ data: DeviceCodePollResponse?, _ error: Error?) -> Void)
 ```
 
 Poll for auth token
@@ -2153,7 +2153,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**PollDeviceCode200Response**](PollDeviceCode200Response.md)
+[**DeviceCodePollResponse**](DeviceCodePollResponse.md)
 
 ### Authorization
 
@@ -2236,7 +2236,7 @@ let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
 let mediaId: String = "mediaId_example" // The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-let scrobbleProgressBody: ScrobbleProgressBody = ScrobbleProgressBody(progress: 123, tv: ScrobbleTv(season: 123, episode: 123)) // 
+let scrobbleProgressBody: ScrobbleProgressBody = ScrobbleProgressBody(progress: 123, tv: EpisodeRef(season: 123, episode: 123)) // 
 
 Task {
     do {
@@ -2288,7 +2288,7 @@ let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
 let mediaId: String = "mediaId_example" // The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-let scrobbleSkipBody: ScrobbleSkipBody = ScrobbleSkipBody(from: 123, to: 123, duration: 123, tv: ScrobbleTv(season: 123, episode: 123)) // 
+let scrobbleSkipBody: ScrobbleSkipBody = ScrobbleSkipBody(from: 123, to: 123, duration: 123, tv: EpisodeRef(season: 123, episode: 123)) // 
 
 Task {
     do {
@@ -2436,7 +2436,7 @@ Name | Type | Description  | Notes
 
 # **signOutSession**
 ```swift
-    open class func signOutSession(completion: @escaping (_ data: SignOutSession200Response?, _ error: Error?) -> Void)
+    open class func signOutSession(completion: @escaping (_ data: SignOutResponse?, _ error: Error?) -> Void)
 ```
 
 Sign out the current device
@@ -2467,7 +2467,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**SignOutSession200Response**](SignOutSession200Response.md)
+[**SignOutResponse**](SignOutResponse.md)
 
 ### Authorization
 

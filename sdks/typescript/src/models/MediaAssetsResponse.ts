@@ -46,6 +46,7 @@ export interface MediaAssetsResponse {
      */
     logo?: { [key: string]: string; };
     /**
+     * The best trailer or clip for this title, or `null` when no videos exist for this title.
      * 
      * @type {MediaAssetsTrailer}
      * @memberof MediaAssetsResponse

@@ -21,13 +21,13 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 
 /**
- * 
+ * Summary of one season on a TV show's details. Use `getSeasonDetails` for full episode listings.
  *
  * @param tmdbId Catalogue identifier for this season.
  * @param name Display name of the season, such as `Season 1` or `Specials`.
  * @param episodeCount Episodes in this season.
  * @param seasonNumber Position of the season, starting at `1`. Specials use `0`. Pass this to `getSeasonDetails`.
- * @param airDate Date the season's first episode aired, as `YYYY-MM-DD`.
+ * @param airDate Date the season's first episode aired, as `YYYY-MM-DD`, or `null` when unknown.
  * @param posterPath Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
  */
 @Serializable
@@ -46,7 +46,7 @@ data class MediaResponseTvSeason (
     /* Position of the season, starting at `1`. Specials use `0`. Pass this to `getSeasonDetails`. */
     @SerialName(value = "season_number") val seasonNumber: kotlin.Int? = null,
 
-    /* Date the season's first episode aired, as `YYYY-MM-DD`. */
+    /* Date the season's first episode aired, as `YYYY-MM-DD`, or `null` when unknown. */
     @SerialName(value = "air_date") val airDate: kotlinx.datetime.LocalDate? = null,
 
     /* Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */

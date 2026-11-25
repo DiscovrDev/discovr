@@ -15,7 +15,7 @@
 
 package api.discovr.models
 
-import api.discovr.models.MediaResponseTvGenre
+import api.discovr.models.Genre
 import api.discovr.models.MediaResponseTvSeason
 
 import kotlinx.serialization.*
@@ -32,8 +32,8 @@ import kotlinx.serialization.encoding.*
  * @param overview Short synopsis, suitable for a detail sheet.
  * @param posterPath Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
  * @param backdropPath Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
- * @param firstAirDate Date the first episode aired, as `YYYY-MM-DD`.
- * @param lastAirDate Date the most recent episode aired, as `YYYY-MM-DD`.
+ * @param firstAirDate Date the first episode aired, as `YYYY-MM-DD`, or `null` when unknown.
+ * @param lastAirDate Date the most recent episode aired, as `YYYY-MM-DD`, or `null` when unknown.
  * @param numberOfEpisodes Total episodes released across every season.
  * @param numberOfSeasons Total seasons released.
  * @param voteAverage Average audience rating out of 10.
@@ -71,10 +71,10 @@ data class MediaResponseTv (
     /* Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     @SerialName(value = "backdrop_path") val backdropPath: kotlin.collections.Map<kotlin.String, kotlin.String>? = null,
 
-    /* Date the first episode aired, as `YYYY-MM-DD`. */
+    /* Date the first episode aired, as `YYYY-MM-DD`, or `null` when unknown. */
     @SerialName(value = "first_air_date") val firstAirDate: kotlinx.datetime.LocalDate? = null,
 
-    /* Date the most recent episode aired, as `YYYY-MM-DD`. */
+    /* Date the most recent episode aired, as `YYYY-MM-DD`, or `null` when unknown. */
     @SerialName(value = "last_air_date") val lastAirDate: kotlinx.datetime.LocalDate? = null,
 
     /* Total episodes released across every season. */
@@ -93,7 +93,7 @@ data class MediaResponseTv (
     @SerialName(value = "popularity") val popularity: kotlin.Double? = null,
 
     /* Genres this show belongs to. */
-    @SerialName(value = "genres") val genres: kotlin.collections.List<MediaResponseTvGenre>? = null,
+    @SerialName(value = "genres") val genres: kotlin.collections.List<Genre>? = null,
 
     /* Short marketing line, where one exists. */
     @SerialName(value = "tagline") val tagline: kotlin.String? = null,

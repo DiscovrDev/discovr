@@ -6,14 +6,12 @@ import Foundation
 // docs:start
 func bootstrapPages() async throws {
     let client = await DiscovrClient(clientId: "your-client-id")
-    let home = try await client.createPage(name: "Home")
+    let home = try await client.createPage()
     let movies = try await client.createPage(
-        pageFilters: FilterSpec(mediaType: .movie),
-        name: "Movies"
+        pageFilters: FilterSpec(mediaType: .movie)
     )
     let series = try await client.createPage(
-        pageFilters: FilterSpec(mediaType: .tv),
-        name: "Series"
+        pageFilters: FilterSpec(mediaType: .tv)
     )
     print(home.id, movies.id, series.id)
 }

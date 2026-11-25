@@ -14,7 +14,7 @@
 
 import { mapValues } from '../runtime';
 /**
- * 
+ * Availability of a title on a streaming provider in a single region.
  * @export
  * @interface ProviderInfoRegion
  */

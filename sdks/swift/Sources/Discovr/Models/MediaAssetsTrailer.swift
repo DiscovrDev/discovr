@@ -7,7 +7,7 @@
 
 import Foundation
 
-/** The best trailer or clip for this title, picked from the available videos — prefers official YouTube trailers, then teasers, then clips, then the first available video. &#x60;null&#x60; when no videos exist for this title.  */
+/** The best trailer or clip for this title, picked from the available videos — prefers official YouTube trailers, then teasers, then clips, then the first available video.  */
 public struct MediaAssetsTrailer: Sendable, Codable, ParameterConvertible, Hashable {
 
     /** YouTube video identifier — append to `https://www.youtube.com/watch?v=` to play. */

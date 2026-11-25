@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { SchemasPlaybackItem } from './SchemasPlaybackItem';
+import type { PlaybackProgress } from './PlaybackProgress';
 import {
-    SchemasPlaybackItemFromJSON,
-    SchemasPlaybackItemFromJSONTyped,
-    SchemasPlaybackItemToJSON,
-    SchemasPlaybackItemToJSONTyped,
-} from './SchemasPlaybackItem';
+    PlaybackProgressFromJSON,
+    PlaybackProgressFromJSONTyped,
+    PlaybackProgressToJSON,
+    PlaybackProgressToJSONTyped,
+} from './PlaybackProgress';
 
 /**
  * Where the profile is up to in this title. Drives a progress bar and a Resume button.
@@ -35,10 +35,10 @@ export interface MediaProfileMetaPlayback {
     inlist: boolean;
     /**
      * 
-     * @type {SchemasPlaybackItem}
+     * @type {PlaybackProgress}
      * @memberof MediaProfileMetaPlayback
      */
-    data?: SchemasPlaybackItem;
+    data?: PlaybackProgress;
 }
 
 /**
@@ -60,7 +60,7 @@ export function MediaProfileMetaPlaybackFromJSONTyped(json: any, ignoreDiscrimin
     return {
         
         'inlist': json['inlist'],
-        'data': json['data'] == null ? undefined : SchemasPlaybackItemFromJSON(json['data']),
+        'data': json['data'] == null ? undefined : PlaybackProgressFromJSON(json['data']),
     };
 }
 
@@ -76,7 +76,7 @@ export function MediaProfileMetaPlaybackToJSONTyped(value?: MediaProfileMetaPlay
     return {
         
         'inlist': value['inlist'],
-        'data': SchemasPlaybackItemToJSON(value['data']),
+        'data': PlaybackProgressToJSON(value['data']),
     };
 }
 

@@ -91,13 +91,13 @@ export interface SimilarResult {
      */
     backdropPath?: { [key: string]: string; };
     /**
-     * Release date (only for movies)
+     * Release date (only for movies), as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof SimilarResult
      */
     releaseDate?: Date;
     /**
-     * First air date (only for TV shows)
+     * First air date (only for TV shows), as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof SimilarResult
      */

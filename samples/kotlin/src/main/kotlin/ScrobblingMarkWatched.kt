@@ -1,5 +1,5 @@
 import api.discovr.DiscovrClient
-import api.discovr.models.ScrobbleTv
+import api.discovr.models.EpisodeRef
 
 private suspend fun sample(client: DiscovrClient, mediaId: String) {
     // docs:start
@@ -7,6 +7,6 @@ private suspend fun sample(client: DiscovrClient, mediaId: String) {
     client.scrobble(mediaId, 100.0)
 
     // One episode of a show.
-    client.scrobble(mediaId, 100.0, tv = ScrobbleTv(season = 2, episode = 5))
+    client.scrobble(mediaId, 100.0, tv = EpisodeRef(season = 2, episode = 5))
     // docs:end
 }

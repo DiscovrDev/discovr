@@ -8,7 +8,7 @@ Body form of a progress report, for the route that already carries the title in 
 Name | Type
 ------------ | -------------
 `progress` | number
-`tv` | [ScrobbleTv](ScrobbleTv.md)
+`tv` | [EpisodeRef](EpisodeRef.md)
 
 ## Example
 

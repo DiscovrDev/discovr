@@ -15,6 +15,8 @@
 
 package api.discovr.models
 
+import api.discovr.models.EpisodeCrewMember
+import api.discovr.models.EpisodeGuestStar
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
@@ -27,10 +29,10 @@ import kotlinx.serialization.encoding.*
  * @param episodeNumber Episode number within the season.
  * @param name Episode title.
  * @param seasonNumber Season this episode belongs to.
- * @param showId Numeric identifier for the parent TV show.
+ * @param showId The parent TV show identifier (e.g., `TV_1396`).
  * @param overview Episode synopsis.
  * @param stillPath Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
- * @param airDate Original air date of the episode.
+ * @param airDate Original air date of the episode, as `YYYY-MM-DD`, or `null` when unknown.
  * @param runtime Episode runtime in minutes.
  * @param productionCode Production code for the episode.
  * @param voteAverage Community rating for the episode.
@@ -40,6 +42,7 @@ import kotlinx.serialization.encoding.*
  */
 @Serializable
 
+@SerialName(value = "media")
 data class Episode (
 
     /* Numeric identifier for the episode. */
@@ -54,8 +57,8 @@ data class Episode (
     /* Season this episode belongs to. */
     @SerialName(value = "season_number") @Required val seasonNumber: kotlin.Int,
 
-    /* Numeric identifier for the parent TV show. */
-    @SerialName(value = "show_id") @Required val showId: kotlin.Int,
+    /* The parent TV show identifier (e.g., `TV_1396`). */
+    @SerialName(value = "show_id") @Required val showId: kotlin.String,
 
     /* Episode synopsis. */
     @SerialName(value = "overview") val overview: kotlin.String? = null,
@@ -63,7 +66,7 @@ data class Episode (
     /* Episode still image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     @SerialName(value = "still_path") val stillPath: kotlin.collections.Map<kotlin.String, kotlin.String>? = null,
 
-    /* Original air date of the episode. */
+    /* Original air date of the episode, as `YYYY-MM-DD`, or `null` when unknown. */
     @SerialName(value = "air_date") val airDate: kotlinx.datetime.LocalDate? = null,
 
     /* Episode runtime in minutes. */
@@ -79,10 +82,10 @@ data class Episode (
     @SerialName(value = "vote_count") val voteCount: kotlin.Int? = null,
 
     /* Crew members for this episode. */
-    @SerialName(value = "crew") val crew: kotlin.collections.List<kotlinx.serialization.json.JsonElement>? = null,
+    @SerialName(value = "crew") val crew: kotlin.collections.List<EpisodeCrewMember>? = null,
 
     /* Guest cast for this episode. */
-    @SerialName(value = "guest_stars") val guestStars: kotlin.collections.List<kotlinx.serialization.json.JsonElement>? = null
+    @SerialName(value = "guest_stars") val guestStars: kotlin.collections.List<EpisodeGuestStar>? = null
 
 ) {
 

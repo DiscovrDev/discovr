@@ -7,7 +7,7 @@ async function switchProfile(newProfileId: string) {
 	await client.selectProfile(newProfileId);
 
 	// Load new home page
-	const newHome = await client.createPage({ name: "Home" });
+	const newHome = await client.createPage();
 	await loadHomePageEfficiently(newHome.id);
 }
 // docs:end

@@ -37,9 +37,9 @@ public struct SearchResult: Sendable, Codable, ParameterConvertible, Hashable {
     public var posterPath: [String: String]?
     /** Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). Absent for `person` results. */
     public var backdropPath: [String: String]?
-    /** Release date for `movie` results, as `YYYY-MM-DD`. */
+    /** Release date for `movie` results, as `YYYY-MM-DD`, or `null` when unknown. */
     public var releaseDate: Date?
-    /** First air date for `tv` results, as `YYYY-MM-DD`. */
+    /** First air date for `tv` results, as `YYYY-MM-DD`, or `null` when unknown. */
     public var firstAirDate: Date?
     /** Relative popularity score. Comparable between results, but has no fixed upper bound, so treat it as a sort key rather than something to display. */
     public var popularity: Double?

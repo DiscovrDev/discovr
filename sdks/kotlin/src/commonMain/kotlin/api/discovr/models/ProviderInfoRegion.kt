@@ -21,7 +21,7 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 
 /**
- * 
+ * Availability of a title on a streaming provider in a single region.
  *
  * @param englishName English name of the region.
  * @param nativeName Region name in the local language.

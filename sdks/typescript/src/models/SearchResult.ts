@@ -100,13 +100,13 @@ export interface SearchResult {
      */
     backdropPath?: { [key: string]: string; };
     /**
-     * Release date for `movie` results, as `YYYY-MM-DD`.
+     * Release date for `movie` results, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof SearchResult
      */
     releaseDate?: Date;
     /**
-     * First air date for `tv` results, as `YYYY-MM-DD`.
+     * First air date for `tv` results, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof SearchResult
      */

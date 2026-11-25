@@ -9,7 +9,7 @@ private func sample(client: DiscovrClient, mediaId: String) async throws {
     try await client.scrobble(
         mediaId: mediaId,
         progress: 100,
-        tv: ScrobbleTv(season: 2, episode: 5)
+        tv: EpisodeRef(season: 2, episode: 5)
     )
     // docs:end
 }

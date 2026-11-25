@@ -9,12 +9,11 @@
 | **id** | **kotlin.Int** | Season identifier. |  |
 | **seasonNumber** | **kotlin.Int** | The number of the season |  |
 | **episodes** | [**kotlin.collections.List&lt;Episode&gt;**](Episode.md) | List of episodes in the season |  |
-| **tmdbInternalId** | **kotlin.String** | Image asset identifier for the season. |  [optional] |
 | **seasonTmdbId** | **kotlin.Int** | Alias for &#x60;id&#x60;. |  [optional] |
 | **name** | **kotlin.String** | Name of the season |  [optional] |
 | **overview** | **kotlin.String** | Overview of the season |  [optional] |
 | **posterPath** | **kotlin.collections.Map&lt;kotlin.String, kotlin.String&gt;** | Season poster image URLs keyed by width bucket (&#x60;w45&#x60;, &#x60;w92&#x60;, &#x60;w154&#x60;, &#x60;w185&#x60;, &#x60;w300&#x60;, &#x60;w342&#x60;, &#x60;w500&#x60;, &#x60;w780&#x60;, &#x60;w1280&#x60;, &#x60;original&#x60;). |  [optional] |
-| **airDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | Air date of the season |  [optional] |
+| **airDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | Air date of the season, as &#x60;YYYY-MM-DD&#x60;, or &#x60;null&#x60; when unknown. |  [optional] |
 
 
 

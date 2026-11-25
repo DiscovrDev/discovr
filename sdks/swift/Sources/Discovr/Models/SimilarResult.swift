@@ -36,9 +36,9 @@ public struct SimilarResult: Sendable, Codable, ParameterConvertible, Hashable {
     public var posterPath: [String: String]?
     /** Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     public var backdropPath: [String: String]?
-    /** Release date (only for movies) */
+    /** Release date (only for movies), as `YYYY-MM-DD`, or `null` when unknown. */
     public var releaseDate: Date?
-    /** First air date (only for TV shows) */
+    /** First air date (only for TV shows), as `YYYY-MM-DD`, or `null` when unknown. */
     public var firstAirDate: Date?
     /** Popularity score */
     public var popularity: Double?

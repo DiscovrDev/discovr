@@ -22,9 +22,11 @@ import api.discovr.models.DeleteProfileResponse
 import api.discovr.models.DemoSessionRequest
 import api.discovr.models.DemoSessionResponse
 import api.discovr.models.DeviceCodePayload
+import api.discovr.models.DeviceCodePollResponse
 import api.discovr.models.DeviceCodeResponse
 import api.discovr.models.DevicePollPayload
 import api.discovr.models.EditPlaybackPayload
+import api.discovr.models.EpisodeRef
 import api.discovr.models.FilterSpec
 import api.discovr.models.GetProfilesResponse
 import api.discovr.models.GetRowItemsResponse
@@ -38,7 +40,6 @@ import api.discovr.models.MintSessionTokenPayload
 import api.discovr.models.Page
 import api.discovr.models.PatchHistoryPayload
 import api.discovr.models.PlaybackListResponse
-import api.discovr.models.PollDeviceCode200Response
 import api.discovr.models.Profile
 import api.discovr.models.ProfileImagesResponse
 import api.discovr.models.RefreshTokenResponse
@@ -47,12 +48,11 @@ import api.discovr.models.ScrobbleProgressBody
 import api.discovr.models.ScrobbleResponse
 import api.discovr.models.ScrobbleSkipBody
 import api.discovr.models.ScrobbleSkipResponse
-import api.discovr.models.ScrobbleTv
 import api.discovr.models.SearchResponse
 import api.discovr.models.SeasonDetailsResponse
 import api.discovr.models.SeasonProfileMeta
 import api.discovr.models.SessionTokenResponse
-import api.discovr.models.SignOutSession200Response
+import api.discovr.models.SignOutResponse
 import api.discovr.models.SimilarResponse
 import api.discovr.models.SimpleListResponse
 import api.discovr.models.SuccessMessage
@@ -127,7 +127,7 @@ abstract class _DiscovrClientBase {
     suspend fun mintSessionToken(profileId: String, ttlMs: Int? = null, snapshotId: String? = null): SessionTokenResponse =
         identityApiCall { mintSessionToken(MintSessionTokenPayload(profileId = profileId, ttlMs = ttlMs, snapshotId = snapshotId)) }
 
-    suspend fun signOutSession(): SignOutSession200Response =
+    suspend fun signOutSession(): SignOutResponse =
         identityApiCall { signOutSession() }
 
     suspend fun getProfiles(bypassCache: Boolean = false): GetProfilesResponse =
@@ -156,8 +156,8 @@ abstract class _DiscovrClientBase {
 
     // ── Session tier — session token bearer ─────────────────────────────────────────────────────
 
-    suspend fun createPage(pageFilters: FilterSpec? = null, name: String? = null, bypassCache: Boolean = false): CreatePageResponse =
-        _cache.wrap("createPage", mapOf("pageFilters" to pageFilters, "name" to name), null, bypassCache) { sessionApiCall { createPage(CreatePagePayload(pageFilters = pageFilters, name = name)) } }
+    suspend fun createPage(pageFilters: FilterSpec? = null, bypassCache: Boolean = false): CreatePageResponse =
+        _cache.wrap("createPage", mapOf("pageFilters" to pageFilters), null, bypassCache) { sessionApiCall { createPage(CreatePagePayload(pageFilters = pageFilters)) } }
 
     suspend fun getPage(pageId: String, bypassCache: Boolean = false): Page =
         _cache.wrap("getPage", mapOf("pageId" to pageId), null, bypassCache) { sessionApiCall { getPage(pageId) } }
@@ -222,10 +222,10 @@ abstract class _DiscovrClientBase {
     suspend fun markUnwatched(mediaId: String, season: Int? = null, episode: Int? = null): SuccessMessage =
         sessionApiCall { markUnwatched(mediaId, season = season, episode = episode) }
 
-    suspend fun scrobble(mediaId: String, progress: Double, tv: ScrobbleTv? = null): ScrobbleResponse =
+    suspend fun scrobble(mediaId: String, progress: Double, tv: EpisodeRef? = null): ScrobbleResponse =
         sessionApiCall { scrobble(mediaId, ScrobbleProgressBody(progress = progress, tv = tv)) }
 
-    suspend fun scrobbleSkip(mediaId: String, from: Double, to: Double, duration: Double, tv: ScrobbleTv? = null): ScrobbleSkipResponse =
+    suspend fun scrobbleSkip(mediaId: String, from: Double, to: Double, duration: Double, tv: EpisodeRef? = null): ScrobbleSkipResponse =
         sessionApiCall { scrobbleSkip(mediaId, ScrobbleSkipBody(from = from, to = to, duration = duration, tv = tv)) }
 
     suspend fun getHistoryItems(nextPageToken: String? = null, limit: Int? = null): HistoryListResponse =
@@ -269,7 +269,7 @@ abstract class _DiscovrClientBase {
     suspend fun requestDeviceCode(clientID: String, demo: Boolean? = false, size: Int? = null, format: DiscovrApi.FormatRequestDeviceCode? = null): DeviceCodeResponse =
         publicApiCall { requestDeviceCode(DeviceCodePayload(clientID = clientID, demo = demo), size = size, format = format) }
 
-    suspend fun pollDeviceCode(deviceCode: String, deviceId: String? = null): PollDeviceCode200Response =
+    suspend fun pollDeviceCode(deviceCode: String, deviceId: String? = null): DeviceCodePollResponse =
         publicApiCall { pollDeviceCode(deviceCode, DevicePollPayload(deviceId = deviceId)) }
 
     suspend fun authorizeClientWeb(clientID: String, state: String, codeChallenge: String, codeChallengeMethod: DiscovrApi.CodeChallengeMethodAuthorizeClientWeb, redirectURL: String? = null, platform: DiscovrApi.PlatformAuthorizeClientWeb? = null): Unit =

@@ -33,19 +33,6 @@ export interface CreatePagePayload {
      * @memberof CreatePagePayload
      */
     pageFilters?: FilterSpec;
-    /**
-     * Optional label for your own use. It doesn't affect the page you get back
-     * and isn't stored — keep your own mapping from page ID to display name if
-     * you need one.
-     * 
-     * A page's identity comes from its filters alone. Two calls with the same
-     * filters return the **same page** whatever you call it, so give pages that
-     * should be distinct distinct filters.
-     * 
-     * @type {string}
-     * @memberof CreatePagePayload
-     */
-    name?: string;
 }
 
 /**
@@ -66,7 +53,6 @@ export function CreatePagePayloadFromJSONTyped(json: any, ignoreDiscriminator: b
     return {
         
         'pageFilters': json['pageFilters'] == null ? undefined : FilterSpecFromJSON(json['pageFilters']),
-        'name': json['name'] == null ? undefined : json['name'],
     };
 }
 
@@ -82,7 +68,6 @@ export function CreatePagePayloadToJSONTyped(value?: CreatePagePayload | null, i
     return {
         
         'pageFilters': FilterSpecToJSON(value['pageFilters']),
-        'name': value['name'],
     };
 }
 

@@ -16,6 +16,7 @@ public struct MediaAssetsResponse: Sendable, Codable, ParameterConvertible, Hash
     public var backdrop: [String: String]?
     /** Best title logo (English preferred) URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no logo is available. */
     public var logo: [String: String]?
+    /** The best trailer or clip for this title, or `null` when no videos exist for this title.  */
     public var trailer: MediaAssetsTrailer?
 
     public init(poster: [String: String]? = nil, backdrop: [String: String]? = nil, logo: [String: String]? = nil, trailer: MediaAssetsTrailer? = nil) {

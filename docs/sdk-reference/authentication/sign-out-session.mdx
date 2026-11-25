@@ -18,7 +18,17 @@ the credentials stored on the device.
 
 ## Returns
 
-`SignOutSession200Response` — Refresh token revoked. Device is signed out.
+[`SignOutResponse`](/sdk-reference/types/authentication#signoutresponse) — Refresh token revoked. Device is signed out.
+
+<AccordionGroup>
+<Accordion title="View response structure">
+```json
+{
+  "revoked": false
+}
+```
+</Accordion>
+</AccordionGroup>
 
 ## Example
 
@@ -26,22 +36,22 @@ the credentials stored on the device.
 
 ```typescript TypeScript
 import { DiscovrClient } from "discovr";
-import type { SignOutSession200Response } from "discovr";
+import type { SignOutResponse } from "discovr";
 
 const discovr = new DiscovrClient("your-client-id");
 
 // After sign-in …
-const response: SignOutSession200Response = await discovr.signOutSession();
+const response: SignOutResponse = await discovr.signOutSession();
 console.log(response);
 ```
 
 ```kotlin Kotlin
 import api.discovr.DiscovrClient
-import api.discovr.models.SignOutSession200Response
+import api.discovr.models.SignOutResponse
 
 // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
 suspend fun example(client: DiscovrClient) {
-    val response: SignOutSession200Response = client.signOutSession()
+    val response: SignOutResponse = client.signOutSession()
     println(response)
 }
 ```
@@ -51,8 +61,8 @@ import Discovr
 
 let client = DiscovrClient(clientId: "your-client-id")
 // Response / argument types:
-// SignOutSession200Response
-let response: SignOutSession200Response = try await client.signOutSession()
+// SignOutResponse
+let response: SignOutResponse = try await client.signOutSession()
 print(response)
 ```
 

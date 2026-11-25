@@ -12,8 +12,8 @@ Name | Type | Description | Notes
 **overview** | **String** | Short synopsis of the title. | [optional] 
 **posterPath** | **[String: String]** | Poster image URLs keyed by width bucket (&#x60;w45&#x60;, &#x60;w92&#x60;, &#x60;w154&#x60;, &#x60;w185&#x60;, &#x60;w300&#x60;, &#x60;w342&#x60;, &#x60;w500&#x60;, &#x60;w780&#x60;, &#x60;w1280&#x60;, &#x60;original&#x60;). | [optional] 
 **backdropPath** | **[String: String]** | Backdrop image URLs keyed by width bucket (&#x60;w45&#x60;, &#x60;w92&#x60;, &#x60;w154&#x60;, &#x60;w185&#x60;, &#x60;w300&#x60;, &#x60;w342&#x60;, &#x60;w500&#x60;, &#x60;w780&#x60;, &#x60;w1280&#x60;, &#x60;original&#x60;). | [optional] 
-**releaseDate** | **Date** | Release date, for movies. | [optional] 
-**firstAirDate** | **Date** | First air date, for TV shows. | [optional] 
+**releaseDate** | **Date** | Release date, for movies, as &#x60;YYYY-MM-DD&#x60;, or &#x60;null&#x60; when unknown. | [optional] 
+**firstAirDate** | **Date** | First air date, for TV shows, as &#x60;YYYY-MM-DD&#x60;, or &#x60;null&#x60; when unknown. | [optional] 
 **voteAverage** | **Double** | Average audience rating out of 10. | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

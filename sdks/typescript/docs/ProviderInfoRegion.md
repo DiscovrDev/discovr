@@ -1,6 +1,7 @@
 
 # ProviderInfoRegion
 
+Availability of a title on a streaming provider in a single region.
 
 ## Properties
 

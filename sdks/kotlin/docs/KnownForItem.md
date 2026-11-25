@@ -13,8 +13,8 @@
 | **overview** | **kotlin.String** | Short synopsis of the title. |  [optional] |
 | **posterPath** | **kotlin.collections.Map&lt;kotlin.String, kotlin.String&gt;** | Poster image URLs keyed by width bucket (&#x60;w45&#x60;, &#x60;w92&#x60;, &#x60;w154&#x60;, &#x60;w185&#x60;, &#x60;w300&#x60;, &#x60;w342&#x60;, &#x60;w500&#x60;, &#x60;w780&#x60;, &#x60;w1280&#x60;, &#x60;original&#x60;). |  [optional] |
 | **backdropPath** | **kotlin.collections.Map&lt;kotlin.String, kotlin.String&gt;** | Backdrop image URLs keyed by width bucket (&#x60;w45&#x60;, &#x60;w92&#x60;, &#x60;w154&#x60;, &#x60;w185&#x60;, &#x60;w300&#x60;, &#x60;w342&#x60;, &#x60;w500&#x60;, &#x60;w780&#x60;, &#x60;w1280&#x60;, &#x60;original&#x60;). |  [optional] |
-| **releaseDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | Release date, for movies. |  [optional] |
-| **firstAirDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | First air date, for TV shows. |  [optional] |
+| **releaseDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | Release date, for movies, as &#x60;YYYY-MM-DD&#x60;, or &#x60;null&#x60; when unknown. |  [optional] |
+| **firstAirDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | First air date, for TV shows, as &#x60;YYYY-MM-DD&#x60;, or &#x60;null&#x60; when unknown. |  [optional] |
 | **voteAverage** | **kotlin.Double** | Average audience rating out of 10. |  [optional] |
 
 

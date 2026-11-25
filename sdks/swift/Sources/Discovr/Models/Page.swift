@@ -17,7 +17,7 @@ public struct Page: Sendable, Codable, ParameterConvertible, Hashable {
     public var createdAt: Date
     /** Array of exactly 10 featured HeroItems for the hero section */
     public var hero: [HeroItem]
-    /** Human-readable page title, suitable for a breadcrumb (e.g. \"Movies & Series • Anime • Fantasy\").  Present only for pages that carry their own name — navigation tiles and built-in pages. A `name` you pass to `POST /pages` is a label for your own use and is not returned here. Absent otherwise — read it defensively.  */
+    /** Human-readable page title, suitable for a breadcrumb (e.g. \"Movies & Series • Anime • Fantasy\").  Present only for pages that carry their own name — navigation tiles and built-in pages. `POST /pages` takes no name, so a page you create from filters alone has none. Absent otherwise — read it defensively.  */
     public var name: String?
 
     public init(id: String, createdAt: Date, hero: [HeroItem], name: String? = nil) {

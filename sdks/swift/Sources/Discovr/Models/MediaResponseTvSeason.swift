@@ -7,6 +7,7 @@
 
 import Foundation
 
+/** Summary of one season on a TV show&#39;s details. Use &#x60;getSeasonDetails&#x60; for full episode listings. */
 public struct MediaResponseTvSeason: Sendable, Codable, ParameterConvertible, Hashable {
 
     /** Catalogue identifier for this season. */
@@ -17,7 +18,7 @@ public struct MediaResponseTvSeason: Sendable, Codable, ParameterConvertible, Ha
     public var episodeCount: Int?
     /** Position of the season, starting at `1`. Specials use `0`. Pass this to `getSeasonDetails`. */
     public var seasonNumber: Int?
-    /** Date the season's first episode aired, as `YYYY-MM-DD`. */
+    /** Date the season's first episode aired, as `YYYY-MM-DD`, or `null` when unknown. */
     public var airDate: Date?
     /** Season poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     public var posterPath: [String: String]?

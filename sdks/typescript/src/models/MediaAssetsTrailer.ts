@@ -14,7 +14,7 @@
 
 import { mapValues } from '../runtime';
 /**
- * The best trailer or clip for this title, picked from the available videos — prefers official YouTube trailers, then teasers, then clips, then the first available video. `null` when no videos exist for this title.
+ * The best trailer or clip for this title, picked from the available videos — prefers official YouTube trailers, then teasers, then clips, then the first available video.
  * 
  * @export
  * @interface MediaAssetsTrailer

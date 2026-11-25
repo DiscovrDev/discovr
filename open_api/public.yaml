@@ -249,12 +249,26 @@ components:
       $ref: "./auth/external/schemas.yaml#/DeviceCodePayload"
     DeviceCodeResponse:
       $ref: "./auth/external/schemas.yaml#/DeviceCodeResponse"
+    DeviceCodePendingResponse:
+      $ref: "./auth/external/schemas.yaml#/DeviceCodePendingResponse"
+    DeviceCodePollResponse:
+      $ref: "./auth/external/schemas.yaml#/DeviceCodePollResponse"
+    DevicePollPayload:
+      $ref: "./auth/external/schemas.yaml#/DevicePollPayload"
     RefreshTokenResponse:
       $ref: "./auth/external/schemas.yaml#/RefreshTokenResponse"
     MintSessionTokenPayload:
       $ref: "./auth/external/schemas.yaml#/MintSessionTokenPayload"
     SessionTokenResponse:
       $ref: "./auth/external/schemas.yaml#/SessionTokenResponse"
+    SignOutResponse:
+      $ref: "./auth/external/schemas.yaml#/SignOutResponse"
+    DemoSessionRequest:
+      $ref: "./auth/external/schemas.yaml#/DemoSessionRequest"
+    DemoSessionResponse:
+      $ref: "./auth/external/schemas.yaml#/DemoSessionResponse"
+    WebTokenPayload:
+      $ref: "./auth/external/schemas.yaml#/WebTokenPayload"
 
     # Profile schemas
     AvatarMediaType:
@@ -272,7 +286,7 @@ components:
     DeleteProfileResponse:
       $ref: "./profiles/schemas.yaml#/DeleteProfileResponse"
 
-    # Profile lists schemas
+    # Profile lists & scrobble schemas
     SimpleListItem:
       $ref: "./profiles/lists/schemas.yaml#/SimpleListItem"
     PlaybackItem:
@@ -287,6 +301,8 @@ components:
       $ref: "./profiles/lists/schemas.yaml#/EditPlaybackPayload"
     AddHistoryPayload:
       $ref: "./profiles/lists/schemas.yaml#/AddHistoryPayload"
+    PatchHistoryPayload:
+      $ref: "./profiles/lists/schemas.yaml#/PatchHistoryPayload"
     SimpleListResponse:
       $ref: "./profiles/lists/schemas.yaml#/SimpleListResponse"
     PlaybackListResponse:
@@ -295,8 +311,12 @@ components:
       $ref: "./profiles/lists/schemas.yaml#/HistoryListResponse"
     SuccessMessage:
       $ref: "./profiles/lists/schemas.yaml#/SuccessMessage"
-    ScrobbleProgressPayload:
-      $ref: "./profiles/schemas.yaml#/ScrobbleProgressPayload"
+    EpisodeRef:
+      $ref: "./profiles/schemas.yaml#/EpisodeRef"
+    ScrobbleProgressBody:
+      $ref: "./profiles/schemas.yaml#/ScrobbleProgressBody"
+    ScrobbleSkipBody:
+      $ref: "./profiles/schemas.yaml#/ScrobbleSkipBody"
     ScrobbleResponse:
       $ref: "./profiles/schemas.yaml#/ScrobbleResponse"
     ScrobbleSkipResponse:
@@ -311,6 +331,14 @@ components:
       $ref: "./shared/schemas.yaml#/RateLimitedError"
 
     # Page and Row Schemas
+    RowType:
+      $ref: "./pages/schemas.yaml#/RowType"
+    MediaItemType:
+      $ref: "./pages/schemas.yaml#/MediaItemType"
+    NavigationItemType:
+      $ref: "./pages/schemas.yaml#/NavigationItemType"
+    ProviderItemType:
+      $ref: "./pages/schemas.yaml#/ProviderItemType"
     Page:
       $ref: "./pages/schemas.yaml#/Page"
     Row:
@@ -325,16 +353,42 @@ components:
       $ref: "./pages/schemas.yaml#/GetRowItemsResponse"
     MediaItem:
       $ref: "./pages/schemas.yaml#/MediaItem"
+    HeroItem:
+      $ref: "./pages/schemas.yaml#/HeroItem"
+    NavigationItem:
+      $ref: "./pages/schemas.yaml#/NavigationItem"
+    ProviderItem:
+      $ref: "./pages/schemas.yaml#/ProviderItem"
+    RowItem:
+      $ref: "./pages/schemas.yaml#/RowItem"
     FilterSpec:
       $ref: "./pages/schemas.yaml#/FilterSpec"
 
     # Media Schemas
+    Genre:
+      $ref: "./media/schemas.yaml#/Genre"
     MediaResponse:
       $ref: "./media/schemas.yaml#/MediaResponse"
+    MediaResponseMovie:
+      $ref: "./media/schemas.yaml#/MediaResponseMovie"
+    MediaResponseTv:
+      $ref: "./media/schemas.yaml#/MediaResponseTv"
+    MediaResponseTvSeason:
+      $ref: "./media/schemas.yaml#/MediaResponseTvSeason"
     MediaProfileMeta:
       $ref: "./media/schemas.yaml#/MediaProfileMeta"
+    MediaProfileMetaPlayback:
+      $ref: "./media/schemas.yaml#/MediaProfileMetaPlayback"
+    PlaybackProgress:
+      $ref: "./media/schemas.yaml#/PlaybackProgress"
+    ProviderInfo:
+      $ref: "./media/schemas.yaml#/ProviderInfo"
+    ProviderInfoRegion:
+      $ref: "./media/schemas.yaml#/ProviderInfoRegion"
     SearchResult:
       $ref: "./media/schemas.yaml#/SearchResult"
+    KnownForItem:
+      $ref: "./media/schemas.yaml#/KnownForItem"
     SearchResponse:
       $ref: "./media/schemas.yaml#/SearchResponse"
     SimilarResult:
@@ -343,6 +397,20 @@ components:
       $ref: "./media/schemas.yaml#/SimilarResponse"
     MediaAssetsResponse:
       $ref: "./media/schemas.yaml#/MediaAssetsResponse"
+    MediaAssetsTrailer:
+      $ref: "./media/schemas.yaml#/MediaAssetsTrailer"
+    SeasonDetailsResponse:
+      $ref: "./media/schemas.yaml#/SeasonDetailsResponse"
+    SeasonProfileMeta:
+      $ref: "./media/schemas.yaml#/SeasonProfileMeta"
+    SeasonProfileMetaEpisode:
+      $ref: "./media/schemas.yaml#/SeasonProfileMetaEpisode"
+    Episode:
+      $ref: "./media/schemas.yaml#/Episode"
+    EpisodeCrewMember:
+      $ref: "./media/schemas.yaml#/EpisodeCrewMember"
+    EpisodeGuestStar:
+      $ref: "./media/schemas.yaml#/EpisodeGuestStar"
 
     # Misc Schemas
     ProfileImagesResponse:

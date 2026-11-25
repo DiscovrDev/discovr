@@ -15,7 +15,7 @@
 
 package api.discovr.models
 
-import api.discovr.models.ScrobbleTv
+import api.discovr.models.EpisodeRef
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
@@ -36,7 +36,7 @@ data class ScrobbleProgressBody (
     @SerialName(value = "progress") @Required val progress: kotlin.Double,
 
     /* Which episode is playing. Required for TV shows, omitted for movies. */
-    @SerialName(value = "tv") val tv: ScrobbleTv? = null
+    @SerialName(value = "tv") val tv: EpisodeRef? = null
 
 ) {
 

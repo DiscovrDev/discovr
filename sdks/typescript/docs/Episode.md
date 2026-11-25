@@ -15,12 +15,12 @@ Name | Type
 `airDate` | Date
 `runtime` | number
 `seasonNumber` | number
-`showId` | number
+`showId` | string
 `productionCode` | string
 `voteAverage` | number
 `voteCount` | number
-`crew` | Array&lt;object&gt;
-`guestStars` | Array&lt;object&gt;
+`crew` | [Array&lt;EpisodeCrewMember&gt;](EpisodeCrewMember.md)
+`guestStars` | [Array&lt;EpisodeGuestStar&gt;](EpisodeGuestStar.md)
 
 ## Example
 
@@ -37,7 +37,7 @@ const example = {
   "airDate": 2011-04-17,
   "runtime": 62,
   "seasonNumber": 1,
-  "showId": 1396,
+  "showId": TV_1396,
   "productionCode": null,
   "voteAverage": 9.1,
   "voteCount": 123,

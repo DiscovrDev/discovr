@@ -49,8 +49,8 @@ export interface Page {
      * Human-readable page title, suitable for a breadcrumb (e.g. "Movies & Series • Anime • Fantasy").
      * 
      * Present only for pages that carry their own name — navigation tiles and
-     * built-in pages. A `name` you pass to `POST /pages` is a label for your own
-     * use and is not returned here. Absent otherwise — read it defensively.
+     * built-in pages. `POST /pages` takes no name, so a page you create from
+     * filters alone has none. Absent otherwise — read it defensively.
      * 
      * @type {string}
      * @memberof Page

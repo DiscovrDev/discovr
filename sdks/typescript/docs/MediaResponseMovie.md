@@ -19,7 +19,7 @@ Name | Type
 `voteAverage` | number
 `voteCount` | number
 `popularity` | number
-`genres` | [Array&lt;MediaResponseMovieGenre&gt;](MediaResponseMovieGenre.md)
+`genres` | [Array&lt;Genre&gt;](Genre.md)
 `tagline` | string
 `status` | string
 `budget` | number

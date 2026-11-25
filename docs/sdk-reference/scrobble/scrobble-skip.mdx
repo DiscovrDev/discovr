@@ -15,10 +15,10 @@ Signals that the user jumped to another point in the content, forward (a skip) o
 | from     | `number`                                                 | Yes      | Playback position where the skip started (0–100).                                                                                                                                                                                                           |
 | to       | `number`                                                 | Yes      | Playback position where the skip landed (0–100).                                                                                                                                                                                                            |
 | duration | `number`                                                 | Yes      | Number of seconds skipped.                                                                                                                                                                                                                                  |
-| tv       | [`ScrobbleTv`](/sdk-reference/types/scrobble#scrobbletv) | No       | Which episode is playing. Required for TV shows, omitted for movies.                                                                                                                                                                                        |
+| tv       | [`EpisodeRef`](/sdk-reference/types/scrobble#episoderef) | No       | Which episode is playing. Required for TV shows, omitted for movies.                                                                                                                                                                                        |
 
 <AccordionGroup>
-<Accordion title="View ScrobbleTv structure">
+<Accordion title="View EpisodeRef structure">
 ```json
 {
   "season": 2,
@@ -48,7 +48,7 @@ Signals that the user jumped to another point in the content, forward (a skip) o
 
 ```typescript TypeScript
 import { DiscovrClient } from "discovr";
-import type { ScrobbleSkipBody, ScrobbleSkipResponse, ScrobbleTv } from "discovr";
+import type { EpisodeRef, ScrobbleSkipBody, ScrobbleSkipResponse } from "discovr";
 
 const discovr = new DiscovrClient("your-client-id");
 
@@ -61,13 +61,13 @@ console.log(response);
 
 ```kotlin Kotlin
 import api.discovr.DiscovrClient
+import api.discovr.models.EpisodeRef
 import api.discovr.models.ScrobbleSkipBody
 import api.discovr.models.ScrobbleSkipResponse
-import api.discovr.models.ScrobbleTv
 
 // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
 suspend fun example(client: DiscovrClient) {
-    val response: ScrobbleSkipResponse = client.scrobbleSkip(mediaId = "TV_1396", from = 10, to = 20, duration = 20, tv = ScrobbleTv(season = 2, episode = 5))
+    val response: ScrobbleSkipResponse = client.scrobbleSkip(mediaId = "TV_1396", from = 10, to = 20, duration = 20, tv = EpisodeRef(season = 2, episode = 5))
     println(response)
 }
 ```
@@ -77,8 +77,8 @@ import Discovr
 
 let client = DiscovrClient(clientId: "your-client-id")
 // Response / argument types:
-// ScrobbleSkipBody, ScrobbleSkipResponse, ScrobbleTv
-let response: ScrobbleSkipResponse = try await client.scrobbleSkip(mediaId: "TV_1396", from: 10, to: 20, duration: 20, tv: ScrobbleTv(season: 2, episode: 5))
+// EpisodeRef, ScrobbleSkipBody, ScrobbleSkipResponse
+let response: ScrobbleSkipResponse = try await client.scrobbleSkip(mediaId: "TV_1396", from: 10, to: 20, duration: 20, tv: EpisodeRef(season: 2, episode: 5))
 print(response)
 ```
 

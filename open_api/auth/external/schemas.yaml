@@ -141,6 +141,25 @@ DeviceCodePendingResponse:
       example: 10
   additionalProperties: false
 
+DeviceCodePollResponse:
+  description: |
+    The answer to a device-code poll. Two shapes: a `RefreshTokenResponse` once the person has approved, or a
+    `DeviceCodePendingResponse` while they haven't. Tell them apart by the `status` field, which only the pending one has.
+  oneOf:
+    - $ref: "#/RefreshTokenResponse"
+    - $ref: "#/DeviceCodePendingResponse"
+
+SignOutResponse:
+  type: object
+  description: Confirms the refresh token you sent has been revoked.
+  required: [revoked]
+  properties:
+    revoked:
+      type: boolean
+      description: Always `true` on success — the refresh token you sent is no longer usable.
+      example: true
+  additionalProperties: false
+
 SessionTokenResponse:
   type: object
   description: The session token scoped to the selected profile. Valid for 30 minutes.

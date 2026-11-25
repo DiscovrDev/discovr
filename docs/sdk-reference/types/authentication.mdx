@@ -69,6 +69,34 @@ Returned while polling and the user hasn't confirmed the device code yet. Keep p
 | status   | `"pending"` | Yes      | Always `pending`. Its presence is the signal to wait and poll again.                                                    |
 | interval | `integer`   | Yes      | Seconds to wait before the next poll. It can grow the longer the code has been waiting, so always use the latest value. |
 
+## DeviceCodePollResponse
+
+<a id="devicecodepollresponse" />
+
+The answer to a device-code poll. Two shapes: a `RefreshTokenResponse` once the person has approved, or a
+`DeviceCodePendingResponse` while they haven't. Tell them apart by the `status` field, which only the pending one has.
+
+### RefreshTokenResponse
+
+Returned when a sign-in completes: the device code was confirmed, or a web sign-in's authorization code was redeemed.
+Store the `refreshToken` securely — it's your long-lived credential.
+Call `POST /auth/session-token` with a `profileId` to get a session token and start browsing.
+
+| Property     | Type      | Required | Description                                                                                                                                                                                      |
+| ------------ | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| refreshToken | `string`  | Yes      | Your long-lived credential (valid for 90 days). Use it as the bearer for identity-tier endpoints and to mint session tokens. Keep it secure — treat it like a password and never put it in URLs. |
+| publicId     | `string`  | Yes      | An identifier for this device's sign-in. There's no way to target it directly — call `DELETE /auth/session` from this device to sign it out.                                                     |
+| expiresAt    | `integer` | Yes      | When the refresh token expires, as a Unix timestamp (seconds).                                                                                                                                   |
+
+### DeviceCodePendingResponse
+
+Returned while polling and the user hasn't confirmed the device code yet. Keep polling.
+
+| Property | Type        | Required | Description                                                                                                             |
+| -------- | ----------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| status   | `"pending"` | Yes      | Always `pending`. Its presence is the signal to wait and poll again.                                                    |
+| interval | `integer`   | Yes      | Seconds to wait before the next poll. It can grow the longer the code has been waiting, so always use the latest value. |
+
 ## DeviceCodeResponse
 
 <a id="devicecoderesponse" />
@@ -132,6 +160,16 @@ The session token scoped to the selected profile. Valid for 30 minutes.
 | sessionToken | `string`  | Yes      | Your session credential, valid for 30 minutes. Send it as the bearer in the `Authorization` header for all session-tier endpoints (`/pages/*`, `/profile/*`).                                                                                                                                                                                         |
 | snapshotId   | `string`  | Yes      | Identifies the set of recommendations the user is currently browsing. Keep it and send it back on your next call to this endpoint, so renewing their credential doesn't reshuffle what they're looking at. Recommendations refresh roughly every 30 minutes; when they do, this value changes and pages come back re-ranked. Page IDs are unaffected. |
 | expiresAt    | `integer` | Yes      | When the session token expires, as a Unix timestamp (seconds).                                                                                                                                                                                                                                                                                        |
+
+## SignOutResponse
+
+<a id="signoutresponse" />
+
+Confirms the refresh token you sent has been revoked.
+
+| Property | Type      | Required | Description                                                                |
+| -------- | --------- | -------- | -------------------------------------------------------------------------- |
+| revoked  | `boolean` | Yes      | Always `true` on success — the refresh token you sent is no longer usable. |
 
 ## WebTokenPayload
 

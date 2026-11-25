@@ -62,7 +62,7 @@ Apps often expose top-level browsing as **tabs** or **modes**. Discovr does not 
 | **Movies**       | `{ "pageFilters": { "media_type": "movie" } }`  | Movie-first rail mix  |
 | **Series**       | `{ "pageFilters": { "media_type": "tv" } }`     | TV-first rail mix     |
 
-Add an optional **`name`** (`"Movies"`, `"Series"`, etc.) when you store or debug tabs—responses can surface it depending on origin.
+`createPage` takes filters only, with no name: a page's ID comes from its filters alone, so label the tabs in your own app.
 
 ## Stack-like navigation from rows
 
@@ -88,14 +88,12 @@ import { DiscovrClient } from "discovr";
 
 const client = new DiscovrClient("your-client-id");
 
-const home = await client.createPage({ name: "Home" });
+const home = await client.createPage();
 const movies = await client.createPage({
 	pageFilters: { mediaType: "movie" },
-	name: "Movies",
 });
 const series = await client.createPage({
 	pageFilters: { mediaType: "tv" },
-	name: "Series",
 });
 ```
 
@@ -104,14 +102,12 @@ import api.discovr.DiscovrClient
 import api.discovr.models.FilterSpec
 
 suspend fun bootstrapPages(client: DiscovrClient) {
-    val home = client.createPage(name = "Home")
+    val home = client.createPage()
     val movies = client.createPage(
-        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.movie),
-        name = "Movies"
+        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.movie)
     )
     val series = client.createPage(
-        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.tv),
-        name = "Series"
+        pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.tv)
     )
     println("$home $movies $series")
 }
@@ -122,14 +118,12 @@ import Discovr
 
 func bootstrapPages() async throws {
     let client = await DiscovrClient(clientId: "your-client-id")
-    let home = try await client.createPage(name: "Home")
+    let home = try await client.createPage()
     let movies = try await client.createPage(
-        pageFilters: FilterSpec(mediaType: .movie),
-        name: "Movies"
+        pageFilters: FilterSpec(mediaType: .movie)
     )
     let series = try await client.createPage(
-        pageFilters: FilterSpec(mediaType: .tv),
-        name: "Series"
+        pageFilters: FilterSpec(mediaType: .tv)
     )
     print(home.id, movies.id, series.id)
 }

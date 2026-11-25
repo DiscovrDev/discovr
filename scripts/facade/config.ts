@@ -21,6 +21,14 @@ export const SWIFT_OUT = path.join(
 export const FACADE_SAMPLES_JSON_PATH = path.join(FACADE_SCRIPT_DIR, "../facade-doc-samples.json");
 
 /**
+ * Guards against Redocly collision-prefixed schemas (`schemas_*` in the bundled
+ * spec, `Schemas*` in generated SDK models) and unnamed inline response schemas
+ * (`*200Response`, `*201Response`, etc.). Case-insensitive because Redocly emits
+ * lowercase `schemas_PlaybackItem` before openapi-generator PascalCases it.
+ */
+export const DISALLOWED_SCHEMA_NAME = /^schemas|\d{3}Response$/i;
+
+/**
  * Maps OpenAPI tag names → doc-site presentational config.
  * This is the only hardcoded list allowed — icons are Mintlify-specific
  * and don't belong in the OpenAPI spec.
@@ -165,6 +173,10 @@ export const HAND_MAINTAINED_COPIES: readonly CopyPair[] = [
 	{
 		src: "public/sdks/template_overrides/swift6/_RefOrIdTest.swift",
 		dst: "public/sdks/swift/Tests/DiscovrTests/_RefOrIdTest.swift",
+	},
+	{
+		src: "public/sdks/template_overrides/swift6/_ContractDecodeTest.swift",
+		dst: "public/sdks/swift/Tests/DiscovrTests/_ContractDecodeTest.swift",
 	},
 ];
 

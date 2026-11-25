@@ -24,9 +24,9 @@ public struct MediaResponseMovie: Sendable, Codable, ParameterConvertible, Hasha
     public var posterPath: [String: String]?
     /** Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     public var backdropPath: [String: String]?
-    /** Theatrical or first release date, as `YYYY-MM-DD`. */
+    /** Theatrical or first release date, as `YYYY-MM-DD`, or `null` when unknown. */
     public var releaseDate: Date?
-    /** Length in whole minutes. */
+    /** Length in whole minutes, or `null` when unknown. */
     public var runtime: Int?
     /** Average audience rating out of 10. */
     public var voteAverage: Double?
@@ -35,7 +35,7 @@ public struct MediaResponseMovie: Sendable, Codable, ParameterConvertible, Hasha
     /** Relative popularity score. Comparable between titles, but has no fixed upper bound, so treat it as a sort key rather than something to display. */
     public var popularity: Double?
     /** Genres this movie belongs to. */
-    public var genres: [MediaResponseMovieGenre]?
+    public var genres: [Genre]?
     /** Short marketing line, where one exists. */
     public var tagline: String?
     /** Release status, such as `Released`, `In Production`, or `Post Production`. */
@@ -49,7 +49,7 @@ public struct MediaResponseMovie: Sendable, Codable, ParameterConvertible, Hasha
     /** IMDb identifier, for linking out to IMDb. */
     public var imdbId: String?
 
-    public init(id: String? = nil, tmdbId: Int? = nil, title: String? = nil, originalTitle: String? = nil, overview: String? = nil, posterPath: [String: String]? = nil, backdropPath: [String: String]? = nil, releaseDate: Date? = nil, runtime: Int? = nil, voteAverage: Double? = nil, voteCount: Int? = nil, popularity: Double? = nil, genres: [MediaResponseMovieGenre]? = nil, tagline: String? = nil, status: String? = nil, budget: Int? = nil, revenue: Int? = nil, homepage: String? = nil, imdbId: String? = nil) {
+    public init(id: String? = nil, tmdbId: Int? = nil, title: String? = nil, originalTitle: String? = nil, overview: String? = nil, posterPath: [String: String]? = nil, backdropPath: [String: String]? = nil, releaseDate: Date? = nil, runtime: Int? = nil, voteAverage: Double? = nil, voteCount: Int? = nil, popularity: Double? = nil, genres: [Genre]? = nil, tagline: String? = nil, status: String? = nil, budget: Int? = nil, revenue: Int? = nil, homepage: String? = nil, imdbId: String? = nil) {
         self.id = id
         self.tmdbId = tmdbId
         self.title = title

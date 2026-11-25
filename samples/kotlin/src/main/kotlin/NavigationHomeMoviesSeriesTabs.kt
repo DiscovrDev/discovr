@@ -7,14 +7,12 @@ private suspend fun sample(client: DiscovrClient) {
     // docs:start
     // Create pages for each tab once, on app launch or after sign-in
     val tabs = mapOf(
-        "home" to client.createPage(name = "Home"),
+        "home" to client.createPage(),
         "movies" to client.createPage(
-            pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.movie),
-            name = "Movies"
+            pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.movie)
         ),
         "series" to client.createPage(
-            pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.tv),
-            name = "Series"
+            pageFilters = FilterSpec(mediaType = FilterSpec.MediaType.tv)
         )
     )
 

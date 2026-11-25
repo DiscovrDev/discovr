@@ -13,7 +13,7 @@ suspend fun switchProfile(newProfileId: String) {
     client.selectProfile(newProfileId)
 
     // Load new home
-    val newHome = client.createPage(name = "Home")
+    val newHome = client.createPage()
     loadHomePageEfficiently(newHome.id)
 }
 // docs:end

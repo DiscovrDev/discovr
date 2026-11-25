@@ -32,9 +32,9 @@ public struct KnownForItem: Sendable, Codable, ParameterConvertible, Hashable {
     public var posterPath: [String: String]?
     /** Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     public var backdropPath: [String: String]?
-    /** Release date, for movies. */
+    /** Release date, for movies, as `YYYY-MM-DD`, or `null` when unknown. */
     public var releaseDate: Date?
-    /** First air date, for TV shows. */
+    /** First air date, for TV shows, as `YYYY-MM-DD`, or `null` when unknown. */
     public var firstAirDate: Date?
     /** Average audience rating out of 10. */
     public var voteAverage: Double?

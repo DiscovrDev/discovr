@@ -15,7 +15,7 @@
 
 package api.discovr.models
 
-import api.discovr.models.MediaResponseMovieGenre
+import api.discovr.models.Genre
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
@@ -31,8 +31,8 @@ import kotlinx.serialization.encoding.*
  * @param overview Short synopsis, suitable for a detail sheet.
  * @param posterPath Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
  * @param backdropPath Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
- * @param releaseDate Theatrical or first release date, as `YYYY-MM-DD`.
- * @param runtime Length in whole minutes.
+ * @param releaseDate Theatrical or first release date, as `YYYY-MM-DD`, or `null` when unknown.
+ * @param runtime Length in whole minutes, or `null` when unknown.
  * @param voteAverage Average audience rating out of 10.
  * @param voteCount How many ratings `vote_average` is based on — useful for deciding whether to show the score at all.
  * @param popularity Relative popularity score. Comparable between titles, but has no fixed upper bound, so treat it as a sort key rather than something to display.
@@ -69,10 +69,10 @@ data class MediaResponseMovie (
     /* Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     @SerialName(value = "backdrop_path") val backdropPath: kotlin.collections.Map<kotlin.String, kotlin.String>? = null,
 
-    /* Theatrical or first release date, as `YYYY-MM-DD`. */
+    /* Theatrical or first release date, as `YYYY-MM-DD`, or `null` when unknown. */
     @SerialName(value = "release_date") val releaseDate: kotlinx.datetime.LocalDate? = null,
 
-    /* Length in whole minutes. */
+    /* Length in whole minutes, or `null` when unknown. */
     @SerialName(value = "runtime") val runtime: kotlin.Int? = null,
 
     /* Average audience rating out of 10. */
@@ -85,7 +85,7 @@ data class MediaResponseMovie (
     @SerialName(value = "popularity") val popularity: kotlin.Double? = null,
 
     /* Genres this movie belongs to. */
-    @SerialName(value = "genres") val genres: kotlin.collections.List<MediaResponseMovieGenre>? = null,
+    @SerialName(value = "genres") val genres: kotlin.collections.List<Genre>? = null,
 
     /* Short marketing line, where one exists. */
     @SerialName(value = "tagline") val tagline: kotlin.String? = null,

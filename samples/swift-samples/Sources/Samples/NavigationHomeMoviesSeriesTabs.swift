@@ -5,14 +5,12 @@ private func sample(client: DiscovrClient) async throws {
     // docs:start
     // Create pages for each tab once, on app launch or after sign-in
     let tabs = [
-        "home": try await client.createPage(name: "Home"),
+        "home": try await client.createPage(),
         "movies": try await client.createPage(
-            pageFilters: FilterSpec(mediaType: .movie),
-            name: "Movies"
+            pageFilters: FilterSpec(mediaType: .movie)
         ),
         "series": try await client.createPage(
-            pageFilters: FilterSpec(mediaType: .tv),
-            name: "Series"
+            pageFilters: FilterSpec(mediaType: .tv)
         ),
     ]
 

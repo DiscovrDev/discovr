@@ -21,10 +21,10 @@ For TV shows, include `season` and `episode` in the request body so history is t
 | -------- | -------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | mediaId  | `string`                                                 | Yes      | The media ID in `MV_&lt;number&gt;` or `TV_&lt;number&gt;` format (e.g., `MV_550`, `TV_1396`). Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. |
 | progress | `number`                                                 | Yes      | Current playback position as a percentage (0–100).                                                                                                                                                                                                          |
-| tv       | [`ScrobbleTv`](/sdk-reference/types/scrobble#scrobbletv) | No       | Which episode is playing. Required for TV shows, omitted for movies.                                                                                                                                                                                        |
+| tv       | [`EpisodeRef`](/sdk-reference/types/scrobble#episoderef) | No       | Which episode is playing. Required for TV shows, omitted for movies.                                                                                                                                                                                        |
 
 <AccordionGroup>
-<Accordion title="View ScrobbleTv structure">
+<Accordion title="View EpisodeRef structure">
 ```json
 {
   "season": 2,
@@ -56,7 +56,7 @@ For TV shows, include `season` and `episode` in the request body so history is t
 
 ```typescript TypeScript
 import { DiscovrClient } from "discovr";
-import type { ScrobbleProgressBody, ScrobbleResponse, ScrobbleTv } from "discovr";
+import type { EpisodeRef, ScrobbleProgressBody, ScrobbleResponse } from "discovr";
 
 const discovr = new DiscovrClient("your-client-id");
 
@@ -69,13 +69,13 @@ console.log(response);
 
 ```kotlin Kotlin
 import api.discovr.DiscovrClient
+import api.discovr.models.EpisodeRef
 import api.discovr.models.ScrobbleProgressBody
 import api.discovr.models.ScrobbleResponse
-import api.discovr.models.ScrobbleTv
 
 // Construct DiscovrClient with your AuthStorage implementation (see SDK README).
 suspend fun example(client: DiscovrClient) {
-    val response: ScrobbleResponse = client.scrobble(mediaId = "TV_1396", progress = 42.5, tv = ScrobbleTv(season = 2, episode = 5))
+    val response: ScrobbleResponse = client.scrobble(mediaId = "TV_1396", progress = 42.5, tv = EpisodeRef(season = 2, episode = 5))
     println(response)
 }
 ```
@@ -85,8 +85,8 @@ import Discovr
 
 let client = DiscovrClient(clientId: "your-client-id")
 // Response / argument types:
-// ScrobbleProgressBody, ScrobbleResponse, ScrobbleTv
-let response: ScrobbleResponse = try await client.scrobble(mediaId: "TV_1396", progress: 42.5, tv: ScrobbleTv(season: 2, episode: 5))
+// EpisodeRef, ScrobbleProgressBody, ScrobbleResponse
+let response: ScrobbleResponse = try await client.scrobble(mediaId: "TV_1396", progress: 42.5, tv: EpisodeRef(season: 2, episode: 5))
 print(response)
 ```
 

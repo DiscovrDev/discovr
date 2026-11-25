@@ -9,7 +9,6 @@ Name | Type
 ------------ | -------------
 `showId` | string
 `showTmdbId` | number
-`tmdbInternalId` | string
 `id` | number
 `seasonTmdbId` | number
 `name` | string
@@ -28,7 +27,6 @@ import type { SeasonDetailsResponse } from 'discovr'
 const example = {
   "showId": TV_1396,
   "showTmdbId": 1396,
-  "tmdbInternalId": 57599026c3a368369a000494,
   "id": 3572,
   "seasonTmdbId": 3572,
   "name": Season 1,

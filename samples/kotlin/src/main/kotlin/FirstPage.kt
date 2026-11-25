@@ -2,7 +2,7 @@ import api.discovr.DiscovrClient
 
 private suspend fun sample(client: DiscovrClient) {
     // docs:start
-    val page = client.createPage(name = "Home")
+    val page = client.createPage()
     val bundle = client.getRows(pageId = page.id, limit = 10)
 
     println("Got ${bundle.rows.size} recommendation rows:")

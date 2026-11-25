@@ -107,8 +107,8 @@ Page:
         Human-readable page title, suitable for a breadcrumb (e.g. "Movies & Series • Anime • Fantasy").
 
         Present only for pages that carry their own name — navigation tiles and
-        built-in pages. A `name` you pass to `POST /pages` is a label for your own
-        use and is not returned here. Absent otherwise — read it defensively.
+        built-in pages. `POST /pages` takes no name, so a page you create from
+        filters alone has none. Absent otherwise — read it defensively.
   additionalProperties: false
 
 Row:
@@ -152,18 +152,6 @@ CreatePagePayload:
     pageFilters:
       description: Filters that shape which titles appear in the page's rows.
       $ref: "#/FilterSpec"
-    name:
-      type: string
-      minLength: 1
-      maxLength: 100
-      description: |
-        Optional label for your own use. It doesn't affect the page you get back
-        and isn't stored — keep your own mapping from page ID to display name if
-        you need one.
-
-        A page's identity comes from its filters alone. Two calls with the same
-        filters return the **same page** whatever you call it, so give pages that
-        should be distinct distinct filters.
   additionalProperties: false
 
 CreatePageResponse:

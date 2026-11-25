@@ -1877,10 +1877,10 @@ open class DiscovrAPI {
      - parameter deviceCode: (path) The device code obtained from the request device code endpoint 
      - parameter devicePollPayload: (body) Send your &#x60;deviceId&#x60; so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own.  (optional)
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: PollDeviceCode200Response
+     - returns: DeviceCodePollResponse
      */
     @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func pollDeviceCode(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> PollDeviceCode200Response {
+    open class func pollDeviceCode(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> DeviceCodePollResponse {
         return try await pollDeviceCodeWithRequestBuilder(deviceCode: deviceCode, devicePollPayload: devicePollPayload, apiConfiguration: apiConfiguration).execute().body
     }
 
@@ -1891,9 +1891,9 @@ open class DiscovrAPI {
      - parameter deviceCode: (path) The device code obtained from the request device code endpoint 
      - parameter devicePollPayload: (body) Send your &#x60;deviceId&#x60; so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own.  (optional)
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<PollDeviceCode200Response> 
+     - returns: RequestBuilder<DeviceCodePollResponse> 
      */
-    open class func pollDeviceCodeWithRequestBuilder(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<PollDeviceCode200Response> {
+    open class func pollDeviceCodeWithRequestBuilder(deviceCode: String, devicePollPayload: DevicePollPayload? = nil, apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<DeviceCodePollResponse> {
         var localVariablePath = "/auth/device-codes/{deviceCode}/poll"
         let deviceCodePreEscape = "\(APIHelper.mapValueToPathItem(deviceCode))"
         let deviceCodePostEscape = deviceCodePreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
@@ -1909,7 +1909,7 @@ open class DiscovrAPI {
 
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
-        let localVariableRequestBuilder: RequestBuilder<PollDeviceCode200Response>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+        let localVariableRequestBuilder: RequestBuilder<DeviceCodePollResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
     }
@@ -2180,10 +2180,10 @@ open class DiscovrAPI {
      Sign out the current device
      
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: SignOutSession200Response
+     - returns: SignOutResponse
      */
     @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-    open class func signOutSession(apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SignOutSession200Response {
+    open class func signOutSession(apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) async throws(ErrorResponse) -> SignOutResponse {
         return try await signOutSessionWithRequestBuilder(apiConfiguration: apiConfiguration).execute().body
     }
 
@@ -2195,9 +2195,9 @@ open class DiscovrAPI {
        - type: http
        - name: BearerAuth
      - parameter apiConfiguration: The configuration for the http request.
-     - returns: RequestBuilder<SignOutSession200Response> 
+     - returns: RequestBuilder<SignOutResponse> 
      */
-    open class func signOutSessionWithRequestBuilder(apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SignOutSession200Response> {
+    open class func signOutSessionWithRequestBuilder(apiConfiguration: DiscovrAPIConfiguration = DiscovrAPIConfiguration.shared) -> RequestBuilder<SignOutResponse> {
         let localVariablePath = "/auth/session"
         let localVariableURLString = apiConfiguration.basePath + localVariablePath
         let localVariableParameters: [String: any Sendable]? = nil
@@ -2210,7 +2210,7 @@ open class DiscovrAPI {
 
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
-        let localVariableRequestBuilder: RequestBuilder<SignOutSession200Response>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+        let localVariableRequestBuilder: RequestBuilder<SignOutResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }

@@ -10,7 +10,7 @@ func switchProfile(newProfileId: String) async throws {
     try await client.selectProfile(profileId: newProfileId)
 
     // Load new home
-    let newHome = try await client.createPage(name: "Home")
+    let newHome = try await client.createPage()
     try await loadHomePageEfficiently(homePageId: newHome.id)
 }
 // docs:end

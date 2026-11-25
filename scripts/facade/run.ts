@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 import {
+	DISALLOWED_SCHEMA_NAME,
 	HAND_MAINTAINED_COPIES,
 	KT_OUT,
 	ROOT,
@@ -21,9 +22,30 @@ function ensureDir(filePath: string): void {
 	if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
+function assertCleanSpecSchemas(
+	spec: ReturnType<typeof loadSpecFromDisk>,
+	ops: ReturnType<typeof buildOperations>,
+): void {
+	const badSchemas = Object.keys(spec.components?.schemas ?? {})
+		.filter((name) => DISALLOWED_SCHEMA_NAME.test(name))
+		.sort();
+	const badReturnTypes = ops
+		.map((op) => op.returnTypeName)
+		.filter((name) => DISALLOWED_SCHEMA_NAME.test(name))
+		.sort();
+	const bad = [...new Set([...badSchemas, ...badReturnTypes])];
+	if (bad.length > 0) {
+		throw new Error(
+			`Disallowed schema / return type name(s) in bundled spec: ${bad.join(", ")}. ` +
+				`Give every schema an explicit name and register it in public/open_api/public.yaml.`,
+		);
+	}
+}
+
 export function runFacadeGeneration(): void {
 	const spec = loadSpecFromDisk();
 	const ops = buildOperations(spec);
+	assertCleanSpecSchemas(spec, ops);
 
 	console.log(`\n🔨  Facade generator: ${ops.length} operations classified`);
 	console.log(

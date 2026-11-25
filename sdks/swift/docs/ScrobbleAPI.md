@@ -81,7 +81,7 @@ let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
 let mediaId: String = "mediaId_example" // The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-let scrobbleProgressBody: ScrobbleProgressBody = ScrobbleProgressBody(progress: 123, tv: ScrobbleTv(season: 123, episode: 123)) // 
+let scrobbleProgressBody: ScrobbleProgressBody = ScrobbleProgressBody(progress: 123, tv: EpisodeRef(season: 123, episode: 123)) // 
 
 Task {
     do {
@@ -133,7 +133,7 @@ let discovr = DiscovrClient(clientId: "your-client-id")
 // Or manually configure: DiscovrAPI.customHeaders = ["Authorization": "Bearer YOUR TOKEN"]
 
 let mediaId: String = "mediaId_example" // The media ID in `MV_<number>` or `TV_<number>` format (e.g., `MV_550`, `TV_1396`).  Also accepts an item's `ref` in place of the id. Prefer the `ref` when you have one — it resolves to the same title and sharpens the user's recommendations. 
-let scrobbleSkipBody: ScrobbleSkipBody = ScrobbleSkipBody(from: 123, to: 123, duration: 123, tv: ScrobbleTv(season: 123, episode: 123)) // 
+let scrobbleSkipBody: ScrobbleSkipBody = ScrobbleSkipBody(from: 123, to: 123, duration: 123, tv: EpisodeRef(season: 123, episode: 123)) // 
 
 Task {
     do {

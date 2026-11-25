@@ -17,6 +17,7 @@ ProfileImagesResponse:
         - https://api.discovr.media/profile-images/profile-amber.png
         - https://api.discovr.media/profile-images/profile-sage.png
         - https://api.discovr.media/profile-images/profile-indigo.png
+  additionalProperties: false
 
 GifItem:
   type: object
@@ -69,6 +70,7 @@ GifItem:
       format: date-time
       description: When this result was fetched (ISO 8601).
       example: "2024-01-15T10:30:00.000Z"
+  additionalProperties: false
 
 GifPreview:
   type: object
@@ -91,6 +93,7 @@ GifPreview:
       type: integer
       description: Preview height in pixels.
       example: 200
+  additionalProperties: false
 
 GifSearchResponse:
   type: object
@@ -108,3 +111,4 @@ GifSearchResponse:
       nullable: true
       description: Pagination cursor — pass as `pos` in your next request to load more results. `null` when there are no more results.
       example: "1:20"
+  additionalProperties: false

@@ -14,7 +14,7 @@
 
 import { mapValues } from '../runtime';
 /**
- * 
+ * Summary of one season on a TV show's details. Use `getSeasonDetails` for full episode listings.
  * @export
  * @interface MediaResponseTvSeason
  */
@@ -44,7 +44,7 @@ export interface MediaResponseTvSeason {
      */
     seasonNumber?: number;
     /**
-     * Date the season's first episode aired, as `YYYY-MM-DD`.
+     * Date the season's first episode aired, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof MediaResponseTvSeason
      */

@@ -15,8 +15,8 @@
 | **overview** | **kotlin.String** | Short synopsis. Not present for &#x60;person&#x60; results. |  [optional] |
 | **posterPath** | **kotlin.collections.Map&lt;kotlin.String, kotlin.String&gt;** | Poster image URLs keyed by width bucket (&#x60;w45&#x60;, &#x60;w92&#x60;, &#x60;w154&#x60;, &#x60;w185&#x60;, &#x60;w300&#x60;, &#x60;w342&#x60;, &#x60;w500&#x60;, &#x60;w780&#x60;, &#x60;w1280&#x60;, &#x60;original&#x60;). Absent for &#x60;person&#x60; results. |  [optional] |
 | **backdropPath** | **kotlin.collections.Map&lt;kotlin.String, kotlin.String&gt;** | Backdrop image URLs keyed by width bucket (&#x60;w45&#x60;, &#x60;w92&#x60;, &#x60;w154&#x60;, &#x60;w185&#x60;, &#x60;w300&#x60;, &#x60;w342&#x60;, &#x60;w500&#x60;, &#x60;w780&#x60;, &#x60;w1280&#x60;, &#x60;original&#x60;). Absent for &#x60;person&#x60; results. |  [optional] |
-| **releaseDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | Release date for &#x60;movie&#x60; results, as &#x60;YYYY-MM-DD&#x60;. |  [optional] |
-| **firstAirDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | First air date for &#x60;tv&#x60; results, as &#x60;YYYY-MM-DD&#x60;. |  [optional] |
+| **releaseDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | Release date for &#x60;movie&#x60; results, as &#x60;YYYY-MM-DD&#x60;, or &#x60;null&#x60; when unknown. |  [optional] |
+| **firstAirDate** | [**kotlinx.datetime.LocalDate**](kotlinx.datetime.LocalDate.md) | First air date for &#x60;tv&#x60; results, as &#x60;YYYY-MM-DD&#x60;, or &#x60;null&#x60; when unknown. |  [optional] |
 | **popularity** | **kotlin.Double** | Relative popularity score. Comparable between results, but has no fixed upper bound, so treat it as a sort key rather than something to display. |  [optional] |
 | **voteAverage** | **kotlin.Double** | Average audience rating out of 10. Not present for &#x60;person&#x60; results. |  [optional] |
 | **voteCount** | **kotlin.Int** | How many ratings &#x60;vote_average&#x60; is based on. Not present for &#x60;person&#x60; results. |  [optional] |

@@ -12,9 +12,9 @@ public struct MediaProfileMetaPlayback: Sendable, Codable, ParameterConvertible,
 
     /** Whether the profile has started this title. When `false`, `data` is null and there's no progress to show. */
     public var inlist: Bool
-    public var data: SchemasPlaybackItem?
+    public var data: PlaybackProgress?
 
-    public init(inlist: Bool, data: SchemasPlaybackItem? = nil) {
+    public init(inlist: Bool, data: PlaybackProgress? = nil) {
         self.inlist = inlist
         self.data = data
     }

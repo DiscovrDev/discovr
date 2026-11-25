@@ -226,13 +226,6 @@ function resolveType(
 				isRef: true,
 				refName,
 			},
-			ScrobbleTv: {
-				tsType: "ScrobbleTv",
-				ktType: "ScrobbleTv",
-				swiftType: "ScrobbleTv",
-				isRef: true,
-				refName,
-			},
 		};
 		if (simpleMap[refName]) return simpleMap[refName];
 		return { tsType: refName, ktType: refName, swiftType: refName, isRef: true, refName };

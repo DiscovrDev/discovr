@@ -3,6 +3,17 @@ title: "Scrobble Types"
 description: "Types used by Scrobble SDK operations."
 ---
 
+## EpisodeRef
+
+<a id="episoderef" />
+
+Episode context for TV show scrobbles.
+
+| Property | Type      | Required | Description     |
+| -------- | --------- | -------- | --------------- |
+| season   | `integer` | Yes      | Season number.  |
+| episode  | `integer` | Yes      | Episode number. |
+
 ## ScrobbleProgressBody
 
 <a id="scrobbleprogressbody" />
@@ -48,14 +59,3 @@ Confirms a skip report was recorded.
 | Property | Type     | Required | Description               |
 | -------- | -------- | -------- | ------------------------- |
 | status   | `string` | Yes      | Always `"ok"` on success. |
-
-## ScrobbleTv
-
-<a id="scrobbletv" />
-
-Episode context for TV show scrobbles.
-
-| Property | Type      | Required | Description     |
-| -------- | --------- | -------- | --------------- |
-| season   | `integer` | Yes      | Season number.  |
-| episode  | `integer` | Yes      | Episode number. |

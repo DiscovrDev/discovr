@@ -7,6 +7,7 @@
 
 import Foundation
 
+/** Availability of a title on a streaming provider in a single region. */
 public struct ProviderInfoRegion: Sendable, Codable, ParameterConvertible, Hashable {
 
     /** English name of the region. */

@@ -164,28 +164,28 @@ Switching profiles starts fresh recommendations — the previous profile's would
 
 ```typescript TypeScript
 await client.selectProfile(aliceId);
-const home = await client.createPage({ name: "Home" });
+const home = await client.createPage();
 
 await client.selectProfile(bobId);
-const sameHome = await client.createPage({ name: "Home" });
+const sameHome = await client.createPage();
 // sameHome.id === home.id — same page, Bob's recommendations.
 ```
 
 ```kotlin Kotlin
 client.selectProfile(aliceId)
-val home = client.createPage(name = "Home")
+val home = client.createPage()
 
 client.selectProfile(bobId)
-val sameHome = client.createPage(name = "Home")
+val sameHome = client.createPage()
 // Same page ID, Bob's recommendations.
 ```
 
 ```swift Swift
 try await client.selectProfile(profileId: aliceId)
-let home = try await client.createPage(name: "Home")
+let home = try await client.createPage()
 
 try await client.selectProfile(profileId: bobId)
-let sameHome = try await client.createPage(name: "Home")
+let sameHome = try await client.createPage()
 // Same page ID, Bob's recommendations.
 ```
 

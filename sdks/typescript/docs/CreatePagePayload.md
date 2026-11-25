@@ -8,7 +8,6 @@ Optional filters to shape the recommendation page. Omit for a default page based
 Name | Type
 ------------ | -------------
 `pageFilters` | [FilterSpec](FilterSpec.md)
-`name` | string
 
 ## Example
 
@@ -18,7 +17,6 @@ import type { CreatePagePayload } from 'discovr'
 // TODO: Update the object below with actual values
 const example = {
   "pageFilters": null,
-  "name": null,
 } satisfies CreatePagePayload
 
 console.log(example)

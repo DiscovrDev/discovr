@@ -14,9 +14,9 @@ public struct ScrobbleProgressBody: Sendable, Codable, ParameterConvertible, Has
     /** Current playback position as a percentage (0–100). */
     public var progress: Double
     /** Which episode is playing. Required for TV shows, omitted for movies. */
-    public var tv: ScrobbleTv?
+    public var tv: EpisodeRef?
 
-    public init(progress: Double, tv: ScrobbleTv? = nil) {
+    public init(progress: Double, tv: EpisodeRef? = nil) {
         self.progress = progress
         self.tv = tv
     }

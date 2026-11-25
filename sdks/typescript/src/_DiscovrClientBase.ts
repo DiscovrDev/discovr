@@ -7,7 +7,9 @@ import type {
   CreateProfileResponse,
   DeleteProfileResponse,
   DemoSessionResponse,
+  DeviceCodePollResponse,
   DeviceCodeResponse,
+  EpisodeRef,
   FilterSpec,
   GetProfilesResponse,
   GetRowItemsResponse,
@@ -19,19 +21,17 @@ import type {
   MediaResponse,
   Page,
   PlaybackListResponse,
-  PollDeviceCode200Response,
   Profile,
   ProfileImagesResponse,
   RefreshTokenResponse,
   Row,
   ScrobbleResponse,
   ScrobbleSkipResponse,
-  ScrobbleTv,
   SearchResponse,
   SeasonDetailsResponse,
   SeasonProfileMeta,
   SessionTokenResponse,
-  SignOutSession200Response,
+  SignOutResponse,
   SimilarResponse,
   SimpleListResponse,
   SuccessMessage
@@ -50,7 +50,7 @@ export abstract class _DiscovrClientBase {
     return this._auth.identityApi().mintSessionToken({ profileId, ttlMs: options?.ttlMs, snapshotId: options?.snapshotId });
   }
 
-  signOutSession(): Promise<SignOutSession200Response> {
+  signOutSession(): Promise<SignOutResponse> {
     return this._auth.identityApi().signOutSession();
   }
 
@@ -94,13 +94,13 @@ export abstract class _DiscovrClientBase {
 
   // ── Session tier — session token bearer ────────────────────────────────────
 
-  createPage(options?: { pageFilters?: FilterSpec; name?: string; bypassCache?: boolean }): Promise<CreatePageResponse> {
+  createPage(options?: { pageFilters?: FilterSpec; bypassCache?: boolean }): Promise<CreatePageResponse> {
     return this._cache.wrap(
       "createPage",
-      { pageFilters: options?.pageFilters, name: options?.name },
+      { pageFilters: options?.pageFilters },
       undefined,
       options?.bypassCache,
-      () => this._auth.sessionApi().createPage({ pageFilters: options?.pageFilters, name: options?.name }),
+      () => this._auth.sessionApi().createPage({ pageFilters: options?.pageFilters }),
     );
   }
 
@@ -212,11 +212,11 @@ export abstract class _DiscovrClientBase {
     return this._auth.sessionApi().markUnwatched(mediaId, options?.season, options?.episode);
   }
 
-  scrobble(mediaId: string, progress: number, options?: { tv?: ScrobbleTv }): Promise<ScrobbleResponse> {
+  scrobble(mediaId: string, progress: number, options?: { tv?: EpisodeRef }): Promise<ScrobbleResponse> {
     return this._auth.sessionApi().scrobble(mediaId, { progress, tv: options?.tv });
   }
 
-  scrobbleSkip(mediaId: string, from: number, to: number, duration: number, options?: { tv?: ScrobbleTv }): Promise<ScrobbleSkipResponse> {
+  scrobbleSkip(mediaId: string, from: number, to: number, duration: number, options?: { tv?: EpisodeRef }): Promise<ScrobbleSkipResponse> {
     return this._auth.sessionApi().scrobbleSkip(mediaId, { from, to, duration, tv: options?.tv });
   }
 
@@ -304,7 +304,7 @@ export abstract class _DiscovrClientBase {
     return this._auth.publicApi().requestDeviceCode({ clientID, demo: options?.demo }, options?.size, options?.format as any);
   }
 
-  pollDeviceCode(deviceCode: string, options?: { deviceId?: string }): Promise<PollDeviceCode200Response> {
+  pollDeviceCode(deviceCode: string, options?: { deviceId?: string }): Promise<DeviceCodePollResponse> {
     return this._auth.publicApi().pollDeviceCode(deviceCode, { deviceId: options?.deviceId });
   }
 

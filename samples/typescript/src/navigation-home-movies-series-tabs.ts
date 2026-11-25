@@ -4,14 +4,12 @@ export async function sample(client: DiscovrClient) {
 	// docs:start
 	// Create pages for each tab once, on app launch or after sign-in
 	const tabs = {
-		home: await client.createPage({ name: "Home" }),
+		home: await client.createPage(),
 		movies: await client.createPage({
 			pageFilters: { mediaType: "movie" },
-			name: "Movies",
 		}),
 		series: await client.createPage({
 			pageFilters: { mediaType: "tv" },
-			name: "Series",
 		}),
 	};
 

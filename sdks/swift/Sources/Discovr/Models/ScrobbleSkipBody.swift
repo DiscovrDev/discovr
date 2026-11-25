@@ -20,9 +20,9 @@ public struct ScrobbleSkipBody: Sendable, Codable, ParameterConvertible, Hashabl
     /** Number of seconds skipped. */
     public var duration: Double
     /** Which episode is playing. Required for TV shows, omitted for movies. */
-    public var tv: ScrobbleTv?
+    public var tv: EpisodeRef?
 
-    public init(from: Double, to: Double, duration: Double, tv: ScrobbleTv? = nil) {
+    public init(from: Double, to: Double, duration: Double, tv: EpisodeRef? = nil) {
         self.from = from
         self.to = to
         self.duration = duration

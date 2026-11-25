@@ -19,14 +19,14 @@ import type {
   DemoSessionRequest,
   DemoSessionResponse,
   DeviceCodePayload,
+  DeviceCodePollResponse,
   DeviceCodeResponse,
   DevicePollPayload,
   MintSessionTokenPayload,
-  PollDeviceCode200Response,
   RateLimitedError,
   RefreshTokenResponse,
   SessionTokenResponse,
-  SignOutSession200Response,
+  SignOutResponse,
   WebTokenPayload,
 } from '../models/index';
 import {
@@ -38,22 +38,22 @@ import {
     DemoSessionResponseToJSON,
     DeviceCodePayloadFromJSON,
     DeviceCodePayloadToJSON,
+    DeviceCodePollResponseFromJSON,
+    DeviceCodePollResponseToJSON,
     DeviceCodeResponseFromJSON,
     DeviceCodeResponseToJSON,
     DevicePollPayloadFromJSON,
     DevicePollPayloadToJSON,
     MintSessionTokenPayloadFromJSON,
     MintSessionTokenPayloadToJSON,
-    PollDeviceCode200ResponseFromJSON,
-    PollDeviceCode200ResponseToJSON,
     RateLimitedErrorFromJSON,
     RateLimitedErrorToJSON,
     RefreshTokenResponseFromJSON,
     RefreshTokenResponseToJSON,
     SessionTokenResponseFromJSON,
     SessionTokenResponseToJSON,
-    SignOutSession200ResponseFromJSON,
-    SignOutSession200ResponseToJSON,
+    SignOutResponseFromJSON,
+    SignOutResponseToJSON,
     WebTokenPayloadFromJSON,
     WebTokenPayloadToJSON,
 } from '../models/index';
@@ -271,7 +271,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
      * The second step of the device code flow. Call this repeatedly after showing the user code or QR code.  While the user hasn\'t confirmed yet, you\'ll get `{ status: \"pending\", interval }` — wait `interval` seconds and poll again. Once they approve, the response changes to `{ refreshToken, publicId, expiresAt }`. Store the `refreshToken` securely — it\'s your long-lived credential for all identity-tier calls.  **Polling interval:** the server sets it and repeats it in every pending answer; it grows the longer the code has been waiting, so always use the latest value. The SDKs do this for you. Stop polling when you receive a `refreshToken` or a `401` error.  A person can decline on their phone. Your next poll then returns `401` with `device-code-denied` straight away (and on every poll after, until the code expires), so you can say so on screen instead of waiting out the timeout. 
      * Poll for auth token
      */
-    async pollDeviceCodeRaw(requestParameters: PollDeviceCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PollDeviceCode200Response>> {
+    async pollDeviceCodeRaw(requestParameters: PollDeviceCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DeviceCodePollResponse>> {
         if (requestParameters['deviceCode'] == null) {
             throw new runtime.RequiredError(
                 'deviceCode',
@@ -297,14 +297,14 @@ export class AuthenticationApi extends runtime.BaseAPI {
             body: DevicePollPayloadToJSON(requestParameters['devicePollPayload']),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => PollDeviceCode200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => DeviceCodePollResponseFromJSON(jsonValue));
     }
 
     /**
      * The second step of the device code flow. Call this repeatedly after showing the user code or QR code.  While the user hasn\'t confirmed yet, you\'ll get `{ status: \"pending\", interval }` — wait `interval` seconds and poll again. Once they approve, the response changes to `{ refreshToken, publicId, expiresAt }`. Store the `refreshToken` securely — it\'s your long-lived credential for all identity-tier calls.  **Polling interval:** the server sets it and repeats it in every pending answer; it grows the longer the code has been waiting, so always use the latest value. The SDKs do this for you. Stop polling when you receive a `refreshToken` or a `401` error.  A person can decline on their phone. Your next poll then returns `401` with `device-code-denied` straight away (and on every poll after, until the code expires), so you can say so on screen instead of waiting out the timeout. 
      * Poll for auth token
      */
-    async pollDeviceCode(deviceCode: string, devicePollPayload?: DevicePollPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PollDeviceCode200Response> {
+    async pollDeviceCode(deviceCode: string, devicePollPayload?: DevicePollPayload, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DeviceCodePollResponse> {
         const response = await this.pollDeviceCodeRaw({ deviceCode: deviceCode, devicePollPayload: devicePollPayload }, initOverrides);
         return await response.value();
     }
@@ -362,7 +362,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
      * Signs out the current device by revoking the refresh token you send in the `Authorization` header. Other devices the user is signed into aren\'t affected — you can only sign out the current device from a third-party app.  Identity-tier calls using this token fail immediately after revocation. Any existing session tokens (valid for 30 minutes) remain usable until they naturally expire.  Works the same way for a demo session\'s refresh token — a demo sandbox is an ordinary account, so this is a quick way to end one early and test how your app handles it.  Using an SDK? Call `signOut()` instead — it wraps this endpoint and also clears the credentials stored on the device.  **Auth tier:** identity — send your refresh token in the `Authorization: Bearer` header. 
      * Sign out the current device
      */
-    async signOutSessionRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SignOutSession200Response>> {
+    async signOutSessionRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SignOutResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -385,14 +385,14 @@ export class AuthenticationApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => SignOutSession200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => SignOutResponseFromJSON(jsonValue));
     }
 
     /**
      * Signs out the current device by revoking the refresh token you send in the `Authorization` header. Other devices the user is signed into aren\'t affected — you can only sign out the current device from a third-party app.  Identity-tier calls using this token fail immediately after revocation. Any existing session tokens (valid for 30 minutes) remain usable until they naturally expire.  Works the same way for a demo session\'s refresh token — a demo sandbox is an ordinary account, so this is a quick way to end one early and test how your app handles it.  Using an SDK? Call `signOut()` instead — it wraps this endpoint and also clears the credentials stored on the device.  **Auth tier:** identity — send your refresh token in the `Authorization: Bearer` header. 
      * Sign out the current device
      */
-    async signOutSession(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SignOutSession200Response> {
+    async signOutSession(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SignOutResponse> {
         const response = await this.signOutSessionRaw(initOverrides);
         return await response.value();
     }

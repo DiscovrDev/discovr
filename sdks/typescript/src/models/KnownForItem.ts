@@ -79,13 +79,13 @@ export interface KnownForItem {
      */
     backdropPath?: { [key: string]: string; };
     /**
-     * Release date, for movies.
+     * Release date, for movies, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof KnownForItem
      */
     releaseDate?: Date;
     /**
-     * First air date, for TV shows.
+     * First air date, for TV shows, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof KnownForItem
      */

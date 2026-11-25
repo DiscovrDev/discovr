@@ -8,7 +8,7 @@ Where the profile is up to in this title. Drives a progress bar and a Resume but
 Name | Type
 ------------ | -------------
 `inlist` | boolean
-`data` | [SchemasPlaybackItem](SchemasPlaybackItem.md)
+`data` | [PlaybackProgress](PlaybackProgress.md)
 
 ## Example
 

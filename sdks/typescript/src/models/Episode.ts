@@ -13,6 +13,21 @@
  */
 
 import { mapValues } from '../runtime';
+import type { EpisodeGuestStar } from './EpisodeGuestStar';
+import {
+    EpisodeGuestStarFromJSON,
+    EpisodeGuestStarFromJSONTyped,
+    EpisodeGuestStarToJSON,
+    EpisodeGuestStarToJSONTyped,
+} from './EpisodeGuestStar';
+import type { EpisodeCrewMember } from './EpisodeCrewMember';
+import {
+    EpisodeCrewMemberFromJSON,
+    EpisodeCrewMemberFromJSONTyped,
+    EpisodeCrewMemberToJSON,
+    EpisodeCrewMemberToJSONTyped,
+} from './EpisodeCrewMember';
+
 /**
  * Details for a single TV episode.
  * @export
@@ -50,7 +65,7 @@ export interface Episode {
      */
     stillPath?: { [key: string]: string; };
     /**
-     * Original air date of the episode.
+     * Original air date of the episode, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof Episode
      */
@@ -68,11 +83,11 @@ export interface Episode {
      */
     seasonNumber: number;
     /**
-     * Numeric identifier for the parent TV show.
-     * @type {number}
+     * The parent TV show identifier (e.g., `TV_1396`).
+     * @type {string}
      * @memberof Episode
      */
-    showId: number;
+    showId: string;
     /**
      * Production code for the episode.
      * @type {string}
@@ -93,16 +108,16 @@ export interface Episode {
     voteCount?: number;
     /**
      * Crew members for this episode.
-     * @type {Array<object>}
+     * @type {Array<EpisodeCrewMember>}
      * @memberof Episode
      */
-    crew?: Array<object>;
+    crew?: Array<EpisodeCrewMember>;
     /**
      * Guest cast for this episode.
-     * @type {Array<object>}
+     * @type {Array<EpisodeGuestStar>}
      * @memberof Episode
      */
-    guestStars?: Array<object>;
+    guestStars?: Array<EpisodeGuestStar>;
 }
 
 /**
@@ -139,8 +154,8 @@ export function EpisodeFromJSONTyped(json: any, ignoreDiscriminator: boolean): E
         'productionCode': json['production_code'] == null ? undefined : json['production_code'],
         'voteAverage': json['vote_average'] == null ? undefined : json['vote_average'],
         'voteCount': json['vote_count'] == null ? undefined : json['vote_count'],
-        'crew': json['crew'] == null ? undefined : json['crew'],
-        'guestStars': json['guest_stars'] == null ? undefined : json['guest_stars'],
+        'crew': json['crew'] == null ? undefined : ((json['crew'] as Array<any>).map(EpisodeCrewMemberFromJSON)),
+        'guestStars': json['guest_stars'] == null ? undefined : ((json['guest_stars'] as Array<any>).map(EpisodeGuestStarFromJSON)),
     };
 }
 
@@ -167,8 +182,8 @@ export function EpisodeToJSONTyped(value?: Episode | null, ignoreDiscriminator: 
         'production_code': value['productionCode'],
         'vote_average': value['voteAverage'],
         'vote_count': value['voteCount'],
-        'crew': value['crew'],
-        'guest_stars': value['guestStars'],
+        'crew': value['crew'] == null ? undefined : ((value['crew'] as Array<any>).map(EpisodeCrewMemberToJSON)),
+        'guest_stars': value['guestStars'] == null ? undefined : ((value['guestStars'] as Array<any>).map(EpisodeGuestStarToJSON)),
     };
 }
 

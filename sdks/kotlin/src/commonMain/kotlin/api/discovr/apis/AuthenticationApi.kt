@@ -19,14 +19,14 @@ import api.discovr.models.ApiError
 import api.discovr.models.DemoSessionRequest
 import api.discovr.models.DemoSessionResponse
 import api.discovr.models.DeviceCodePayload
+import api.discovr.models.DeviceCodePollResponse
 import api.discovr.models.DeviceCodeResponse
 import api.discovr.models.DevicePollPayload
 import api.discovr.models.MintSessionTokenPayload
-import api.discovr.models.PollDeviceCode200Response
 import api.discovr.models.RateLimitedError
 import api.discovr.models.RefreshTokenResponse
 import api.discovr.models.SessionTokenResponse
-import api.discovr.models.SignOutSession200Response
+import api.discovr.models.SignOutResponse
 import api.discovr.models.WebTokenPayload
 
 import api.discovr.infrastructure.*
@@ -198,10 +198,10 @@ open class AuthenticationApi : ApiClient {
      * The second step of the device code flow. Call this repeatedly after showing the user code or QR code.  While the user hasn&#39;t confirmed yet, you&#39;ll get &#x60;{ status: \&quot;pending\&quot;, interval }&#x60; — wait &#x60;interval&#x60; seconds and poll again. Once they approve, the response changes to &#x60;{ refreshToken, publicId, expiresAt }&#x60;. Store the &#x60;refreshToken&#x60; securely — it&#39;s your long-lived credential for all identity-tier calls.  **Polling interval:** the server sets it and repeats it in every pending answer; it grows the longer the code has been waiting, so always use the latest value. The SDKs do this for you. Stop polling when you receive a &#x60;refreshToken&#x60; or a &#x60;401&#x60; error.  A person can decline on their phone. Your next poll then returns &#x60;401&#x60; with &#x60;device-code-denied&#x60; straight away (and on every poll after, until the code expires), so you can say so on screen instead of waiting out the timeout. 
      * @param deviceCode The device code obtained from the request device code endpoint
      * @param devicePollPayload Send your &#x60;deviceId&#x60; so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own.  (optional)
-     * @return PollDeviceCode200Response
+     * @return DeviceCodePollResponse
      */
     @Suppress("UNCHECKED_CAST")
-    open suspend fun pollDeviceCode(deviceCode: kotlin.String, devicePollPayload: DevicePollPayload? = null): HttpResponse<PollDeviceCode200Response> {
+    open suspend fun pollDeviceCode(deviceCode: kotlin.String, devicePollPayload: DevicePollPayload? = null): HttpResponse<DeviceCodePollResponse> {
 
         val localVariableAuthNames = listOf<String>()
 
@@ -282,10 +282,10 @@ open class AuthenticationApi : ApiClient {
     /**
      * Sign out the current device
      * Signs out the current device by revoking the refresh token you send in the &#x60;Authorization&#x60; header. Other devices the user is signed into aren&#39;t affected — you can only sign out the current device from a third-party app.  Identity-tier calls using this token fail immediately after revocation. Any existing session tokens (valid for 30 minutes) remain usable until they naturally expire.  Works the same way for a demo session&#39;s refresh token — a demo sandbox is an ordinary account, so this is a quick way to end one early and test how your app handles it.  Using an SDK? Call &#x60;signOut()&#x60; instead — it wraps this endpoint and also clears the credentials stored on the device.  **Auth tier:** identity — send your refresh token in the &#x60;Authorization: Bearer&#x60; header. 
-     * @return SignOutSession200Response
+     * @return SignOutResponse
      */
     @Suppress("UNCHECKED_CAST")
-    open suspend fun signOutSession(): HttpResponse<SignOutSession200Response> {
+    open suspend fun signOutSession(): HttpResponse<SignOutResponse> {
 
         val localVariableAuthNames = listOf<String>("BearerAuth")
 

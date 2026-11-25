@@ -32,8 +32,8 @@ import kotlinx.serialization.encoding.*
  * @param overview Short synopsis of the title.
  * @param posterPath Poster image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
  * @param backdropPath Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`).
- * @param releaseDate Release date, for movies.
- * @param firstAirDate First air date, for TV shows.
+ * @param releaseDate Release date, for movies, as `YYYY-MM-DD`, or `null` when unknown.
+ * @param firstAirDate First air date, for TV shows, as `YYYY-MM-DD`, or `null` when unknown.
  * @param voteAverage Average audience rating out of 10.
  */
 @Serializable
@@ -67,10 +67,10 @@ data class KnownForItem (
     /* Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     @SerialName(value = "backdrop_path") val backdropPath: kotlin.collections.Map<kotlin.String, kotlin.String>? = null,
 
-    /* Release date, for movies. */
+    /* Release date, for movies, as `YYYY-MM-DD`, or `null` when unknown. */
     @SerialName(value = "release_date") val releaseDate: kotlinx.datetime.LocalDate? = null,
 
-    /* First air date, for TV shows. */
+    /* First air date, for TV shows, as `YYYY-MM-DD`, or `null` when unknown. */
     @SerialName(value = "first_air_date") val firstAirDate: kotlinx.datetime.LocalDate? = null,
 
     /* Average audience rating out of 10. */

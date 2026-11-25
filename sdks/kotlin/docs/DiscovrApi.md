@@ -2189,7 +2189,7 @@ Configure BearerAuth:
 
 <a id="pollDeviceCode"></a>
 # **pollDeviceCode**
-> PollDeviceCode200Response pollDeviceCode(deviceCode, devicePollPayload)
+> DeviceCodePollResponse pollDeviceCode(deviceCode, devicePollPayload)
 
 Poll for auth token
 
@@ -2206,7 +2206,7 @@ val discovr = DiscovrApi()
 val deviceCode : kotlin.String = dvc_abc123xyz789 // kotlin.String | The device code obtained from the request device code endpoint
 val devicePollPayload : DevicePollPayload =  // DevicePollPayload | Send your `deviceId` so that signing in again on the same device replaces the credential it already held. The SDKs send it for you. The body is optional; with none, every sign-in is a credential of its own. 
 try {
-    val result : PollDeviceCode200Response = discovr.pollDeviceCode(deviceCode, devicePollPayload)
+    val result : DeviceCodePollResponse = discovr.pollDeviceCode(deviceCode, devicePollPayload)
     println(result)
 } catch (e: ClientException) {
     println("4xx response calling DiscovrApi#pollDeviceCode")
@@ -2225,7 +2225,7 @@ try {
 
 ### Return type
 
-[**PollDeviceCode200Response**](PollDeviceCode200Response.md)
+[**DeviceCodePollResponse**](DeviceCodePollResponse.md)
 
 ### Authorization
 
@@ -2510,7 +2510,7 @@ Configure BearerAuth:
 
 <a id="signOutSession"></a>
 # **signOutSession**
-> SignOutSession200Response signOutSession()
+> SignOutResponse signOutSession()
 
 Sign out the current device
 
@@ -2528,7 +2528,7 @@ val discovr = DiscovrClient(clientId = "your-client-id", storage = yourAuthStora
 // Or manually: val discovr = DiscovrApi(ApiConfig(basePath = "https://api.discovr.media").apply { accessToken = "YOUR TOKEN" })
 
 try {
-    val result : SignOutSession200Response = discovr.signOutSession()
+    val result : SignOutResponse = discovr.signOutSession()
     println(result)
 } catch (e: ClientException) {
     println("4xx response calling DiscovrApi#signOutSession")
@@ -2544,7 +2544,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**SignOutSession200Response**](SignOutSession200Response.md)
+[**SignOutResponse**](SignOutResponse.md)
 
 ### Authorization
 

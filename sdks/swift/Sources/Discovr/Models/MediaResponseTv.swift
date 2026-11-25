@@ -24,9 +24,9 @@ public struct MediaResponseTv: Sendable, Codable, ParameterConvertible, Hashable
     public var posterPath: [String: String]?
     /** Backdrop image URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). */
     public var backdropPath: [String: String]?
-    /** Date the first episode aired, as `YYYY-MM-DD`. */
+    /** Date the first episode aired, as `YYYY-MM-DD`, or `null` when unknown. */
     public var firstAirDate: Date?
-    /** Date the most recent episode aired, as `YYYY-MM-DD`. */
+    /** Date the most recent episode aired, as `YYYY-MM-DD`, or `null` when unknown. */
     public var lastAirDate: Date?
     /** Total episodes released across every season. */
     public var numberOfEpisodes: Int?
@@ -39,7 +39,7 @@ public struct MediaResponseTv: Sendable, Codable, ParameterConvertible, Hashable
     /** Relative popularity score. Comparable between titles, but has no fixed upper bound, so treat it as a sort key rather than something to display. */
     public var popularity: Double?
     /** Genres this show belongs to. */
-    public var genres: [MediaResponseTvGenre]?
+    public var genres: [Genre]?
     /** Short marketing line, where one exists. */
     public var tagline: String?
     /** Production status, such as `Returning Series`, `Ended`, or `Canceled`. */
@@ -51,7 +51,7 @@ public struct MediaResponseTv: Sendable, Codable, ParameterConvertible, Hashable
     /** Every season of the show, including specials as season `0` where one exists. */
     public var seasons: [MediaResponseTvSeason]?
 
-    public init(id: String? = nil, tmdbId: Int? = nil, name: String? = nil, originalName: String? = nil, overview: String? = nil, posterPath: [String: String]? = nil, backdropPath: [String: String]? = nil, firstAirDate: Date? = nil, lastAirDate: Date? = nil, numberOfEpisodes: Int? = nil, numberOfSeasons: Int? = nil, voteAverage: Double? = nil, voteCount: Int? = nil, popularity: Double? = nil, genres: [MediaResponseTvGenre]? = nil, tagline: String? = nil, status: String? = nil, homepage: String? = nil, inProduction: Bool? = nil, seasons: [MediaResponseTvSeason]? = nil) {
+    public init(id: String? = nil, tmdbId: Int? = nil, name: String? = nil, originalName: String? = nil, overview: String? = nil, posterPath: [String: String]? = nil, backdropPath: [String: String]? = nil, firstAirDate: Date? = nil, lastAirDate: Date? = nil, numberOfEpisodes: Int? = nil, numberOfSeasons: Int? = nil, voteAverage: Double? = nil, voteCount: Int? = nil, popularity: Double? = nil, genres: [Genre]? = nil, tagline: String? = nil, status: String? = nil, homepage: String? = nil, inProduction: Bool? = nil, seasons: [MediaResponseTvSeason]? = nil) {
         self.id = id
         self.tmdbId = tmdbId
         self.name = name

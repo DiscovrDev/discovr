@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { MediaResponseTvGenre } from './MediaResponseTvGenre';
+import type { Genre } from './Genre';
 import {
-    MediaResponseTvGenreFromJSON,
-    MediaResponseTvGenreFromJSONTyped,
-    MediaResponseTvGenreToJSON,
-    MediaResponseTvGenreToJSONTyped,
-} from './MediaResponseTvGenre';
+    GenreFromJSON,
+    GenreFromJSONTyped,
+    GenreToJSON,
+    GenreToJSONTyped,
+} from './Genre';
 import type { MediaResponseTvSeason } from './MediaResponseTvSeason';
 import {
     MediaResponseTvSeasonFromJSON,
@@ -77,13 +77,13 @@ export interface MediaResponseTv {
      */
     backdropPath?: { [key: string]: string; };
     /**
-     * Date the first episode aired, as `YYYY-MM-DD`.
+     * Date the first episode aired, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof MediaResponseTv
      */
     firstAirDate?: Date;
     /**
-     * Date the most recent episode aired, as `YYYY-MM-DD`.
+     * Date the most recent episode aired, as `YYYY-MM-DD`, or `null` when unknown.
      * @type {Date}
      * @memberof MediaResponseTv
      */
@@ -120,10 +120,10 @@ export interface MediaResponseTv {
     popularity?: number;
     /**
      * Genres this show belongs to.
-     * @type {Array<MediaResponseTvGenre>}
+     * @type {Array<Genre>}
      * @memberof MediaResponseTv
      */
-    genres?: Array<MediaResponseTvGenre>;
+    genres?: Array<Genre>;
     /**
      * Short marketing line, where one exists.
      * @type {string}
@@ -187,7 +187,7 @@ export function MediaResponseTvFromJSONTyped(json: any, ignoreDiscriminator: boo
         'voteAverage': json['vote_average'] == null ? undefined : json['vote_average'],
         'voteCount': json['vote_count'] == null ? undefined : json['vote_count'],
         'popularity': json['popularity'] == null ? undefined : json['popularity'],
-        'genres': json['genres'] == null ? undefined : ((json['genres'] as Array<any>).map(MediaResponseTvGenreFromJSON)),
+        'genres': json['genres'] == null ? undefined : ((json['genres'] as Array<any>).map(GenreFromJSON)),
         'tagline': json['tagline'] == null ? undefined : json['tagline'],
         'status': json['status'] == null ? undefined : json['status'],
         'homepage': json['homepage'] == null ? undefined : json['homepage'],
@@ -221,7 +221,7 @@ export function MediaResponseTvToJSONTyped(value?: MediaResponseTv | null, ignor
         'vote_average': value['voteAverage'],
         'vote_count': value['voteCount'],
         'popularity': value['popularity'],
-        'genres': value['genres'] == null ? undefined : ((value['genres'] as Array<any>).map(MediaResponseTvGenreToJSON)),
+        'genres': value['genres'] == null ? undefined : ((value['genres'] as Array<any>).map(GenreToJSON)),
         'tagline': value['tagline'],
         'status': value['status'],
         'homepage': value['homepage'],

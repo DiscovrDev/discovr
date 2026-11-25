@@ -10,6 +10,8 @@ import { fileURLToPath } from "node:url";
 
 import yaml from "js-yaml";
 
+import { DISALLOWED_SCHEMA_NAME } from "./facade/config";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_ROOT = path.resolve(scriptDir, "..");
 
@@ -93,6 +95,46 @@ function writeRootSwiftPackage(swiftDir: string): void {
 		path.join(PUBLIC_ROOT, "Package.swift"),
 		[toolsLine, ...note, ...rest].join("\n"),
 	);
+}
+
+/**
+ * Guards against unnamed inline response schemas (`*200Response`) and Redocly
+ * collision-prefixed schemas (`schemas_*` / `Schemas*`). Fails loudly if the
+ * generator name or models output path changes so the check cannot silently
+ * become a no-op.
+ */
+function assertCleanGeneratedModels(generatorName: string, outputDir: string): void {
+	const modelsDir =
+		generatorName === "typescript-fetch"
+			? path.join(outputDir, "src", "models")
+			: generatorName === "kotlin"
+				? path.join(outputDir, "src", "commonMain", "kotlin", "api", "discovr", "models")
+				: generatorName === "swift6"
+					? path.join(outputDir, "Sources", "Discovr", "Models")
+					: null;
+	if (!modelsDir) {
+		throw new Error(
+			`Unknown generator "${generatorName}" in assertCleanGeneratedModels; register its models directory so model-name checks cannot be silently skipped.`,
+		);
+	}
+	if (!fs.existsSync(modelsDir)) {
+		throw new Error(
+			`Expected generated models directory not found for ${generatorName}: ${modelsDir}`,
+		);
+	}
+
+	const badModels = fs
+		.readdirSync(modelsDir)
+		.map((file) => path.parse(file).name)
+		.filter((name) => name !== "index" && DISALLOWED_SCHEMA_NAME.test(name))
+		.sort();
+
+	if (badModels.length > 0) {
+		throw new Error(
+			`Disallowed generated model name(s) in ${generatorName}: ${badModels.join(", ")}. ` +
+				`Give every schema a real name and register it in public/open_api/public.yaml.`,
+		);
+	}
 }
 
 function copyOverrides(overridesDir: string, targetDir: string): void {
@@ -250,6 +292,7 @@ try {
 				// `files` in package.json lists LICENSE, so the tarball needs a copy of it.
 				fs.copyFileSync(path.join(PUBLIC_ROOT, "LICENSE"), path.join(outputDir, "LICENSE"));
 			}
+			assertCleanGeneratedModels(langConfig.generatorName, outputDir);
 			console.log(`✅ ${lang} SDK generated successfully (version ${specVersion}).`);
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : String(error);

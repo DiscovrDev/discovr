@@ -14,8 +14,6 @@ public struct SeasonDetailsResponse: Sendable, Codable, ParameterConvertible, Ha
     public var showId: String
     /** Numeric identifier for the TV show. */
     public var showTmdbId: Int
-    /** Image asset identifier for the season. */
-    public var tmdbInternalId: String?
     /** Season identifier. */
     public var id: Int
     /** Alias for `id`. */
@@ -28,15 +26,14 @@ public struct SeasonDetailsResponse: Sendable, Codable, ParameterConvertible, Ha
     public var posterPath: [String: String]?
     /** The number of the season */
     public var seasonNumber: Int
-    /** Air date of the season */
+    /** Air date of the season, as `YYYY-MM-DD`, or `null` when unknown. */
     public var airDate: Date?
     /** List of episodes in the season */
     public var episodes: [Episode]
 
-    public init(showId: String, showTmdbId: Int, tmdbInternalId: String? = nil, id: Int, seasonTmdbId: Int? = nil, name: String? = nil, overview: String? = nil, posterPath: [String: String]? = nil, seasonNumber: Int, airDate: Date? = nil, episodes: [Episode]) {
+    public init(showId: String, showTmdbId: Int, id: Int, seasonTmdbId: Int? = nil, name: String? = nil, overview: String? = nil, posterPath: [String: String]? = nil, seasonNumber: Int, airDate: Date? = nil, episodes: [Episode]) {
         self.showId = showId
         self.showTmdbId = showTmdbId
-        self.tmdbInternalId = tmdbInternalId
         self.id = id
         self.seasonTmdbId = seasonTmdbId
         self.name = name
@@ -50,7 +47,6 @@ public struct SeasonDetailsResponse: Sendable, Codable, ParameterConvertible, Ha
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case showId = "show_id"
         case showTmdbId = "show_tmdb_id"
-        case tmdbInternalId = "tmdb_internal_id"
         case id
         case seasonTmdbId = "season_tmdb_id"
         case name
@@ -67,7 +63,6 @@ public struct SeasonDetailsResponse: Sendable, Codable, ParameterConvertible, Ha
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(showId, forKey: .showId)
         try container.encode(showTmdbId, forKey: .showTmdbId)
-        try container.encodeIfPresent(tmdbInternalId, forKey: .tmdbInternalId)
         try container.encode(id, forKey: .id)
         try container.encodeIfPresent(seasonTmdbId, forKey: .seasonTmdbId)
         try container.encodeIfPresent(name, forKey: .name)
