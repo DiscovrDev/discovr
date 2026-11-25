@@ -15,12 +15,12 @@ public struct Page: Sendable, Codable, ParameterConvertible, Hashable {
     public var id: String
     /** When this view of the page was built. Moves when recommendations refresh; it is not the page's own age. */
     public var createdAt: Date
-    /** Array of exactly 10 featured HeroItems for the hero section */
-    public var hero: [HeroItem]
+    /** Exactly 10 featured titles for the hero section. They are ordinary `MediaItem`s, and every one has a `logo_path`.  */
+    public var hero: [MediaItem]
     /** Human-readable page title, suitable for a breadcrumb (e.g. \"Movies & Series • Anime • Fantasy\").  Present only for pages that carry their own name — navigation tiles and built-in pages. `POST /pages` takes no name, so a page you create from filters alone has none. Absent otherwise — read it defensively.  */
     public var name: String?
 
-    public init(id: String, createdAt: Date, hero: [HeroItem], name: String? = nil) {
+    public init(id: String, createdAt: Date, hero: [MediaItem], name: String? = nil) {
         self.id = id
         self.createdAt = createdAt
         self.hero = hero

@@ -9,12 +9,12 @@ Returns the updated profile object. Returns 404 if the profile doesn't exist or 
 
 ## Parameters
 
-| Name            | Type                                                               | Required | Description                       |
-| --------------- | ------------------------------------------------------------------ | -------- | --------------------------------- |
-| profileId       | `string`                                                           | Yes      | The ID of the profile to update.  |
-| name            | `string`                                                           | No       | New display name for the profile. |
-| avatarUrl       | `string (uri)`                                                     | No       | New avatar URL for the profile.   |
-| avatarMediaType | [`AvatarMediaType`](/sdk-reference/types/profiles#avatarmediatype) | No       |                                   |
+| Name            | Type                                                             | Required | Description                       |
+| --------------- | ---------------------------------------------------------------- | -------- | --------------------------------- |
+| profileId       | `string`                                                         | Yes      | The ID of the profile to update.  |
+| name            | `string`                                                         | No       | New display name for the profile. |
+| avatarUrl       | `string (uri)`                                                   | No       | New avatar URL for the profile.   |
+| avatarMediaType | [`AvatarMediaType`](/sdk-reference/types/common#avatarmediatype) | No       |                                   |
 
 <AccordionGroup>
 	<Accordion title="View AvatarMediaType structure">

@@ -70,7 +70,7 @@ Configure BearerAuth:
 
 Get media assets
 
-Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
+Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  Row items already carry &#x60;logo_path&#x60; and &#x60;trailer&#x60; when they are served, so you only need this for a title you reached some other way, such as search.  **Auth tier:** session — send your session token in &#x60;Authorization: Bearer&#x60;. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
 
 ### Example
 ```kotlin

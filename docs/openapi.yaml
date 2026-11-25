@@ -3906,6 +3906,8 @@ paths:
       description: |
         Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.
 
+        Row items already carry `logo_path` and `trailer` when they are served, so you only need this for a title you reached some other way, such as search.
+
         **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it.
       operationId: getMediaAssets
       x-tier: session
@@ -4539,7 +4541,7 @@ paths:
       description: |
         Searches for animated GIFs by keyword. Use the `contentfilter` parameter to control content safety (`off`, `low`, `medium`, `high`); if you omit it, the filtering configured for Discovr's Klipy account applies, which is not a fixed level, so pass it explicitly when you need a guaranteed one. Results are paginated — pass `next` from the previous response as `pos` to load more.
 
-        Each result's `url` is the full-size file and is an **MP4 whenever one is available**, otherwise a GIF, so render it with a video player or an image view according to its file extension (see `avatarMediaType` on profiles). `preview.url` is a lighter version for grids; use it for thumbnails and save `url` only for the one the user picks.
+        Each result's `url` is the full-size file — an **MP4 whenever one is available**, otherwise a GIF or WebP. Read `media_type` (on the item and on `preview`) to pick a video player or an image view instead of guessing from the URL; it uses the same `AvatarMediaType` values as profiles. `preview` is a lighter file for grids, `still` is a JPEG still frame for Reduce Motion or static grids, and `placeholder` is a tiny blurred `data:` URI to show while the file loads. Save `url` for the one the user picks.
 
         Klipy attribution is required wherever you show these results.
 
@@ -4613,11 +4615,19 @@ paths:
               example:
                 items:
                   - id: "12345678"
-                    url: https://static.klipy.com/example.gif
+                    url: https://static.klipy.com/example.mp4
+                    media_type: video/mp4
                     preview:
                       url: https://static.klipy.com/preview.gif
                       width: 200
                       height: 200
+                      media_type: image/gif
+                    still:
+                      url: https://static.klipy.com/still.jpg
+                      width: 498
+                      height: 498
+                      media_type: image/jpeg
+                    placeholder: data:image/jpeg;base64,/9j/4AAQSkZJRg==
                     description: Happy Dance
                     tags:
                       - happy
@@ -5792,8 +5802,9 @@ components:
           minItems: 10
           maxItems: 10
           items:
-            $ref: "#/components/schemas/HeroItem"
-          description: Array of exactly 10 featured HeroItems for the hero section
+            $ref: "#/components/schemas/MediaItem"
+          description: |
+            Exactly 10 featured titles for the hero section. They are ordinary `MediaItem`s, and every one has a `logo_path`.
         name:
           type: string
           description: |
@@ -5897,7 +5908,7 @@ components:
       additionalProperties: false
     MediaItem:
       type: object
-      description: A media item in a recommendation row, with display metadata.
+      description: "A title in a row or the hero, with display metadata. The hero is a placement, not a type: its items are `MediaItem`s too."
       required:
         - id
         - title
@@ -5961,6 +5972,30 @@ components:
           example:
             - Drama
             - Thriller
+        logo_path:
+          type: object
+          nullable: true
+          description: |
+            Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). `null` when the title has no logo. Always present on `hero` items. On row items it is added when the items are served, and is absent only if the catalogue couldn't be reached for that title; fetch the row's items again to fill it in.
+          additionalProperties:
+            type: string
+            format: uri
+          example:
+            w185: https://cdn.example.com/w185/wwemzKWzjKYJFfCeiB57q3r4Bcm.png
+            w500: https://cdn.example.com/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png
+            original: https://cdn.example.com/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.png
+        trailer:
+          $ref: "#/components/schemas/MediaItemTrailer"
+          nullable: true
+          description: The best trailer for the title, picked the same way as `getMediaAssets`. `null` when it has none. Added to row items when they are served; absent under the same conditions as `logo_path`.
+        runtime:
+          type: integer
+          description: Running time in minutes. Movies only, and absent when the catalogue has none. Added to row items when they are served.
+          example: 139
+        number_of_seasons:
+          type: integer
+          description: How many seasons the show has. TV only, and absent when the catalogue has none. Added to row items when they are served.
+          example: 5
         type:
           $ref: "#/components/schemas/MediaItemType"
           description: Discriminator field indicating this is a media item
@@ -5974,28 +6009,22 @@ components:
             A bare `id` always works; `ref` is never required.
           example: MV_550@Lw2rC9sYh5TaB8kF
       additionalProperties: false
-    HeroItem:
-      allOf:
-        - $ref: "#/components/schemas/MediaItem"
-        - type: object
-          required:
-            - logo_path
-          properties:
-            logo_path:
-              type: object
-              nullable: true
-              description: Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no logo available.
-              additionalProperties:
-                type: string
-                format: uri
-              example:
-                w185: https://cdn.example.com/w185/wwemzKWzjKYJFfCeiB57q3r4Bcm.png
-                w500: https://cdn.example.com/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png
-                original: https://cdn.example.com/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.png
-      description: |
-        A MediaItem specifically for hero sections. Extends MediaItem but requires
-        the logo_path field to always be present (may be null, but field must exist).
-        overview is inherited from MediaItem.
+    MediaItemTrailer:
+      type: object
+      description: The best trailer or clip for a title.
+      required:
+        - key
+        - url
+      properties:
+        key:
+          type: string
+          description: YouTube video identifier.
+          example: 6ZfuNTqbHE8
+        url:
+          type: string
+          description: Full YouTube watch URL.
+          example: https://www.youtube.com/watch?v=6ZfuNTqbHE8
+      additionalProperties: false
     NavigationItem:
       type: object
       description: A tile that drills into another page rather than opening a title — a genre, a decade, a curated collection.
@@ -6209,6 +6238,10 @@ components:
             Full list of where this title is available, not filtered to any profile's preferences. Use `profile_meta` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.
           items:
             $ref: "#/components/schemas/ProviderInfo"
+        credits:
+          $ref: "#/components/schemas/MediaCredits"
+        external_ids:
+          $ref: "#/components/schemas/MediaExternalIds"
       additionalProperties: false
     MediaResponseMovie:
       type: object
@@ -6421,6 +6454,101 @@ components:
             w500: https://cdn.example.com/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg
             original: https://cdn.example.com/original/kqjL17yufvn9OVLyXYpvtyrFfak.jpg
           nullable: true
+      additionalProperties: false
+    MediaCredits:
+      type: object
+      description: Who is in a title and who made it. Cast is the top-billed 15, in billing order. Crew is limited to directors and writers, plus a show's creators for TV.
+      required:
+        - cast
+        - crew
+      properties:
+        cast:
+          type: array
+          description: Up to 15 top-billed cast members, in billing order.
+          items:
+            $ref: "#/components/schemas/CastMember"
+        crew:
+          type: array
+          description: Directors and writers. For TV it also lists the show's creators, with `job` set to `Creator`.
+          items:
+            $ref: "#/components/schemas/CrewMember"
+      additionalProperties: false
+    CastMember:
+      type: object
+      description: One cast member of a title.
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          description: Catalogue identifier for the person. Stable across titles.
+          example: 6384
+        name:
+          type: string
+          description: The person's name.
+          example: Keanu Reeves
+        character:
+          type: string
+          nullable: true
+          description: The role they play. `null` when the catalogue doesn't list one.
+          example: Neo
+        profile_path:
+          type: object
+          nullable: true
+          description: Portrait URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or `null` when there is no photo.
+          additionalProperties:
+            type: string
+            format: uri
+          example:
+            w185: https://cdn.example.com/w185/8RZLOyYGsoRe9p44q3xin9QkMHv.jpg
+            original: https://cdn.example.com/original/8RZLOyYGsoRe9p44q3xin9QkMHv.jpg
+      additionalProperties: false
+    CrewMember:
+      type: object
+      description: A director, writer or creator of a title.
+      required:
+        - id
+        - name
+        - job
+      properties:
+        id:
+          type: integer
+          description: Catalogue identifier for the person. Stable across titles.
+          example: 9340
+        name:
+          type: string
+          description: The person's name.
+          example: Lana Wachowski
+        job:
+          type: string
+          description: Their role on the title, such as `Director`, `Screenplay`, `Writer` or `Creator`.
+          example: Director
+        profile_path:
+          type: object
+          nullable: true
+          description: Portrait URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or `null` when there is no photo.
+          additionalProperties:
+            type: string
+            format: uri
+          example:
+            w185: https://cdn.example.com/w185/fTE4gvedUe9xJRAdKUnCM09TkwZ.jpg
+            original: https://cdn.example.com/original/fTE4gvedUe9xJRAdKUnCM09TkwZ.jpg
+      additionalProperties: false
+    MediaExternalIds:
+      type: object
+      description: The title's identifiers on other services, for deep links and cross-referencing.
+      properties:
+        imdb_id:
+          type: string
+          nullable: true
+          description: IMDb identifier, such as `tt0133093`. `null` when none is known.
+          example: tt0133093
+        tvdb_id:
+          type: integer
+          nullable: true
+          description: TheTVDB identifier. TV only; `null` for movies and for shows with none.
+          example: 81189
       additionalProperties: false
     MediaProfileMeta:
       type: object
@@ -7238,6 +7366,7 @@ components:
         - width
         - height
         - createdAt
+        - media_type
       properties:
         id:
           type: string
@@ -7246,11 +7375,20 @@ components:
         url:
           type: string
           format: uri
-          description: Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF. Choose how to render it from the file extension.
-          example: https://static.klipy.com/example.gif
+          description: Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF or a WebP. `media_type` says which, so you don't have to guess from the extension.
+          example: https://static.klipy.com/example.mp4
         preview:
-          description: A smaller, lighter version, for grids and pickers. Usually a GIF; falls back to the full-size file when no smaller one exists.
+          description: A smaller, lighter version, for grids and pickers. Usually a GIF or a WebP; falls back to the full-size file when no smaller one exists, so it can be an MP4. Check its `media_type`.
           $ref: "#/components/schemas/GifPreview"
+        media_type:
+          $ref: "#/components/schemas/AvatarMediaType"
+          description: What `url` is, as a MIME type (`video/mp4`, `image/gif` or `image/webp`). Pick a video player or an image view from it.
+        still:
+          description: A single still frame (`image/jpeg`), for Reduce Motion or for grids that shouldn't animate. Absent when none exists.
+          $ref: "#/components/schemas/GifPreview"
+        placeholder:
+          type: string
+          description: A tiny blurred image as a `data:` URI, to show while the real file loads. Absent when none exists.
         description:
           type: string
           description: Title or short description of the GIF.
@@ -7280,25 +7418,29 @@ components:
       additionalProperties: false
     GifPreview:
       type: object
-      description: A lower-resolution preview of the GIF, suitable for thumbnails.
+      description: A secondary rendition of a GIF — either a smaller animated preview for grids (`preview`) or a single still frame (`still`).
       required:
         - url
         - width
         - height
+        - media_type
       properties:
         url:
           type: string
           format: uri
-          description: URL to the preview image.
+          description: URL to this rendition.
           example: https://static.klipy.com/preview.gif
         width:
           type: integer
-          description: Preview width in pixels.
+          description: Width in pixels.
           example: 200
         height:
           type: integer
-          description: Preview height in pixels.
+          description: Height in pixels.
           example: 200
+        media_type:
+          $ref: "#/components/schemas/AvatarMediaType"
+          description: MIME type of this rendition (`image/gif`, `image/webp`, `image/jpeg`, `video/mp4`, or `video/webm`). Pick a video player or an image view from it instead of guessing from the URL.
       additionalProperties: false
     GifSearchResponse:
       type: object

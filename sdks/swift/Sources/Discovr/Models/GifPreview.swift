@@ -7,26 +7,30 @@
 
 import Foundation
 
-/** A lower-resolution preview of the GIF, suitable for thumbnails. */
+/** A secondary rendition of a GIF — either a smaller animated preview for grids (&#x60;preview&#x60;) or a single still frame (&#x60;still&#x60;). */
 public struct GifPreview: Sendable, Codable, ParameterConvertible, Hashable {
 
-    /** URL to the preview image. */
+    /** URL to this rendition. */
     public var url: String
-    /** Preview width in pixels. */
+    /** Width in pixels. */
     public var width: Int
-    /** Preview height in pixels. */
+    /** Height in pixels. */
     public var height: Int
+    /** MIME type of this rendition (`image/gif`, `image/webp`, `image/jpeg`, `video/mp4`, or `video/webm`). Pick a video player or an image view from it instead of guessing from the URL. */
+    public var mediaType: AvatarMediaType
 
-    public init(url: String, width: Int, height: Int) {
+    public init(url: String, width: Int, height: Int, mediaType: AvatarMediaType) {
         self.url = url
         self.width = width
         self.height = height
+        self.mediaType = mediaType
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case url
         case width
         case height
+        case mediaType = "media_type"
     }
 
     // Encodable protocol methods
@@ -36,6 +40,7 @@ public struct GifPreview: Sendable, Codable, ParameterConvertible, Hashable {
         try container.encode(url, forKey: .url)
         try container.encode(width, forKey: .width)
         try container.encode(height, forKey: .height)
+        try container.encode(mediaType, forKey: .mediaType)
     }
 }
 

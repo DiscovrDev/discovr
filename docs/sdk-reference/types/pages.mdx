@@ -42,23 +42,15 @@ Filters that shape which titles appear in a page's rows. All filters are optiona
 | with_release_date_lte | `string`                       | No       | Latest release date (YYYY-MM-DD)   |
 | with_watch_providers  | `string[]`                     | No       | Streaming provider IDs             |
 
-## HeroItem
-
-<a id="heroitem" />
-
-A MediaItem specifically for hero sections. Extends MediaItem but requires
-the logo_path field to always be present (may be null, but field must exist).
-overview is inherited from MediaItem.
-
 ## Page
 
 <a id="page" />
 
 A recommendation page containing rows of media titles. Its ID comes from its filters alone, so the same page keeps the same ID for every profile, on every device, indefinitely.
 
-| Property  | Type         | Required | Description                                                                                                                                                                                                                                                                                                     |
-| --------- | ------------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| id        | `string`     | Yes      | Stable identifier for the page. Safe to store, bookmark or put in a URL.                                                                                                                                                                                                                                        |
-| createdAt | `string`     | Yes      | When this view of the page was built. Moves when recommendations refresh; it is not the page's own age.                                                                                                                                                                                                         |
-| hero      | `HeroItem[]` | Yes      | Array of exactly 10 featured HeroItems for the hero section                                                                                                                                                                                                                                                     |
-| name      | `string`     | No       | Human-readable page title, suitable for a breadcrumb (e.g. "Movies & Series • Anime • Fantasy"). Present only for pages that carry their own name — navigation tiles and built-in pages. `POST /pages` takes no name, so a page you create from filters alone has none. Absent otherwise — read it defensively. |
+| Property  | Type          | Required | Description                                                                                                                                                                                                                                                                                                     |
+| --------- | ------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id        | `string`      | Yes      | Stable identifier for the page. Safe to store, bookmark or put in a URL.                                                                                                                                                                                                                                        |
+| createdAt | `string`      | Yes      | When this view of the page was built. Moves when recommendations refresh; it is not the page's own age.                                                                                                                                                                                                         |
+| hero      | `MediaItem[]` | Yes      | Exactly 10 featured titles for the hero section. They are ordinary `MediaItem`s, and every one has a `logo_path`.                                                                                                                                                                                               |
+| name      | `string`      | No       | Human-readable page title, suitable for a breadcrumb (e.g. "Movies & Series • Anime • Fantasy"). Present only for pages that carry their own name — navigation tiles and built-in pages. `POST /pages` takes no name, so a page you create from filters alone has none. Absent otherwise — read it defensively. |

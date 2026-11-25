@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { HeroItem } from './HeroItem';
+import type { MediaItem } from './MediaItem';
 import {
-    HeroItemFromJSON,
-    HeroItemFromJSONTyped,
-    HeroItemToJSON,
-    HeroItemToJSONTyped,
-} from './HeroItem';
+    MediaItemFromJSON,
+    MediaItemFromJSONTyped,
+    MediaItemToJSON,
+    MediaItemToJSONTyped,
+} from './MediaItem';
 
 /**
  * A recommendation page containing rows of media titles. Its ID comes from its filters alone, so the same page keeps the same ID for every profile, on every device, indefinitely.
@@ -40,11 +40,12 @@ export interface Page {
      */
     createdAt: Date;
     /**
-     * Array of exactly 10 featured HeroItems for the hero section
-     * @type {Array<HeroItem>}
+     * Exactly 10 featured titles for the hero section. They are ordinary `MediaItem`s, and every one has a `logo_path`.
+     * 
+     * @type {Array<MediaItem>}
      * @memberof Page
      */
-    hero: Array<HeroItem>;
+    hero: Array<MediaItem>;
     /**
      * Human-readable page title, suitable for a breadcrumb (e.g. "Movies & Series • Anime • Fantasy").
      * 
@@ -80,7 +81,7 @@ export function PageFromJSONTyped(json: any, ignoreDiscriminator: boolean): Page
         
         'id': json['id'],
         'createdAt': (new Date(json['createdAt'])),
-        'hero': ((json['hero'] as Array<any>).map(HeroItemFromJSON)),
+        'hero': ((json['hero'] as Array<any>).map(MediaItemFromJSON)),
         'name': json['name'] == null ? undefined : json['name'],
     };
 }
@@ -98,7 +99,7 @@ export function PageToJSONTyped(value?: Page | null, ignoreDiscriminator: boolea
         
         'id': value['id'],
         'createdAt': value['createdAt'].toISOString(),
-        'hero': ((value['hero'] as Array<any>).map(HeroItemToJSON)),
+        'hero': ((value['hero'] as Array<any>).map(MediaItemToJSON)),
         'name': value['name'],
     };
 }

@@ -31,6 +31,7 @@ GifItem:
     - width
     - height
     - createdAt
+    - media_type
   properties:
     id:
       type: string
@@ -39,11 +40,20 @@ GifItem:
     url:
       type: string
       format: uri
-      description: Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF. Choose how to render it from the file extension.
-      example: "https://static.klipy.com/example.gif"
+      description: Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF or a WebP. `media_type` says which, so you don't have to guess from the extension.
+      example: "https://static.klipy.com/example.mp4"
     preview:
-      description: A smaller, lighter version, for grids and pickers. Usually a GIF; falls back to the full-size file when no smaller one exists.
+      description: A smaller, lighter version, for grids and pickers. Usually a GIF or a WebP; falls back to the full-size file when no smaller one exists, so it can be an MP4. Check its `media_type`.
       $ref: "#/GifPreview"
+    media_type:
+      $ref: "../profiles/schemas.yaml#/AvatarMediaType"
+      description: What `url` is, as a MIME type (`video/mp4`, `image/gif` or `image/webp`). Pick a video player or an image view from it.
+    still:
+      description: A single still frame (`image/jpeg`), for Reduce Motion or for grids that shouldn't animate. Absent when none exists.
+      $ref: "#/GifPreview"
+    placeholder:
+      type: string
+      description: A tiny blurred image as a `data:` URI, to show while the real file loads. Absent when none exists.
     description:
       type: string
       description: Title or short description of the GIF.
@@ -74,25 +84,29 @@ GifItem:
 
 GifPreview:
   type: object
-  description: A lower-resolution preview of the GIF, suitable for thumbnails.
+  description: A secondary rendition of a GIF — either a smaller animated preview for grids (`preview`) or a single still frame (`still`).
   required:
     - url
     - width
     - height
+    - media_type
   properties:
     url:
       type: string
       format: uri
-      description: URL to the preview image.
+      description: URL to this rendition.
       example: "https://static.klipy.com/preview.gif"
     width:
       type: integer
-      description: Preview width in pixels.
+      description: Width in pixels.
       example: 200
     height:
       type: integer
-      description: Preview height in pixels.
+      description: Height in pixels.
       example: 200
+    media_type:
+      $ref: "../profiles/schemas.yaml#/AvatarMediaType"
+      description: MIME type of this rendition (`image/gif`, `image/webp`, `image/jpeg`, `video/mp4`, or `video/webm`). Pick a video player or an image view from it instead of guessing from the URL.
   additionalProperties: false
 
 GifSearchResponse:

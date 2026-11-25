@@ -15,7 +15,7 @@
 
 package api.discovr.models
 
-import api.discovr.models.HeroItem
+import api.discovr.models.MediaItem
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
@@ -26,7 +26,7 @@ import kotlinx.serialization.encoding.*
  *
  * @param id Stable identifier for the page. Safe to store, bookmark or put in a URL.
  * @param createdAt When this view of the page was built. Moves when recommendations refresh; it is not the page's own age.
- * @param hero Array of exactly 10 featured HeroItems for the hero section
+ * @param hero Exactly 10 featured titles for the hero section. They are ordinary `MediaItem`s, and every one has a `logo_path`. 
  * @param name Human-readable page title, suitable for a breadcrumb (e.g. \"Movies & Series • Anime • Fantasy\").  Present only for pages that carry their own name — navigation tiles and built-in pages. `POST /pages` takes no name, so a page you create from filters alone has none. Absent otherwise — read it defensively. 
  */
 @Serializable
@@ -39,8 +39,8 @@ data class Page (
     /* When this view of the page was built. Moves when recommendations refresh; it is not the page's own age. */
     @SerialName(value = "createdAt") @Required val createdAt: kotlin.time.Instant,
 
-    /* Array of exactly 10 featured HeroItems for the hero section */
-    @SerialName(value = "hero") @Required val hero: kotlin.collections.List<HeroItem>,
+    /* Exactly 10 featured titles for the hero section. They are ordinary `MediaItem`s, and every one has a `logo_path`.  */
+    @SerialName(value = "hero") @Required val hero: kotlin.collections.List<MediaItem>,
 
     /* Human-readable page title, suitable for a breadcrumb (e.g. \"Movies & Series • Anime • Fantasy\").  Present only for pages that carry their own name — navigation tiles and built-in pages. `POST /pages` takes no name, so a page you create from filters alone has none. Absent otherwise — read it defensively.  */
     @SerialName(value = "name") val name: kotlin.String? = null

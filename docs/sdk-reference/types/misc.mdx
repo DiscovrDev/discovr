@@ -9,28 +9,32 @@ description: "Types used by Misc SDK operations."
 
 A single animated GIF result.
 
-| Property    | Type       | Required | Description                                                                                                                           |
-| ----------- | ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| id          | `string`   | Yes      | Unique identifier for the GIF.                                                                                                        |
-| url         | `string`   | Yes      | Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF. Choose how to render it from the file extension. |
-| preview     | `object`   | Yes      | A smaller, lighter version, for grids and pickers. Usually a GIF; falls back to the full-size file when no smaller one exists.        |
-| description | `string`   | Yes      | Title or short description of the GIF.                                                                                                |
-| tags        | `string[]` | Yes      | Keywords associated with the GIF.                                                                                                     |
-| width       | `integer`  | Yes      | Width of `url` in pixels.                                                                                                             |
-| height      | `integer`  | Yes      | Height of `url` in pixels.                                                                                                            |
-| createdAt   | `string`   | Yes      | When this result was fetched (ISO 8601).                                                                                              |
+| Property    | Type                                                                                                  | Required | Description                                                                                                                                                                           |
+| ----------- | ----------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id          | `string`                                                                                              | Yes      | Unique identifier for the GIF.                                                                                                                                                        |
+| url         | `string`                                                                                              | Yes      | Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF or a WebP. `media_type` says which, so you don't have to guess from the extension.                |
+| preview     | `object`                                                                                              | Yes      | A smaller, lighter version, for grids and pickers. Usually a GIF or a WebP; falls back to the full-size file when no smaller one exists, so it can be an MP4. Check its `media_type`. |
+| media_type  | `"image/png"` \| `"image/jpeg"` \| `"image/webp"` \| `"image/gif"` \| `"video/mp4"` \| `"video/webm"` | Yes      | What `url` is, as a MIME type (`video/mp4`, `image/gif` or `image/webp`). Pick a video player or an image view from it.                                                               |
+| still       | `object`                                                                                              | No       | A single still frame (`image/jpeg`), for Reduce Motion or for grids that shouldn't animate. Absent when none exists.                                                                  |
+| placeholder | `string`                                                                                              | No       | A tiny blurred image as a `data:` URI, to show while the real file loads. Absent when none exists.                                                                                    |
+| description | `string`                                                                                              | Yes      | Title or short description of the GIF.                                                                                                                                                |
+| tags        | `string[]`                                                                                            | Yes      | Keywords associated with the GIF.                                                                                                                                                     |
+| width       | `integer`                                                                                             | Yes      | Width of `url` in pixels.                                                                                                                                                             |
+| height      | `integer`                                                                                             | Yes      | Height of `url` in pixels.                                                                                                                                                            |
+| createdAt   | `string`                                                                                              | Yes      | When this result was fetched (ISO 8601).                                                                                                                                              |
 
 ## GifPreview
 
 <a id="gifpreview" />
 
-A lower-resolution preview of the GIF, suitable for thumbnails.
+A secondary rendition of a GIF — either a smaller animated preview for grids (`preview`) or a single still frame (`still`).
 
-| Property | Type      | Required | Description               |
-| -------- | --------- | -------- | ------------------------- |
-| url      | `string`  | Yes      | URL to the preview image. |
-| width    | `integer` | Yes      | Preview width in pixels.  |
-| height   | `integer` | Yes      | Preview height in pixels. |
+| Property   | Type                                                                                                  | Required | Description                                                                                                                                                                         |
+| ---------- | ----------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| url        | `string`                                                                                              | Yes      | URL to this rendition.                                                                                                                                                              |
+| width      | `integer`                                                                                             | Yes      | Width in pixels.                                                                                                                                                                    |
+| height     | `integer`                                                                                             | Yes      | Height in pixels.                                                                                                                                                                   |
+| media_type | `"image/png"` \| `"image/jpeg"` \| `"image/webp"` \| `"image/gif"` \| `"video/mp4"` \| `"video/webm"` | Yes      | MIME type of this rendition (`image/gif`, `image/webp`, `image/jpeg`, `video/mp4`, or `video/webm`). Pick a video player or an image view from it instead of guessing from the URL. |
 
 ## GifSearchResponse
 

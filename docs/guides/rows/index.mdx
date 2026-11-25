@@ -48,7 +48,7 @@ Check `row.type` to choose a layout; check each item’s `type` to render the ri
 
 Classic **horizontal title rails**: items are **`type: "media"`** with poster/backdrop URLs and **`media_type`** (`movie` or `tv`). Use the same cell layout you would for any browse strip.
 
-Each item also carries **`year`**, **`rating`** (out of 10) and **`genres`** whenever they're known, which is enough for a one-line spotlight under the focused tile without another request. Anything more (runtime, cast, a title logo) comes from [`getMedia()`](/sdk-reference/media/get-media) when focus lands on a tile; the SDK keeps those responses for the session, so only the first visit to a title pays for the call.
+Each item also carries **`year`**, **`rating`** (out of 10), **`genres`**, **`logo_path`**, **`trailer`**, and **`runtime`** (movies) or **`number_of_seasons`** (TV) whenever they're known — enough for a widened focus card or spotlight without another request. When you open a title screen, [`getMedia()`](/sdk-reference/media/get-media) adds full details, cast, crew, watch providers, and external IDs; the SDK keeps those responses for the session, so only the first visit to a title pays for the call.
 
 <Frame>
 	<img

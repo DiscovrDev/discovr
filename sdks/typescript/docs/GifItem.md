@@ -10,6 +10,9 @@ Name | Type
 `id` | string
 `url` | string
 `preview` | [GifPreview](GifPreview.md)
+`mediaType` | [AvatarMediaType](AvatarMediaType.md)
+`still` | [GifPreview](GifPreview.md)
+`placeholder` | string
 `description` | string
 `tags` | Array&lt;string&gt;
 `width` | number
@@ -24,8 +27,11 @@ import type { GifItem } from 'discovr'
 // TODO: Update the object below with actual values
 const example = {
   "id": 12345678,
-  "url": https://static.klipy.com/example.gif,
+  "url": https://static.klipy.com/example.mp4,
   "preview": null,
+  "mediaType": null,
+  "still": null,
+  "placeholder": null,
   "description": Happy Dance,
   "tags": [happy, dance, celebration],
   "width": 498,

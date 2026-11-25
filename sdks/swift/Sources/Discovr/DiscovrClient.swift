@@ -288,11 +288,6 @@ public extension MediaItem {
     var refOrId: String { ref ?? id }
 }
 
-public extension HeroItem {
-    /// See ``MediaItem/refOrId``.
-    var refOrId: String { ref ?? id }
-}
-
 public extension SearchResult {
     /// See ``MediaItem/refOrId``.
     var refOrId: String { ref ?? id }

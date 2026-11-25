@@ -27,6 +27,13 @@ import {
     MediaResponseMovieToJSON,
     MediaResponseMovieToJSONTyped,
 } from './MediaResponseMovie';
+import type { MediaCredits } from './MediaCredits';
+import {
+    MediaCreditsFromJSON,
+    MediaCreditsFromJSONTyped,
+    MediaCreditsToJSON,
+    MediaCreditsToJSONTyped,
+} from './MediaCredits';
 import type { ProviderInfo } from './ProviderInfo';
 import {
     ProviderInfoFromJSON,
@@ -34,6 +41,13 @@ import {
     ProviderInfoToJSON,
     ProviderInfoToJSONTyped,
 } from './ProviderInfo';
+import type { MediaExternalIds } from './MediaExternalIds';
+import {
+    MediaExternalIdsFromJSON,
+    MediaExternalIdsFromJSONTyped,
+    MediaExternalIdsToJSON,
+    MediaExternalIdsToJSONTyped,
+} from './MediaExternalIds';
 
 /**
  * Full details for a movie or TV show.
@@ -72,6 +86,18 @@ export interface MediaResponse {
      * @memberof MediaResponse
      */
     watchProviders?: Array<ProviderInfo>;
+    /**
+     * 
+     * @type {MediaCredits}
+     * @memberof MediaResponse
+     */
+    credits?: MediaCredits;
+    /**
+     * 
+     * @type {MediaExternalIds}
+     * @memberof MediaResponse
+     */
+    externalIds?: MediaExternalIds;
 }
 
 
@@ -109,6 +135,8 @@ export function MediaResponseFromJSONTyped(json: any, ignoreDiscriminator: boole
         'movie': json['movie'] == null ? undefined : MediaResponseMovieFromJSON(json['movie']),
         'tv': json['tv'] == null ? undefined : MediaResponseTvFromJSON(json['tv']),
         'watchProviders': json['watch_providers'] == null ? undefined : ((json['watch_providers'] as Array<any>).map(ProviderInfoFromJSON)),
+        'credits': json['credits'] == null ? undefined : MediaCreditsFromJSON(json['credits']),
+        'externalIds': json['external_ids'] == null ? undefined : MediaExternalIdsFromJSON(json['external_ids']),
     };
 }
 
@@ -128,6 +156,8 @@ export function MediaResponseToJSONTyped(value?: MediaResponse | null, ignoreDis
         'movie': MediaResponseMovieToJSON(value['movie']),
         'tv': MediaResponseTvToJSON(value['tv']),
         'watch_providers': value['watchProviders'] == null ? undefined : ((value['watchProviders'] as Array<any>).map(ProviderInfoToJSON)),
+        'credits': MediaCreditsToJSON(value['credits']),
+        'external_ids': MediaExternalIdsToJSON(value['externalIds']),
     };
 }
 

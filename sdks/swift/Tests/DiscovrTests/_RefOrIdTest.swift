@@ -40,14 +40,14 @@ final class RefOrIdTest: XCTestCase {
     }
 
     func testHeroAndSearchItemsResolveTheSameWay() {
-        let hero = HeroItem(
+        let hero = MediaItem(
             id: "TV_1396",
             title: "Breaking Bad",
             overview: "",
             mediaType: .tv,
+            logoPath: [:],
             type: .media,
-            ref: "TV_1396@ctx",
-            logoPath: [:]
+            ref: "TV_1396@ctx"
         )
         let result = SearchResult(id: "MV_550", tmdbId: 550, mediaType: .movie)
         XCTAssertEqual(hero.refOrId, "TV_1396@ctx")

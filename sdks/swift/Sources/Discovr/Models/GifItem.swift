@@ -12,10 +12,16 @@ public struct GifItem: Sendable, Codable, ParameterConvertible, Hashable {
 
     /** Unique identifier for the GIF. */
     public var id: String
-    /** Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF. Choose how to render it from the file extension. */
+    /** Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF or a WebP. `media_type` says which, so you don't have to guess from the extension. */
     public var url: String
-    /** A smaller, lighter version, for grids and pickers. Usually a GIF; falls back to the full-size file when no smaller one exists. */
+    /** A smaller, lighter version, for grids and pickers. Usually a GIF or a WebP; falls back to the full-size file when no smaller one exists, so it can be an MP4. Check its `media_type`. */
     public var preview: GifPreview
+    /** What `url` is, as a MIME type (`video/mp4`, `image/gif` or `image/webp`). Pick a video player or an image view from it. */
+    public var mediaType: AvatarMediaType
+    /** A single still frame (`image/jpeg`), for Reduce Motion or for grids that shouldn't animate. Absent when none exists. */
+    public var still: GifPreview?
+    /** A tiny blurred image as a `data:` URI, to show while the real file loads. Absent when none exists. */
+    public var placeholder: String?
     /** Title or short description of the GIF. */
     public var description: String
     /** Keywords associated with the GIF. */
@@ -27,10 +33,13 @@ public struct GifItem: Sendable, Codable, ParameterConvertible, Hashable {
     /** When this result was fetched (ISO 8601). */
     public var createdAt: Date
 
-    public init(id: String, url: String, preview: GifPreview, description: String, tags: [String], width: Int, height: Int, createdAt: Date) {
+    public init(id: String, url: String, preview: GifPreview, mediaType: AvatarMediaType, still: GifPreview? = nil, placeholder: String? = nil, description: String, tags: [String], width: Int, height: Int, createdAt: Date) {
         self.id = id
         self.url = url
         self.preview = preview
+        self.mediaType = mediaType
+        self.still = still
+        self.placeholder = placeholder
         self.description = description
         self.tags = tags
         self.width = width
@@ -42,6 +51,9 @@ public struct GifItem: Sendable, Codable, ParameterConvertible, Hashable {
         case id
         case url
         case preview
+        case mediaType = "media_type"
+        case still
+        case placeholder
         case description
         case tags
         case width
@@ -56,6 +68,9 @@ public struct GifItem: Sendable, Codable, ParameterConvertible, Hashable {
         try container.encode(id, forKey: .id)
         try container.encode(url, forKey: .url)
         try container.encode(preview, forKey: .preview)
+        try container.encode(mediaType, forKey: .mediaType)
+        try container.encodeIfPresent(still, forKey: .still)
+        try container.encodeIfPresent(placeholder, forKey: .placeholder)
         try container.encode(description, forKey: .description)
         try container.encode(tags, forKey: .tags)
         try container.encode(width, forKey: .width)

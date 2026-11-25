@@ -15,6 +15,7 @@
 
 package api.discovr.models
 
+import api.discovr.models.MediaItemTrailer
 import api.discovr.models.MediaItemType
 
 import kotlinx.serialization.*
@@ -22,7 +23,7 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 
 /**
- * A media item in a recommendation row, with display metadata.
+ * A title in a row or the hero, with display metadata. The hero is a placement, not a type: its items are `MediaItem`s too.
  *
  * @param id Unique identifier for the media item
  * @param title Title of the media item
@@ -33,6 +34,10 @@ import kotlinx.serialization.encoding.*
  * @param year Release year (the first air year for TV). Absent when the title has no date.
  * @param rating Average viewer rating out of 10, to one decimal. Absent until a title has votes.
  * @param genres Genre names, most relevant first. Absent when none are known.
+ * @param logoPath Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). `null` when the title has no logo. Always present on `hero` items. On row items it is added when the items are served, and is absent only if the catalogue couldn't be reached for that title; fetch the row's items again to fill it in. 
+ * @param trailer The best trailer for the title, picked the same way as `getMediaAssets`. `null` when it has none. Added to row items when they are served; absent under the same conditions as `logo_path`.
+ * @param runtime Running time in minutes. Movies only, and absent when the catalogue has none. Added to row items when they are served.
+ * @param numberOfSeasons How many seasons the show has. TV only, and absent when the catalogue has none. Added to row items when they are served.
  * @param ref This item's `id` with the place it was shown attached.  Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, adding it to a list, scrobbling it. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.  A bare `id` always works; `ref` is never required. 
  */
 @Serializable
@@ -66,6 +71,18 @@ data class MediaItem (
 
     /* Genre names, most relevant first. Absent when none are known. */
     @SerialName(value = "genres") val genres: kotlin.collections.List<kotlin.String>? = null,
+
+    /* Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). `null` when the title has no logo. Always present on `hero` items. On row items it is added when the items are served, and is absent only if the catalogue couldn't be reached for that title; fetch the row's items again to fill it in.  */
+    @SerialName(value = "logo_path") val logoPath: kotlin.collections.Map<kotlin.String, kotlin.String>? = null,
+
+    /* The best trailer for the title, picked the same way as `getMediaAssets`. `null` when it has none. Added to row items when they are served; absent under the same conditions as `logo_path`. */
+    @SerialName(value = "trailer") val trailer: MediaItemTrailer? = null,
+
+    /* Running time in minutes. Movies only, and absent when the catalogue has none. Added to row items when they are served. */
+    @SerialName(value = "runtime") val runtime: kotlin.Int? = null,
+
+    /* How many seasons the show has. TV only, and absent when the catalogue has none. Added to row items when they are served. */
+    @SerialName(value = "number_of_seasons") val numberOfSeasons: kotlin.Int? = null,
 
     /* This item's `id` with the place it was shown attached.  Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, adding it to a list, scrobbling it. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.  A bare `id` always works; `ref` is never required.  */
     @SerialName(value = "ref") val ref: kotlin.String? = null

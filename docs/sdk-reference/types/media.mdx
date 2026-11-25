@@ -3,6 +3,32 @@ title: "Media Types"
 description: "Types used by Media SDK operations."
 ---
 
+## CastMember
+
+<a id="castmember" />
+
+One cast member of a title.
+
+| Property     | Type      | Required | Description                                                                                                                                                |
+| ------------ | --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id           | `integer` | Yes      | Catalogue identifier for the person. Stable across titles.                                                                                                 |
+| name         | `string`  | Yes      | The person's name.                                                                                                                                         |
+| character    | `string`  | No       | The role they play. `null` when the catalogue doesn't list one.                                                                                            |
+| profile_path | `object`  | No       | Portrait URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or `null` when there is no photo. |
+
+## CrewMember
+
+<a id="crewmember" />
+
+A director, writer or creator of a title.
+
+| Property     | Type      | Required | Description                                                                                                                                                |
+| ------------ | --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id           | `integer` | Yes      | Catalogue identifier for the person. Stable across titles.                                                                                                 |
+| name         | `string`  | Yes      | The person's name.                                                                                                                                         |
+| job          | `string`  | Yes      | Their role on the title, such as `Director`, `Screenplay`, `Writer` or `Creator`.                                                                          |
+| profile_path | `object`  | No       | Portrait URLs keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or `null` when there is no photo. |
+
 ## Episode
 
 <a id="episode" />
@@ -89,6 +115,28 @@ The best trailer or clip for this title, picked from the available videos — pr
 | key      | `string` | Yes      | YouTube video identifier — append to `https://www.youtube.com/watch?v=` to play. |
 | url      | `string` | Yes      | Full YouTube watch URL for this trailer.                                         |
 
+## MediaCredits
+
+<a id="mediacredits" />
+
+Who is in a title and who made it. Cast is the top-billed 15, in billing order. Crew is limited to directors and writers, plus a show's creators for TV.
+
+| Property | Type           | Required | Description                                                                                   |
+| -------- | -------------- | -------- | --------------------------------------------------------------------------------------------- |
+| cast     | `CastMember[]` | Yes      | Up to 15 top-billed cast members, in billing order.                                           |
+| crew     | `CrewMember[]` | Yes      | Directors and writers. For TV it also lists the show's creators, with `job` set to `Creator`. |
+
+## MediaExternalIds
+
+<a id="mediaexternalids" />
+
+The title's identifiers on other services, for deep links and cross-referencing.
+
+| Property | Type      | Required | Description                                                             |
+| -------- | --------- | -------- | ----------------------------------------------------------------------- |
+| imdb_id  | `string`  | No       | IMDb identifier, such as `tt0133093`. `null` when none is known.        |
+| tvdb_id  | `integer` | No       | TheTVDB identifier. TV only; `null` for movies and for shows with none. |
+
 ## MediaProfileMeta
 
 <a id="mediaprofilemeta" />
@@ -131,6 +179,8 @@ Full details for a movie or TV show.
 | movie           | `object`            | No       |                                                                                                                                                                                                                              |
 | tv              | `object`            | No       |                                                                                                                                                                                                                              |
 | watch_providers | `ProviderInfo[]`    | No       | Full list of where this title is available, not filtered to any profile's preferences. Use `profile_meta` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch. |
+| credits         | `object`            | No       |                                                                                                                                                                                                                              |
+| external_ids    | `object`            | No       |                                                                                                                                                                                                                              |
 
 ## MediaResponseMovie
 

@@ -353,8 +353,8 @@ components:
       $ref: "./pages/schemas.yaml#/GetRowItemsResponse"
     MediaItem:
       $ref: "./pages/schemas.yaml#/MediaItem"
-    HeroItem:
-      $ref: "./pages/schemas.yaml#/HeroItem"
+    MediaItemTrailer:
+      $ref: "./pages/schemas.yaml#/MediaItemTrailer"
     NavigationItem:
       $ref: "./pages/schemas.yaml#/NavigationItem"
     ProviderItem:
@@ -375,6 +375,14 @@ components:
       $ref: "./media/schemas.yaml#/MediaResponseTv"
     MediaResponseTvSeason:
       $ref: "./media/schemas.yaml#/MediaResponseTvSeason"
+    MediaCredits:
+      $ref: "./media/schemas.yaml#/MediaCredits"
+    CastMember:
+      $ref: "./media/schemas.yaml#/CastMember"
+    CrewMember:
+      $ref: "./media/schemas.yaml#/CrewMember"
+    MediaExternalIds:
+      $ref: "./media/schemas.yaml#/MediaExternalIds"
     MediaProfileMeta:
       $ref: "./media/schemas.yaml#/MediaProfileMeta"
     MediaProfileMetaPlayback:

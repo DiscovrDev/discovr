@@ -15,6 +15,7 @@
 
 package api.discovr.models
 
+import api.discovr.models.AvatarMediaType
 import api.discovr.models.GifPreview
 
 import kotlinx.serialization.*
@@ -25,13 +26,16 @@ import kotlinx.serialization.encoding.*
  * A single animated GIF result.
  *
  * @param id Unique identifier for the GIF.
- * @param url Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF. Choose how to render it from the file extension.
- * @param preview A smaller, lighter version, for grids and pickers. Usually a GIF; falls back to the full-size file when no smaller one exists.
+ * @param url Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF or a WebP. `media_type` says which, so you don't have to guess from the extension.
+ * @param preview A smaller, lighter version, for grids and pickers. Usually a GIF or a WebP; falls back to the full-size file when no smaller one exists, so it can be an MP4. Check its `media_type`.
+ * @param mediaType What `url` is, as a MIME type (`video/mp4`, `image/gif` or `image/webp`). Pick a video player or an image view from it.
  * @param description Title or short description of the GIF.
  * @param tags Keywords associated with the GIF.
  * @param width Width of `url` in pixels.
  * @param height Height of `url` in pixels.
  * @param createdAt When this result was fetched (ISO 8601).
+ * @param still A single still frame (`image/jpeg`), for Reduce Motion or for grids that shouldn't animate. Absent when none exists.
+ * @param placeholder A tiny blurred image as a `data:` URI, to show while the real file loads. Absent when none exists.
  */
 @Serializable
 
@@ -40,11 +44,14 @@ data class GifItem (
     /* Unique identifier for the GIF. */
     @SerialName(value = "id") @Required val id: kotlin.String,
 
-    /* Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF. Choose how to render it from the file extension. */
+    /* Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF or a WebP. `media_type` says which, so you don't have to guess from the extension. */
     @SerialName(value = "url") @Required val url: kotlin.String,
 
-    /* A smaller, lighter version, for grids and pickers. Usually a GIF; falls back to the full-size file when no smaller one exists. */
+    /* A smaller, lighter version, for grids and pickers. Usually a GIF or a WebP; falls back to the full-size file when no smaller one exists, so it can be an MP4. Check its `media_type`. */
     @SerialName(value = "preview") @Required val preview: GifPreview,
+
+    /* What `url` is, as a MIME type (`video/mp4`, `image/gif` or `image/webp`). Pick a video player or an image view from it. */
+    @SerialName(value = "media_type") @Required val mediaType: AvatarMediaType,
 
     /* Title or short description of the GIF. */
     @SerialName(value = "description") @Required val description: kotlin.String,
@@ -59,7 +66,13 @@ data class GifItem (
     @SerialName(value = "height") @Required val height: kotlin.Int,
 
     /* When this result was fetched (ISO 8601). */
-    @SerialName(value = "createdAt") @Required val createdAt: kotlin.time.Instant
+    @SerialName(value = "createdAt") @Required val createdAt: kotlin.time.Instant,
+
+    /* A single still frame (`image/jpeg`), for Reduce Motion or for grids that shouldn't animate. Absent when none exists. */
+    @SerialName(value = "still") val still: GifPreview? = null,
+
+    /* A tiny blurred image as a `data:` URI, to show while the real file loads. Absent when none exists. */
+    @SerialName(value = "placeholder") val placeholder: kotlin.String? = null
 
 ) {
 

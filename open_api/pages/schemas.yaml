@@ -99,8 +99,9 @@ Page:
       minItems: 10
       maxItems: 10
       items:
-        $ref: "#/HeroItem"
-      description: Array of exactly 10 featured HeroItems for the hero section
+        $ref: "#/MediaItem"
+      description: |
+        Exactly 10 featured titles for the hero section. They are ordinary `MediaItem`s, and every one has a `logo_path`.
     name:
       type: string
       description: |
@@ -190,7 +191,7 @@ GetRowsResponse:
 
 MediaItem:
   type: object
-  description: A media item in a recommendation row, with display metadata.
+  description: "A title in a row or the hero, with display metadata. The hero is a placement, not a type: its items are `MediaItem`s too."
   required:
     - id
     - title
@@ -250,6 +251,30 @@ MediaItem:
         type: string
       description: Genre names, most relevant first. Absent when none are known.
       example: ["Drama", "Thriller"]
+    logo_path:
+      type: object
+      nullable: true
+      description: |
+        Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). `null` when the title has no logo. Always present on `hero` items. On row items it is added when the items are served, and is absent only if the catalogue couldn't be reached for that title; fetch the row's items again to fill it in.
+      additionalProperties:
+        type: string
+        format: uri
+      example:
+        w185: "https://cdn.example.com/w185/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
+        w500: "https://cdn.example.com/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
+        original: "https://cdn.example.com/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
+    trailer:
+      $ref: "#/MediaItemTrailer"
+      nullable: true
+      description: The best trailer for the title, picked the same way as `getMediaAssets`. `null` when it has none. Added to row items when they are served; absent under the same conditions as `logo_path`.
+    runtime:
+      type: integer
+      description: Running time in minutes. Movies only, and absent when the catalogue has none. Added to row items when they are served.
+      example: 139
+    number_of_seasons:
+      type: integer
+      description: How many seasons the show has. TV only, and absent when the catalogue has none. Added to row items when they are served.
+      example: 5
     type:
       $ref: "#/MediaItemType"
       description: Discriminator field indicating this is a media item
@@ -264,28 +289,22 @@ MediaItem:
       example: "MV_550@Lw2rC9sYh5TaB8kF"
   additionalProperties: false
 
-HeroItem:
-  allOf:
-    - $ref: "#/MediaItem"
-    - type: object
-      required:
-        - logo_path
-      properties:
-        logo_path:
-          type: object
-          nullable: true
-          description: Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`), or null if no logo available.
-          additionalProperties:
-            type: string
-            format: uri
-          example:
-            w185: "https://cdn.example.com/w185/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
-            w500: "https://cdn.example.com/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
-            original: "https://cdn.example.com/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"
-  description: |
-    A MediaItem specifically for hero sections. Extends MediaItem but requires
-    the logo_path field to always be present (may be null, but field must exist).
-    overview is inherited from MediaItem.
+MediaItemTrailer:
+  type: object
+  description: The best trailer or clip for a title.
+  required:
+    - key
+    - url
+  properties:
+    key:
+      type: string
+      description: YouTube video identifier.
+      example: "6ZfuNTqbHE8"
+    url:
+      type: string
+      description: Full YouTube watch URL.
+      example: "https://www.youtube.com/watch?v=6ZfuNTqbHE8"
+  additionalProperties: false
 
 NavigationItem:
   type: object

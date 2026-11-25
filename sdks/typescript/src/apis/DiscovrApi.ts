@@ -1502,7 +1502,7 @@ export class DiscovrApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
+     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  Row items already carry `logo_path` and `trailer` when they are served, so you only need this for a title you reached some other way, such as search.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
      * Get media assets
      */
     async getMediaAssetsRaw(requestParameters: GetMediaAssetsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MediaAssetsResponse>> {
@@ -1540,7 +1540,7 @@ export class DiscovrApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
+     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  Row items already carry `logo_path` and `trailer` when they are served, so you only need this for a title you reached some other way, such as search.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
      * Get media assets
      */
     async getMediaAssets(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MediaAssetsResponse> {
@@ -2629,7 +2629,7 @@ export class DiscovrApi extends runtime.BaseAPI {
     }
 
     /**
-     * Searches for animated GIFs by keyword. Use the `contentfilter` parameter to control content safety (`off`, `low`, `medium`, `high`); if you omit it, the filtering configured for Discovr\'s Klipy account applies, which is not a fixed level, so pass it explicitly when you need a guaranteed one. Results are paginated — pass `next` from the previous response as `pos` to load more.  Each result\'s `url` is the full-size file and is an **MP4 whenever one is available**, otherwise a GIF, so render it with a video player or an image view according to its file extension (see `avatarMediaType` on profiles). `preview.url` is a lighter version for grids; use it for thumbnails and save `url` only for the one the user picks.  Klipy attribution is required wherever you show these results.  No authentication required. 
+     * Searches for animated GIFs by keyword. Use the `contentfilter` parameter to control content safety (`off`, `low`, `medium`, `high`); if you omit it, the filtering configured for Discovr\'s Klipy account applies, which is not a fixed level, so pass it explicitly when you need a guaranteed one. Results are paginated — pass `next` from the previous response as `pos` to load more.  Each result\'s `url` is the full-size file — an **MP4 whenever one is available**, otherwise a GIF or WebP. Read `media_type` (on the item and on `preview`) to pick a video player or an image view instead of guessing from the URL; it uses the same `AvatarMediaType` values as profiles. `preview` is a lighter file for grids, `still` is a JPEG still frame for Reduce Motion or static grids, and `placeholder` is a tiny blurred `data:` URI to show while the file loads. Save `url` for the one the user picks.  Klipy attribution is required wherever you show these results.  No authentication required. 
      * Search GIFs
      */
     async searchGifsRaw(requestParameters: SearchGifsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GifSearchResponse>> {
@@ -2682,7 +2682,7 @@ export class DiscovrApi extends runtime.BaseAPI {
     }
 
     /**
-     * Searches for animated GIFs by keyword. Use the `contentfilter` parameter to control content safety (`off`, `low`, `medium`, `high`); if you omit it, the filtering configured for Discovr\'s Klipy account applies, which is not a fixed level, so pass it explicitly when you need a guaranteed one. Results are paginated — pass `next` from the previous response as `pos` to load more.  Each result\'s `url` is the full-size file and is an **MP4 whenever one is available**, otherwise a GIF, so render it with a video player or an image view according to its file extension (see `avatarMediaType` on profiles). `preview.url` is a lighter version for grids; use it for thumbnails and save `url` only for the one the user picks.  Klipy attribution is required wherever you show these results.  No authentication required. 
+     * Searches for animated GIFs by keyword. Use the `contentfilter` parameter to control content safety (`off`, `low`, `medium`, `high`); if you omit it, the filtering configured for Discovr\'s Klipy account applies, which is not a fixed level, so pass it explicitly when you need a guaranteed one. Results are paginated — pass `next` from the previous response as `pos` to load more.  Each result\'s `url` is the full-size file — an **MP4 whenever one is available**, otherwise a GIF or WebP. Read `media_type` (on the item and on `preview`) to pick a video player or an image view instead of guessing from the URL; it uses the same `AvatarMediaType` values as profiles. `preview` is a lighter file for grids, `still` is a JPEG still frame for Reduce Motion or static grids, and `placeholder` is a tiny blurred `data:` URI to show while the file loads. Save `url` for the one the user picks.  Klipy attribution is required wherever you show these results.  No authentication required. 
      * Search GIFs
      */
     async searchGifs(q: string, limit?: number, pos?: string, contentfilter?: SearchGifsContentfilterEnum, country?: string, locale?: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GifSearchResponse> {

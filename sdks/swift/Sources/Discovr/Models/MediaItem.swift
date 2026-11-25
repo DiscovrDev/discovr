@@ -7,7 +7,7 @@
 
 import Foundation
 
-/** A media item in a recommendation row, with display metadata. */
+/** A title in a row or the hero, with display metadata. The hero is a placement, not a type: its items are &#x60;MediaItem&#x60;s too. */
 public struct MediaItem: Sendable, Codable, ParameterConvertible, Hashable {
 
     public enum MediaType: String, Sendable, Codable, CaseIterable {
@@ -33,12 +33,20 @@ public struct MediaItem: Sendable, Codable, ParameterConvertible, Hashable {
     public var rating: Double?
     /** Genre names, most relevant first. Absent when none are known. */
     public var genres: [String]?
+    /** Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). `null` when the title has no logo. Always present on `hero` items. On row items it is added when the items are served, and is absent only if the catalogue couldn't be reached for that title; fetch the row's items again to fill it in.  */
+    public var logoPath: [String: String]?
+    /** The best trailer for the title, picked the same way as `getMediaAssets`. `null` when it has none. Added to row items when they are served; absent under the same conditions as `logo_path`. */
+    public var trailer: MediaItemTrailer?
+    /** Running time in minutes. Movies only, and absent when the catalogue has none. Added to row items when they are served. */
+    public var runtime: Int?
+    /** How many seasons the show has. TV only, and absent when the catalogue has none. Added to row items when they are served. */
+    public var numberOfSeasons: Int?
     /** Discriminator field indicating this is a media item */
     public var type: MediaItemType
     /** This item's `id` with the place it was shown attached.  Prefer it wherever you'd pass this item's `id` onward — opening its detail screen, adding it to a list, scrobbling it. It works exactly like the `id` and sharpens the user's recommendations. Use it for the profile it was returned to; for anything you share, use the `id`.  A bare `id` always works; `ref` is never required.  */
     public var ref: String?
 
-    public init(id: String, title: String, overview: String, posterPath: [String: String]? = nil, backdropPath: [String: String]? = nil, mediaType: MediaType, year: Int? = nil, rating: Double? = nil, genres: [String]? = nil, type: MediaItemType, ref: String? = nil) {
+    public init(id: String, title: String, overview: String, posterPath: [String: String]? = nil, backdropPath: [String: String]? = nil, mediaType: MediaType, year: Int? = nil, rating: Double? = nil, genres: [String]? = nil, logoPath: [String: String]? = nil, trailer: MediaItemTrailer? = nil, runtime: Int? = nil, numberOfSeasons: Int? = nil, type: MediaItemType, ref: String? = nil) {
         self.id = id
         self.title = title
         self.overview = overview
@@ -48,6 +56,10 @@ public struct MediaItem: Sendable, Codable, ParameterConvertible, Hashable {
         self.year = year
         self.rating = rating
         self.genres = genres
+        self.logoPath = logoPath
+        self.trailer = trailer
+        self.runtime = runtime
+        self.numberOfSeasons = numberOfSeasons
         self.type = type
         self.ref = ref
     }
@@ -62,6 +74,10 @@ public struct MediaItem: Sendable, Codable, ParameterConvertible, Hashable {
         case year
         case rating
         case genres
+        case logoPath = "logo_path"
+        case trailer
+        case runtime
+        case numberOfSeasons = "number_of_seasons"
         case type
         case ref
     }
@@ -79,6 +95,10 @@ public struct MediaItem: Sendable, Codable, ParameterConvertible, Hashable {
         try container.encodeIfPresent(year, forKey: .year)
         try container.encodeIfPresent(rating, forKey: .rating)
         try container.encodeIfPresent(genres, forKey: .genres)
+        try container.encodeIfPresent(logoPath, forKey: .logoPath)
+        try container.encodeIfPresent(trailer, forKey: .trailer)
+        try container.encodeIfPresent(runtime, forKey: .runtime)
+        try container.encodeIfPresent(numberOfSeasons, forKey: .numberOfSeasons)
         try container.encode(type, forKey: .type)
         try container.encodeIfPresent(ref, forKey: .ref)
     }

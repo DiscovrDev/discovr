@@ -22,13 +22,17 @@ public struct MediaResponse: Sendable, Codable, ParameterConvertible, Hashable {
     public var tv: MediaResponseTv?
     /** Full list of where this title is available, not filtered to any profile's preferences. Use `profile_meta` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.  */
     public var watchProviders: [ProviderInfo]?
+    public var credits: MediaCredits?
+    public var externalIds: MediaExternalIds?
 
-    public init(id: String, mediaType: MediaType, movie: MediaResponseMovie? = nil, tv: MediaResponseTv? = nil, watchProviders: [ProviderInfo]? = nil) {
+    public init(id: String, mediaType: MediaType, movie: MediaResponseMovie? = nil, tv: MediaResponseTv? = nil, watchProviders: [ProviderInfo]? = nil, credits: MediaCredits? = nil, externalIds: MediaExternalIds? = nil) {
         self.id = id
         self.mediaType = mediaType
         self.movie = movie
         self.tv = tv
         self.watchProviders = watchProviders
+        self.credits = credits
+        self.externalIds = externalIds
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -37,6 +41,8 @@ public struct MediaResponse: Sendable, Codable, ParameterConvertible, Hashable {
         case movie
         case tv
         case watchProviders = "watch_providers"
+        case credits
+        case externalIds = "external_ids"
     }
 
     // Encodable protocol methods
@@ -48,6 +54,8 @@ public struct MediaResponse: Sendable, Codable, ParameterConvertible, Hashable {
         try container.encodeIfPresent(movie, forKey: .movie)
         try container.encodeIfPresent(tv, forKey: .tv)
         try container.encodeIfPresent(watchProviders, forKey: .watchProviders)
+        try container.encodeIfPresent(credits, forKey: .credits)
+        try container.encodeIfPresent(externalIds, forKey: .externalIds)
     }
 }
 

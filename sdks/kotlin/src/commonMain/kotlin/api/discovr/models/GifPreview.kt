@@ -15,30 +15,35 @@
 
 package api.discovr.models
 
+import api.discovr.models.AvatarMediaType
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 
 /**
- * A lower-resolution preview of the GIF, suitable for thumbnails.
+ * A secondary rendition of a GIF — either a smaller animated preview for grids (`preview`) or a single still frame (`still`).
  *
- * @param url URL to the preview image.
- * @param width Preview width in pixels.
- * @param height Preview height in pixels.
+ * @param url URL to this rendition.
+ * @param width Width in pixels.
+ * @param height Height in pixels.
+ * @param mediaType MIME type of this rendition (`image/gif`, `image/webp`, `image/jpeg`, `video/mp4`, or `video/webm`). Pick a video player or an image view from it instead of guessing from the URL.
  */
 @Serializable
 
 data class GifPreview (
 
-    /* URL to the preview image. */
+    /* URL to this rendition. */
     @SerialName(value = "url") @Required val url: kotlin.String,
 
-    /* Preview width in pixels. */
+    /* Width in pixels. */
     @SerialName(value = "width") @Required val width: kotlin.Int,
 
-    /* Preview height in pixels. */
-    @SerialName(value = "height") @Required val height: kotlin.Int
+    /* Height in pixels. */
+    @SerialName(value = "height") @Required val height: kotlin.Int,
+
+    /* MIME type of this rendition (`image/gif`, `image/webp`, `image/jpeg`, `video/mp4`, or `video/webm`). Pick a video player or an image view from it instead of guessing from the URL. */
+    @SerialName(value = "media_type") @Required val mediaType: AvatarMediaType
 
 ) {
 

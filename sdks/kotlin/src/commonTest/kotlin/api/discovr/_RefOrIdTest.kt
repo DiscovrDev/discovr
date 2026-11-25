@@ -1,10 +1,8 @@
 package api.discovr
 
-import api.discovr.models.HeroItem
 import api.discovr.models.HistoryItem
 import api.discovr.models.KnownForItem
 import api.discovr.models.MediaItem
-import api.discovr.models.MediaItemType
 import api.discovr.models.NavigationItem
 import api.discovr.models.PlaybackItem
 import api.discovr.models.ProviderItem
@@ -57,12 +55,11 @@ class RefOrIdTest {
 
     @Test
     fun heroAndSearchItemsResolveTheSameWay() {
-        val hero = HeroItem(
+        val hero = MediaItem(
             id = "TV_1396",
             title = "Breaking Bad",
             overview = "",
-            mediaType = HeroItem.MediaType.tv,
-            type = MediaItemType.media,
+            mediaType = MediaItem.MediaType.tv,
             logoPath = emptyMap(),
             ref = "TV_1396@ctx",
         )

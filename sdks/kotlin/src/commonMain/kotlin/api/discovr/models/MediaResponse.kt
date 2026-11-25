@@ -15,6 +15,8 @@
 
 package api.discovr.models
 
+import api.discovr.models.MediaCredits
+import api.discovr.models.MediaExternalIds
 import api.discovr.models.MediaResponseMovie
 import api.discovr.models.MediaResponseTv
 import api.discovr.models.ProviderInfo
@@ -31,6 +33,8 @@ import kotlinx.serialization.encoding.*
  * @param movie 
  * @param tv 
  * @param watchProviders Full list of where this title is available, not filtered to any profile's preferences. Use `profile_meta` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch. 
+ * @param credits 
+ * @param externalIds 
  */
 @Serializable
 
@@ -47,7 +51,11 @@ data class MediaResponse (
     @SerialName(value = "tv") val tv: MediaResponseTv? = null,
 
     /* Full list of where this title is available, not filtered to any profile's preferences. Use `profile_meta` with `providers=true` for a personalized, preference-filtered provider list. Provider data sourced from JustWatch.  */
-    @SerialName(value = "watch_providers") val watchProviders: kotlin.collections.List<ProviderInfo>? = null
+    @SerialName(value = "watch_providers") val watchProviders: kotlin.collections.List<ProviderInfo>? = null,
+
+    @SerialName(value = "credits") val credits: MediaCredits? = null,
+
+    @SerialName(value = "external_ids") val externalIds: MediaExternalIds? = null
 
 ) {
 

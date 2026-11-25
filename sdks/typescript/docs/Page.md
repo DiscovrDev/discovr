@@ -9,7 +9,7 @@ Name | Type
 ------------ | -------------
 `id` | string
 `createdAt` | Date
-`hero` | [Array&lt;HeroItem&gt;](HeroItem.md)
+`hero` | [Array&lt;MediaItem&gt;](MediaItem.md)
 `name` | string
 
 ## Example

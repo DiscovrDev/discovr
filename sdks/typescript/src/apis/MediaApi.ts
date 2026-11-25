@@ -126,7 +126,7 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
+     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  Row items already carry `logo_path` and `trailer` when they are served, so you only need this for a title you reached some other way, such as search.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
      * Get media assets
      */
     async getMediaAssetsRaw(requestParameters: GetMediaAssetsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MediaAssetsResponse>> {
@@ -164,7 +164,7 @@ export class MediaApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
+     * Returns the best-available poster, backdrop, logo, and trailer for a title — one resolved URL per asset type. Uses English/language-neutral preference for images, and picks the best official trailer when one is available.  Row items already carry `logo_path` and `trailer` when they are served, so you only need this for a title you reached some other way, such as search.  **Auth tier:** session — send your session token in `Authorization: Bearer`. The response is generic catalog metadata, but the call needs a profile: the title you open is attributed to it. 
      * Get media assets
      */
     async getMediaAssets(mediaId: string, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MediaAssetsResponse> {

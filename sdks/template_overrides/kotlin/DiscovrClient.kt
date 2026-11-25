@@ -31,7 +31,6 @@
 package api.discovr
 
 import api.discovr.apis.DiscovrApi
-import api.discovr.models.HeroItem
 import api.discovr.models.HistoryItem
 import api.discovr.models.KnownForItem
 import api.discovr.models.MediaItem
@@ -299,9 +298,6 @@ class DiscovrClient(
  * every kind of item a row can contain.
  */
 public fun MediaItem.refOrId(): String = ref ?: id
-
-/** @see refOrId */
-public fun HeroItem.refOrId(): String = ref ?: id
 
 /** @see refOrId */
 public fun SearchResult.refOrId(): String = ref ?: id

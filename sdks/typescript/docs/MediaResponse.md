@@ -12,6 +12,8 @@ Name | Type
 `movie` | [MediaResponseMovie](MediaResponseMovie.md)
 `tv` | [MediaResponseTv](MediaResponseTv.md)
 `watchProviders` | [Array&lt;ProviderInfo&gt;](ProviderInfo.md)
+`credits` | [MediaCredits](MediaCredits.md)
+`externalIds` | [MediaExternalIds](MediaExternalIds.md)
 
 ## Example
 
@@ -25,6 +27,8 @@ const example = {
   "movie": null,
   "tv": null,
   "watchProviders": null,
+  "credits": null,
+  "externalIds": null,
 } satisfies MediaResponse
 
 console.log(example)

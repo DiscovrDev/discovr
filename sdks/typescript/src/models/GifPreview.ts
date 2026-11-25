@@ -13,31 +13,47 @@
  */
 
 import { mapValues } from '../runtime';
+import type { AvatarMediaType } from './AvatarMediaType';
+import {
+    AvatarMediaTypeFromJSON,
+    AvatarMediaTypeFromJSONTyped,
+    AvatarMediaTypeToJSON,
+    AvatarMediaTypeToJSONTyped,
+} from './AvatarMediaType';
+
 /**
- * A lower-resolution preview of the GIF, suitable for thumbnails.
+ * A secondary rendition of a GIF — either a smaller animated preview for grids (`preview`) or a single still frame (`still`).
  * @export
  * @interface GifPreview
  */
 export interface GifPreview {
     /**
-     * URL to the preview image.
+     * URL to this rendition.
      * @type {string}
      * @memberof GifPreview
      */
     url: string;
     /**
-     * Preview width in pixels.
+     * Width in pixels.
      * @type {number}
      * @memberof GifPreview
      */
     width: number;
     /**
-     * Preview height in pixels.
+     * Height in pixels.
      * @type {number}
      * @memberof GifPreview
      */
     height: number;
+    /**
+     * MIME type of this rendition (`image/gif`, `image/webp`, `image/jpeg`, `video/mp4`, or `video/webm`). Pick a video player or an image view from it instead of guessing from the URL.
+     * @type {AvatarMediaType}
+     * @memberof GifPreview
+     */
+    mediaType: AvatarMediaType;
 }
+
+
 
 /**
  * Check if a given object implements the GifPreview interface.
@@ -46,6 +62,7 @@ export function instanceOfGifPreview(value: object): value is GifPreview {
     if (!('url' in value) || value['url'] === undefined) return false;
     if (!('width' in value) || value['width'] === undefined) return false;
     if (!('height' in value) || value['height'] === undefined) return false;
+    if (!('mediaType' in value) || value['mediaType'] === undefined) return false;
     return true;
 }
 
@@ -62,6 +79,7 @@ export function GifPreviewFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'url': json['url'],
         'width': json['width'],
         'height': json['height'],
+        'mediaType': AvatarMediaTypeFromJSON(json['media_type']),
     };
 }
 
@@ -79,6 +97,7 @@ export function GifPreviewToJSONTyped(value?: GifPreview | null, ignoreDiscrimin
         'url': value['url'],
         'width': value['width'],
         'height': value['height'],
+        'media_type': AvatarMediaTypeToJSON(value['mediaType']),
     };
 }
 

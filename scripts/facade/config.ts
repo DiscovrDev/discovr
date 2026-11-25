@@ -147,6 +147,10 @@ export const HAND_MAINTAINED_COPIES: readonly CopyPair[] = [
 		dst: "public/sdks/kotlin/src/commonTest/kotlin/api/discovr/_RefOrIdTest.kt",
 	},
 	{
+		src: "public/sdks/template_overrides/kotlin/_MediaResponseDecodeTest.kt",
+		dst: "public/sdks/kotlin/src/commonTest/kotlin/api/discovr/_MediaResponseDecodeTest.kt",
+	},
+	{
 		src: "public/sdks/template_overrides/swift6/_DiscovrAuth.swift",
 		dst: "public/sdks/swift/Sources/Discovr/_DiscovrAuth.swift",
 	},
@@ -177,6 +181,10 @@ export const HAND_MAINTAINED_COPIES: readonly CopyPair[] = [
 	{
 		src: "public/sdks/template_overrides/swift6/_ContractDecodeTest.swift",
 		dst: "public/sdks/swift/Tests/DiscovrTests/_ContractDecodeTest.swift",
+	},
+	{
+		src: "public/sdks/template_overrides/swift6/_MediaResponseDecodeTest.swift",
+		dst: "public/sdks/swift/Tests/DiscovrTests/_MediaResponseDecodeTest.swift",
 	},
 ];
 

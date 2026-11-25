@@ -16,6 +16,10 @@ Name | Type
 `year` | number
 `rating` | number
 `genres` | Array&lt;string&gt;
+`logoPath` | { [key: string]: string; }
+`trailer` | [MediaItemTrailer](MediaItemTrailer.md)
+`runtime` | number
+`numberOfSeasons` | number
 `type` | [ProviderItemType](ProviderItemType.md)
 `ref` | string
 `verticalPath` | { [key: string]: string; }
@@ -39,6 +43,10 @@ const example = {
   "year": 1999,
   "rating": 8.4,
   "genres": [Drama, Thriller],
+  "logoPath": {w185=https://cdn.example.com/w185/wwemzKWzjKYJFfCeiB57q3r4Bcm.png, w500=https://cdn.example.com/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png, original=https://cdn.example.com/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.png},
+  "trailer": null,
+  "runtime": 139,
+  "numberOfSeasons": 5,
   "type": null,
   "ref": k7Qm2xR9pT@Ju4nE1oZd6XcV3gP,
   "verticalPath": {original=https://cdn.example.com/rows/keyword-nav-vertical.jpg, thumbnail=https://cdn.example.com/rows/keyword-nav-vertical-thumbnail.jpg},

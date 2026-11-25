@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { AvatarMediaType } from './AvatarMediaType';
+import {
+    AvatarMediaTypeFromJSON,
+    AvatarMediaTypeFromJSONTyped,
+    AvatarMediaTypeToJSON,
+    AvatarMediaTypeToJSONTyped,
+} from './AvatarMediaType';
 import type { GifPreview } from './GifPreview';
 import {
     GifPreviewFromJSON,
@@ -34,17 +41,35 @@ export interface GifItem {
      */
     id: string;
     /**
-     * Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF. Choose how to render it from the file extension.
+     * Direct URL to the full-size file. An MP4 whenever one is available, otherwise a GIF or a WebP. `media_type` says which, so you don't have to guess from the extension.
      * @type {string}
      * @memberof GifItem
      */
     url: string;
     /**
-     * A smaller, lighter version, for grids and pickers. Usually a GIF; falls back to the full-size file when no smaller one exists.
+     * A smaller, lighter version, for grids and pickers. Usually a GIF or a WebP; falls back to the full-size file when no smaller one exists, so it can be an MP4. Check its `media_type`.
      * @type {GifPreview}
      * @memberof GifItem
      */
     preview: GifPreview;
+    /**
+     * What `url` is, as a MIME type (`video/mp4`, `image/gif` or `image/webp`). Pick a video player or an image view from it.
+     * @type {AvatarMediaType}
+     * @memberof GifItem
+     */
+    mediaType: AvatarMediaType;
+    /**
+     * A single still frame (`image/jpeg`), for Reduce Motion or for grids that shouldn't animate. Absent when none exists.
+     * @type {GifPreview}
+     * @memberof GifItem
+     */
+    still?: GifPreview;
+    /**
+     * A tiny blurred image as a `data:` URI, to show while the real file loads. Absent when none exists.
+     * @type {string}
+     * @memberof GifItem
+     */
+    placeholder?: string;
     /**
      * Title or short description of the GIF.
      * @type {string}
@@ -77,6 +102,8 @@ export interface GifItem {
     createdAt: Date;
 }
 
+
+
 /**
  * Check if a given object implements the GifItem interface.
  */
@@ -84,6 +111,7 @@ export function instanceOfGifItem(value: object): value is GifItem {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('url' in value) || value['url'] === undefined) return false;
     if (!('preview' in value) || value['preview'] === undefined) return false;
+    if (!('mediaType' in value) || value['mediaType'] === undefined) return false;
     if (!('description' in value) || value['description'] === undefined) return false;
     if (!('tags' in value) || value['tags'] === undefined) return false;
     if (!('width' in value) || value['width'] === undefined) return false;
@@ -105,6 +133,9 @@ export function GifItemFromJSONTyped(json: any, ignoreDiscriminator: boolean): G
         'id': json['id'],
         'url': json['url'],
         'preview': GifPreviewFromJSON(json['preview']),
+        'mediaType': AvatarMediaTypeFromJSON(json['media_type']),
+        'still': json['still'] == null ? undefined : GifPreviewFromJSON(json['still']),
+        'placeholder': json['placeholder'] == null ? undefined : json['placeholder'],
         'description': json['description'],
         'tags': json['tags'],
         'width': json['width'],
@@ -127,6 +158,9 @@ export function GifItemToJSONTyped(value?: GifItem | null, ignoreDiscriminator: 
         'id': value['id'],
         'url': value['url'],
         'preview': GifPreviewToJSON(value['preview']),
+        'media_type': AvatarMediaTypeToJSON(value['mediaType']),
+        'still': GifPreviewToJSON(value['still']),
+        'placeholder': value['placeholder'],
         'description': value['description'],
         'tags': value['tags'],
         'width': value['width'],

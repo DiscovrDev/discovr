@@ -1,7 +1,7 @@
 
 # GifPreview
 
-A lower-resolution preview of the GIF, suitable for thumbnails.
+A secondary rendition of a GIF — either a smaller animated preview for grids (`preview`) or a single still frame (`still`).
 
 ## Properties
 
@@ -10,6 +10,7 @@ Name | Type
 `url` | string
 `width` | number
 `height` | number
+`mediaType` | [AvatarMediaType](AvatarMediaType.md)
 
 ## Example
 
@@ -21,6 +22,7 @@ const example = {
   "url": https://static.klipy.com/preview.gif,
   "width": 200,
   "height": 200,
+  "mediaType": null,
 } satisfies GifPreview
 
 console.log(example)

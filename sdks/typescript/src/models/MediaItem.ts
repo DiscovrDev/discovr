@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { MediaItemTrailer } from './MediaItemTrailer';
+import {
+    MediaItemTrailerFromJSON,
+    MediaItemTrailerFromJSONTyped,
+    MediaItemTrailerToJSON,
+    MediaItemTrailerToJSONTyped,
+} from './MediaItemTrailer';
 import type { MediaItemType } from './MediaItemType';
 import {
     MediaItemTypeFromJSON,
@@ -22,7 +29,7 @@ import {
 } from './MediaItemType';
 
 /**
- * A media item in a recommendation row, with display metadata.
+ * A title in a row or the hero, with display metadata. The hero is a placement, not a type: its items are `MediaItem`s too.
  * @export
  * @interface MediaItem
  */
@@ -81,6 +88,31 @@ export interface MediaItem {
      * @memberof MediaItem
      */
     genres?: Array<string>;
+    /**
+     * Title logo image URLs (English preferred) keyed by width bucket (`w45`, `w92`, `w154`, `w185`, `w300`, `w342`, `w500`, `w780`, `w1280`, `original`). `null` when the title has no logo. Always present on `hero` items. On row items it is added when the items are served, and is absent only if the catalogue couldn't be reached for that title; fetch the row's items again to fill it in.
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof MediaItem
+     */
+    logoPath?: { [key: string]: string; };
+    /**
+     * The best trailer for the title, picked the same way as `getMediaAssets`. `null` when it has none. Added to row items when they are served; absent under the same conditions as `logo_path`.
+     * @type {MediaItemTrailer}
+     * @memberof MediaItem
+     */
+    trailer?: MediaItemTrailer;
+    /**
+     * Running time in minutes. Movies only, and absent when the catalogue has none. Added to row items when they are served.
+     * @type {number}
+     * @memberof MediaItem
+     */
+    runtime?: number;
+    /**
+     * How many seasons the show has. TV only, and absent when the catalogue has none. Added to row items when they are served.
+     * @type {number}
+     * @memberof MediaItem
+     */
+    numberOfSeasons?: number;
     /**
      * Discriminator field indicating this is a media item
      * @type {MediaItemType}
@@ -142,6 +174,10 @@ export function MediaItemFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'year': json['year'] == null ? undefined : json['year'],
         'rating': json['rating'] == null ? undefined : json['rating'],
         'genres': json['genres'] == null ? undefined : json['genres'],
+        'logoPath': json['logo_path'] == null ? undefined : json['logo_path'],
+        'trailer': json['trailer'] == null ? undefined : MediaItemTrailerFromJSON(json['trailer']),
+        'runtime': json['runtime'] == null ? undefined : json['runtime'],
+        'numberOfSeasons': json['number_of_seasons'] == null ? undefined : json['number_of_seasons'],
         'type': MediaItemTypeFromJSON(json['type']),
         'ref': json['ref'] == null ? undefined : json['ref'],
     };
@@ -167,6 +203,10 @@ export function MediaItemToJSONTyped(value?: MediaItem | null, ignoreDiscriminat
         'year': value['year'],
         'rating': value['rating'],
         'genres': value['genres'],
+        'logo_path': value['logoPath'],
+        'trailer': MediaItemTrailerToJSON(value['trailer']),
+        'runtime': value['runtime'],
+        'number_of_seasons': value['numberOfSeasons'],
         'type': MediaItemTypeToJSON(value['type']),
         'ref': value['ref'],
     };
