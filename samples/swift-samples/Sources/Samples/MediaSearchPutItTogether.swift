@@ -16,13 +16,13 @@ func runSearch(query: String) async throws {
     if first.mediaType == .person {
         // People have no detail view; open one of their credits instead.
         if let credit = first.knownFor?.first {
-            let media = try await client.getMedia(mediaId: credit.id)
+            let media = try await client.getMedia(credit)
             print("\(first.name ?? "") → \(media.movie?.title ?? media.tv?.name ?? "")")
         }
         return
     }
 
-    let media = try await client.getMedia(mediaId: first.id)
+    let media = try await client.getMedia(first)
     print(media.movie?.title ?? media.tv?.name ?? "", media.movie?.overview ?? media.tv?.overview ?? "")
 }
 // docs:end

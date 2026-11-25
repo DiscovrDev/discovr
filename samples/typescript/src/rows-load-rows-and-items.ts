@@ -22,7 +22,7 @@ export async function sample() {
 
 	const first = rows[0];
 	if (first) {
-		const items = await client.getRowItems(pageId, first.id, { limit: 20 });
+		const items = await client.getRowItems(pageId, first.id, { limit: 10 });
 		for (const item of items.items) {
 			if (item.type === "media") {
 				console.log(item.title, item.mediaType);

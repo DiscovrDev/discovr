@@ -2,14 +2,16 @@ import api.discovr.*
 import api.discovr.auth.*
 import api.discovr.models.*
 import kotlinx.coroutines.*
-import api.discovr.DiscovrClient
 
 // docs:start
-suspend fun drillIntoGenre(genreFilter: FilterSpec) {
+suspend fun drillIntoTile(tile: NavigationItem) {
     showLoadingIndicator()
 
-    val newPage = client.createPage(pageFilters = genreFilter)
-    loadPageEfficiently(newPage.id)
+    // Navigation tiles already carry their destination pageId (and ref) — no createPage needed.
+    val page = client.getPage(tile)
+    val rows = client.getRows(tile).rows
+    renderHero(page.hero)
+    renderRow(rows)
 
     hideLoadingIndicator()
 }

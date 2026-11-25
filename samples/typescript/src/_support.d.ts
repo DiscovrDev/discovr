@@ -8,7 +8,7 @@ type Item = import("discovr").MediaItem;
 
 declare const homePageId: string;
 declare const item: Item;
-declare const tile: Item;
+declare const tile: import("discovr").NavigationItem;
 declare const savedRef: string;
 declare const token: string;
 declare const progress: number;

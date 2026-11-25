@@ -4,14 +4,19 @@ import api.discovr.models.*
 import kotlinx.coroutines.*
 // docs:start
 import api.discovr.models.Rating
-import api.discovr.refOrId
 // docs:end
 
-private suspend fun sample(client: DiscovrClient, pageId: String, mediaId: String) {
+private suspend fun sample(client: DiscovrClient) {
     // docs:start
-    val details = client.getMedia(mediaId = item.refOrId())
-    val state = client.setRating(mediaId = item.refOrId(), value = Rating.liked)
+    // Opening a title from a row — pass the item directly so its ref is included automatically
+    val details = client.getMedia(item)
+    val state = client.getTitleState(item)
 
-    val page = client.getPage(pageId = tile.refOrId())
+    // Rating, watchlist, scrobbling, and marking watched accept items too
+    val updated = client.setRating(item, Rating.liked)
+
+    // Drilling into a navigation or provider tile
+    val page = client.getPage(tile)
     // docs:end
+    println("$details $state $updated $page")
 }

@@ -168,8 +168,8 @@ for case .typeNavigationItem(let item) in items {
     	</CodeGroup>
     </Step>
 
-    <Step title="Push the page ID when the user taps a destination">
-    	Navigation items already link to their destination page. When tapped, push the item's `pageId` onto your stack and load it.
+    <Step title="Push the destination tile when tapped">
+    	Navigation items already link to their destination page and carry an attribution `ref`. When tapped, push the tile's `pageId` onto your stack and pass the tile straight to `getPage(tile)` so the drill-down is attributed automatically.
 
     	{/* sample: navigation-drill-down-with-navigation-rows-3 */}
 
@@ -180,9 +180,9 @@ for case .typeNavigationItem(let item) in items {
 const romance = items.find((i) => i.type === "navigation" && i.title === "Romance");
 
 if (romance?.type === "navigation") {
-	// Push the pre-existing page ID onto your navigation stack
+	// Push the tile's page ID onto your stack, and pass the tile so its ref is attributed
 	navigationStack.push({ id: romance.pageId, name: romance.title });
-	const pageData = await client.getPage(romance.pageId);
+	const pageData = await client.getPage(romance);
 	renderPage(pageData);
 }
 ```
@@ -191,9 +191,9 @@ if (romance?.type === "navigation") {
 // User taps "Romance" in the navigation row
 val romance = items.filterIsInstance<NavigationItem>().first { it.title == "Romance" }
 
-// Push the pre-existing page ID onto your navigation stack
+// Push the tile's page ID onto your stack, and pass the tile so its ref is attributed
 navigationStack.add(PageEntry(id = romance.pageId, name = romance.title))
-val pageData = client.getPage(romance.pageId)
+val pageData = client.getPage(romance)
 renderPage(pageData)
 ```
 
@@ -204,9 +204,9 @@ let romance = items.compactMap { item -> NavigationItem? in
     return nil
 }.first { $0.title == "Romance" }!
 
-// Push the pre-existing page ID onto your navigation stack
+// Push the tile's page ID onto your stack, and pass the tile so its ref is attributed
 navigationStack.append(PageEntry(id: romance.pageId, name: romance.title))
-let pageData = try await client.getPage(pageId: romance.pageId)
+let pageData = try await client.getPage(romance)
 renderPage(pageData)
 ```
 
@@ -254,20 +254,20 @@ When you push a page onto the stack, store its title alongside its ID so you can
 <CodeGroup>
 
 ```typescript TypeScript
-// On tap:
-const pageData = await client.getPage(romanceItem.pageId);
+// On tap: pass the tile so its ref is preserved
+const pageData = await client.getPage(romanceItem);
 navigationStack.push({ id: romanceItem.pageId, name: pageData.name ?? romanceItem.title });
 ```
 
 ```kotlin Kotlin
-// On tap:
-val pageData = client.getPage(romanceItem.pageId)
+// On tap: pass the tile so its ref is preserved
+val pageData = client.getPage(romanceItem)
 navigationStack.add(PageEntry(id = romanceItem.pageId, name = pageData.name ?: romanceItem.title))
 ```
 
 ```swift Swift
-// On tap:
-let pageData = try await client.getPage(pageId: romanceItem.pageId)
+// On tap: pass the tile so its ref is preserved
+let pageData = try await client.getPage(romanceItem)
 navigationStack.append(PageEntry(id: romanceItem.pageId, name: pageData.name ?? romanceItem.title))
 ```
 
@@ -339,8 +339,8 @@ flowchart LR
 Trying to drill deeper is not supported. Design your UX so navigation destinations don't nest more than three levels.
 
 <Warning>
-	If you try to create a page at depth 4+, the operation may fail or behave unexpectedly. Always cap
-	your navigation stack at 3 levels and prevent the user from drilling further.
+	Keep your navigation stack capped at 3 levels and avoid pushing navigation tiles beyond depth 3 so
+	viewers always have a clear path back.
 </Warning>
 
 {/* sample: navigation-three-level-depth-limit */}
@@ -353,23 +353,27 @@ function canDrillDeeper(): boolean {
 	return navigationStack.length < 3;
 }
 
-// Before creating a new page on navigation tap:
-if (canDrillDeeper()) {
-	const newPage = await client.createPage({ pageFilters });
-	navigationStack.push({ id: newPage.id });
-} else {
-	showToast("Cannot drill deeper. Try another category.");
+// Before pushing a navigation tile onto your stack:
+async function drillIntoTile(tile: NavigationItem) {
+	if (canDrillDeeper()) {
+		const pageData = await client.getPage(tile);
+		navigationStack.push({ id: tile.pageId, name: pageData.name ?? tile.title });
+		renderPage(pageData);
+	} else {
+		showToast("Cannot drill deeper. Try another category.");
+	}
 }
 ```
 
 ```kotlin Kotlin
 fun canDrillDeeper(): Boolean = navigationStack.size < 3
 
-// Before creating a new page on navigation tap:
-suspend fun drillDeeper(client: DiscovrClient, pageFilters: FilterSpec) {
+// Before pushing a navigation tile onto your stack:
+suspend fun drillIntoTile(client: DiscovrClient, tile: NavigationItem) {
     if (canDrillDeeper()) {
-        val newPage = client.createPage(pageFilters = pageFilters)
-        navigationStack.add(PageEntry(id = newPage.id))
+        val pageData = client.getPage(tile)
+        navigationStack.add(PageEntry(id = tile.pageId, name = pageData.name ?: tile.title))
+        renderPage(pageData)
     } else {
         showToast("Cannot drill deeper.")
     }
@@ -381,11 +385,12 @@ func canDrillDeeper() -> Bool {
     return navigationStack.count < 3
 }
 
-// Before creating a new page on navigation tap:
-func drillDeeper(client: DiscovrClient, pageFilters: FilterSpec) async throws {
+// Before pushing a navigation tile onto your stack:
+func drillIntoTile(client: DiscovrClient, tile: NavigationItem) async throws {
     if canDrillDeeper() {
-        let newPage = try await client.createPage(pageFilters: pageFilters)
-        navigationStack.append(PageEntry(id: newPage.id))
+        let pageData = try await client.getPage(tile)
+        navigationStack.append(PageEntry(id: tile.pageId, name: pageData.name ?? tile.title))
+        renderPage(pageData)
     } else {
         showToast("Cannot drill deeper.")
     }
@@ -446,7 +451,7 @@ Here's a skeleton of how navigation typically flows in a Discovr app:
 2. Profile picker shows available profiles
 3. User selects a profile → Home loads with hero + rows
 4. Tabs (Home, Movies, Series) each have their own page ID
-5. User taps a navigation row item (e.g., "Romance") → new page is created and pushed onto the stack
+5. User taps a navigation row item (e.g., "Romance") → its pre-created page is pushed onto the stack and loaded with `getPage(tile)`
 6. Breadcrumb updates (Home > Movies > Romance)
 7. User taps back → pop the stack, redisplay the previous page
 8. Continue Watching appears between hero and rows on Home

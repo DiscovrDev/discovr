@@ -1,14 +1,15 @@
-import { type FilterSpec } from "discovr";
+import type { NavigationItem } from "discovr";
 
 // docs:start
-async function drillIntoGenre(genreFilter: FilterSpec) {
+async function drillIntoTile(tile: NavigationItem) {
 	showLoadingIndicator();
 
-	const newPage = await client.createPage({
-		pageFilters: genreFilter,
-	});
-	await loadPageEfficiently(newPage.id);
+	// Navigation tiles already carry their destination pageId (and ref) — no createPage needed.
+	const [page, { rows }] = await Promise.all([client.getPage(tile), client.getRows(tile)]);
+	renderHero(page.hero);
+	renderRow(rows);
 
 	hideLoadingIndicator();
 }
 // docs:end
+void drillIntoTile;

@@ -82,7 +82,10 @@ Each item also carries **`year`**, **`rating`** (out of 10), **`genres`**, **`lo
 
 ## `navigation` rows
 
-**Navigation rows** surface **destination pages**: each item is **`type: "navigation"`** and carries **`page_id`** for where to **push** next (stack depth lives in [Pages overview](/guides/pages)). Each tile has a **`title`** and, usually, finished artwork in **`horizontal_path`** (landscape) and **`vertical_path`** (portrait), each in a full-size and a thumbnail version.
+**Navigation rows** surface **destination pages**: each item is **`type: "navigation"`** and carries **`page_id`** for where to **push** next (stack depth lives in [Pages overview](/guides/pages)). Each tile has a **`title`** and, usually, finished artwork in **`horizontal_path`** (landscape 16:9) and **`vertical_path`** (portrait), each keyed by size:
+
+- **`thumbnail`** (`540×304` on `horizontal_path`) — use for standard rails, mobile, web, and 1080p TV screens.
+- **`original`** (`1080×608` on `horizontal_path`) — use for large featured cards or 4K TV displays.
 
 <Warning>
 	The tile artwork is a finished image: the title (and the path that leads to it, like "Movies &
@@ -141,7 +144,15 @@ Discovr tells you what a row contains, not how to lay it out, so the row `type` 
 
 ## Load rows and items
 
-After you have a **`pageId`** (from [`createPage()`](/sdk-reference/pages/create-page) or a **`page_id`** on an item), fetch row metadata, then items for the rails you render.
+After you have a **`pageId`** (from [`createPage()`](/sdk-reference/pages/create-page) or a **`page_id`** on an item), fetch row metadata, then items for the rails your user can actually see.
+
+<Note>
+	**Every item returned by `getRowItems()` counts as served** and feeds recommendation quality — not
+	just bandwidth. Over-fetching off-screen rows or pulling 30–50 items upfront makes titles the
+	viewer never saw look ignored. Fetch items for visible rows plus roughly **1 row ahead**, keep
+	`limit` around **10**, and paginate when the viewer scrolls near the end of a row. Prefetching
+	**images** for items you have already fetched is fine.
+</Note>
 
 {/* sample: rows-load-rows-and-items */}
 
@@ -168,7 +179,7 @@ for (const row of rows) {
 
 const first = rows[0];
 if (first) {
-	const items = await client.getRowItems(pageId, first.id, { limit: 20 });
+	const items = await client.getRowItems(pageId, first.id, { limit: 10 });
 	for (const item of items.items) {
 		if (item.type === "media") {
 			console.log(item.title, item.mediaType);
@@ -192,7 +203,7 @@ suspend fun loadRailsWithItems(client: DiscovrClient, pageId: String) {
 		}
 	}
 	val first = bundle.rows.firstOrNull() ?: return
-	val items = client.getRowItems(pageId = pageId, rowId = first.id, limit = 20)
+	val items = client.getRowItems(pageId = pageId, rowId = first.id, limit = 10)
 	for (item in items.items) {
 		// Narrow each Item to MediaItem / NavigationItem / ProviderItem (your generated SDK’s union helpers)
 		println(item)
@@ -214,7 +225,7 @@ func loadRails(client: DiscovrClient, pageId: String) async throws {
 		}
 	}
 	guard let first = bundle.rows.first else { return }
-	let items = try await client.getRowItems(pageId: pageId, rowId: first.id, limit: 20)
+	let items = try await client.getRowItems(pageId: pageId, rowId: first.id, limit: 10)
 	for item in items.items {
 		switch item {
 		case .typeMediaItem(let m):
@@ -234,11 +245,11 @@ func loadRails(client: DiscovrClient, pageId: String) async throws {
 
 Every title Discovr hands you — in rows and the hero, in search results, under "more like this", in a person's known-for titles, and in your user's lists — carries a **`ref`** alongside its `id`. It's the same identifier, with where your user found it attached.
 
-It works anywhere the plain id does, and it's how Discovr learns what's working for each profile: the more of your user's actions carry it, the sharper their next recommendations get. So use the `ref` whenever your user **does** something or **moves** somewhere:
+It works anywhere the plain id does, and it's how Discovr learns what's working for each profile: the more of your user's actions carry it, the sharper their next recommendations get. **The easiest way is to pass the item or tile object directly** — every title and page method on `DiscovrClient` accepts the model (`MediaItem`, `TitleListItem`, `PlaybackItem`, `SearchResult`, `SimilarResult`, `KnownForItem`, `NavigationItem`, `ProviderItem`) and attaches its `ref` automatically:
 
-- opening a title's detail screen (the open itself is recorded by [`getMediaProfileMeta()`](/guides/profile-context/media-profile-meta), so call that with the `ref` when the title screen opens)
-- liking it, adding it to a list, or scrobbling it
-- drilling into the page a navigation or provider tile links to
+- opening a title's detail screen (the open itself is recorded by [`getTitleState()`](/guides/profile-context/media-profile-meta), so call `client.getTitleState(item)` when the title screen opens)
+- liking it, adding it to a list, marking it watched, or tracking playback with `client.trackPlayback(item)`
+- drilling into the page a navigation or provider tile links to with `client.getPage(tile)`
 - jumping from one title to another
 
 {/* sample: rows-pass-the-ref-when-your-user-acts */}
@@ -246,36 +257,46 @@ It works anywhere the plain id does, and it's how Discovr learns what's working 
 <CodeGroup>
 
 ```typescript TypeScript
-import { refOrId } from "discovr";
+// Opening a title from a row — pass the item directly so its ref is included automatically
+const [details, state] = await Promise.all([client.getMedia(item), client.getTitleState(item)]);
 
-// Opening a title from a row
-const details = await client.getMedia(refOrId(item));
-const state = await client.setRating(refOrId(item), "liked");
+// Rating, watchlist, scrobbling, and marking watched accept items too
+const updated = await client.setRating(item, "liked");
 
 // Drilling into a navigation or provider tile
-const page = await client.getPage(refOrId(tile));
+const page = await client.getPage(tile);
 ```
 
 ```kotlin Kotlin
 import api.discovr.models.Rating
-import api.discovr.refOrId
 
-val details = client.getMedia(mediaId = item.refOrId())
-val state = client.setRating(mediaId = item.refOrId(), value = Rating.liked)
+// Opening a title from a row — pass the item directly so its ref is included automatically
+val details = client.getMedia(item)
+val state = client.getTitleState(item)
 
-val page = client.getPage(pageId = tile.refOrId())
+// Rating, watchlist, scrobbling, and marking watched accept items too
+val updated = client.setRating(item, Rating.liked)
+
+// Drilling into a navigation or provider tile
+val page = client.getPage(tile)
 ```
 
 ```swift Swift
-let details = try await client.getMedia(mediaId: item.refOrId)
-let state = try await client.setRating(mediaId: item.refOrId, value: .liked)
+// Opening a title from a row — pass the item directly so its ref is included automatically
+async let details = client.getMedia(item)
+async let state = client.getTitleState(item)
+let (media, titleState) = try await (details, state)
 
-let page = try await client.getPage(pageId: tile.refOrId)
+// Rating, watchlist, scrobbling, and marking watched accept items too
+let updated = try await client.setRating(item, value: .liked)
+
+// Drilling into a navigation or provider tile
+let page = try await client.getPage(tile)
 ```
 
 </CodeGroup>
 
-`refOrId` picks the right value for whichever kind of item you give it — media items are keyed by their title id, navigation and provider tiles by the page they open — and falls back to the plain id when no `ref` is present.
+When you only hold a string (such as a route parameter, deep link, or stored ID), every method still accepts a plain string ID or `ref` — use `refOrId` to extract the string to store in navigation state, and `idOf` to strip a `ref` back to a canonical ID.
 
 ### Use the `id` to name a title
 
@@ -294,8 +315,8 @@ navigate(`/title/${item.id}`, { state: { ref: refOrId(item) } });
 // On the detail screen: act with the ref, name the title with the id
 const { id } = useParams();
 const ref = useLocation().state?.ref ?? id; // opened from a shared link? the id works too
-const details = await client.getMedia(ref);
-const state = await client.setRating(ref, "liked");
+const [details, state] = await Promise.all([client.getMedia(ref), client.getTitleState(ref)]);
+const updated = await client.setRating(ref, "liked");
 
 // Holding only a ref, like a saved "recently viewed" entry? idOf gets the id back.
 const cacheKey = idOf(savedRef);
@@ -311,7 +332,8 @@ val screen = TitleScreen(id = item.id, ref = item.refOrId())
 
 // On the detail screen: act with the ref, name the title with the id
 val details = client.getMedia(mediaId = screen.ref)
-val state = client.setRating(mediaId = screen.ref, value = Rating.liked)
+val state = client.getTitleState(mediaId = screen.ref)
+val updated = client.setRating(mediaId = screen.ref, value = Rating.liked)
 
 // Holding only a ref, like a saved "recently viewed" entry? idOf gets the id back.
 val cacheKey = idOf(savedRef)
@@ -322,8 +344,10 @@ val cacheKey = idOf(savedRef)
 path.append(TitleRoute(id: item.id, ref: item.refOrId))
 
 // On the detail screen: act with the ref, name the title with the id
-let details = try await client.getMedia(mediaId: route.ref)
-let state = try await client.setRating(mediaId: route.ref, value: .liked)
+async let details = client.getMedia(mediaId: route.ref)
+async let state = client.getTitleState(mediaId: route.ref)
+let (media, titleState) = try await (details, state)
+let updated = try await client.setRating(mediaId: route.ref, value: .liked)
 
 // Holding only a ref, like a saved "recently viewed" entry? idOf gets the id back.
 let cacheKey = idOf(savedRef)
@@ -335,9 +359,11 @@ let cacheKey = idOf(savedRef)
 
 <Note>
 	A title counts as opened when you call
-	[`getMediaProfileMeta()`](/guides/profile-context/media-profile-meta) with its `ref`. Call it when
-	the title screen opens, and not before: prefetching it for a tile that is only focused or hovered
-	records an open that never happened. `getMedia()` doesn't record anything.
+	[`getTitleState()`](/guides/profile-context/media-profile-meta) with its `ref` (or item object).
+	Call it when the title screen opens, and not before: prefetching it for a tile that is only
+	focused or hovered records an open that never happened. State writes (`setRating`,
+	`addToWatchlist`, `markWatched`, etc.) return the updated `TitleState` directly, so don't refetch
+	`getTitleState()` after a write. `getMedia()` doesn't record an open.
 </Note>
 
 <Note>

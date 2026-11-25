@@ -294,6 +294,23 @@ Actionable failures arrive as **typed error classes** across every tier (sign-in
 | `500` / `503` | `internal-error` / `service-unavailable` | "Something went wrong. Try again."                                                  |
 | No status     | —                                        | The request never left the device. "Check your connection and try again."           |
 
+## Rate limits
+
+Discovr applies per-endpoint-group rate limits to keep the service responsive. Limits are enforced per user (within your app) on authenticated endpoints and per IP on unauthenticated sign-in and media-lookup endpoints:
+
+| Endpoint group                                                                                                                                                                                 | Limit                                      | Scope    |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | -------- |
+| Page creation (`createPage`)                                                                                                                                                                   | 12 / min                                   | Per user |
+| Search (`searchMedia`)                                                                                                                                                                         | 25 / min                                   | Per user |
+| Avatar gallery & GIF search (`getProfileImages`, `searchGifs`)                                                                                                                                 | 25 / min                                   | Per IP   |
+| Browsing, media details, profiles, lists, title state, scrobbling (`getPage`, `getRows`, `getRowItems`, `getMedia`, `getTitleState`, `setRating`, `scrobble`, `markWatched`, `getProfiles`, …) | 60 / min                                   | Per user |
+| Profile session minting, auth sessions, legal acceptance (`selectProfile`, `switchProfile`, …)                                                                                                 | 20 / min                                   | Per user |
+| Web sign-in authorize / token exchange                                                                                                                                                         | 20 / min (authorize) · 30 / min (exchange) | Per IP   |
+| Device-code sign-in requests (`signInWithDeviceCode`)                                                                                                                                          | 60 / hour                                  | Per IP   |
+| Demo sandbox creation (`signInWithDemo`)                                                                                                                                                       | 5 / hour                                   | Per IP   |
+
+When you exceed a limit, the API responds with `429 rate-limited` and the SDK throws `RateLimitedError` (`AuthError.rateLimited(retryInSeconds:)` in Swift). Wait `retryInSeconds` seconds before retrying — retrying immediately keeps the bucket full and extends the throttle.
+
 ## SDK error recovery
 
 SDK automatically handles:

@@ -1,14 +1,18 @@
-import api.discovr.DiscovrClient
+import api.discovr.*
+import api.discovr.auth.*
+import api.discovr.models.*
+import kotlinx.coroutines.*
 
-private suspend fun sample(client: DiscovrClient, mediaId: String) {
+private suspend fun sample(client: DiscovrClient) {
     // docs:start
     // A movie, or every aired episode of a show.
-    val state = client.markWatched(mediaId)
+    val state = client.markWatched(item)
 
     // One season of a show.
-    client.markWatched(mediaId, season = 2)
+    client.markWatched(item, season = 2)
 
     // One episode.
-    client.markWatched(mediaId, season = 2, episode = 5)
+    client.markWatched(item, season = 2, episode = 5)
     // docs:end
+    println(state)
 }

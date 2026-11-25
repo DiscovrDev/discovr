@@ -9,9 +9,9 @@ private func sample(client: DiscovrClient, items: [RowItem]) async throws {
         return nil
     }.first { $0.title == "Romance" }!
 
-    // Push the pre-existing page ID onto your navigation stack
+    // Push the tile's page ID onto your stack, and pass the tile so its ref is attributed
     navigationStack.append(PageEntry(id: romance.pageId, name: romance.title))
-    let pageData = try await client.getPage(pageId: romance.pageId)
+    let pageData = try await client.getPage(romance)
     renderPage(pageData)
     // docs:end
 }

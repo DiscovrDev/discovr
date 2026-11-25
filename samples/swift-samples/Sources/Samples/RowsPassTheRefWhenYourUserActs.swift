@@ -1,11 +1,17 @@
 import Discovr
 
-private func sample(client: DiscovrClient, pageId: String, mediaId: String) async throws {
+private func sample(client: DiscovrClient) async throws {
     // docs:start
-    let details = try await client.getMedia(mediaId: item.refOrId)
-    let state = try await client.setRating(mediaId: item.refOrId, value: .liked)
+    // Opening a title from a row — pass the item directly so its ref is included automatically
+    async let details = client.getMedia(item)
+    async let state = client.getTitleState(item)
+    let (media, titleState) = try await (details, state)
 
-    let page = try await client.getPage(pageId: tile.refOrId)
+    // Rating, watchlist, scrobbling, and marking watched accept items too
+    let updated = try await client.setRating(item, value: .liked)
+
+    // Drilling into a navigation or provider tile
+    let page = try await client.getPage(tile)
     // docs:end
-    _ = (details, state, page)
+    _ = (media, titleState, updated, page)
 }

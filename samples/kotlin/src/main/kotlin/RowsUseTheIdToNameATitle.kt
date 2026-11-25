@@ -15,9 +15,11 @@ private suspend fun sample(client: DiscovrClient, mediaId: String) {
 
     // On the detail screen: act with the ref, name the title with the id
     val details = client.getMedia(mediaId = screen.ref)
-    val state = client.setRating(mediaId = screen.ref, value = Rating.liked)
+    val state = client.getTitleState(mediaId = screen.ref)
+    val updated = client.setRating(mediaId = screen.ref, value = Rating.liked)
 
     // Holding only a ref, like a saved "recently viewed" entry? idOf gets the id back.
     val cacheKey = idOf(savedRef)
     // docs:end
+    println("$details $state $updated $cacheKey")
 }

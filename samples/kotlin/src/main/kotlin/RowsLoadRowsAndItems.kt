@@ -17,7 +17,7 @@ suspend fun loadRailsWithItems(client: DiscovrClient, pageId: String) {
 		}
 	}
 	val first = bundle.rows.firstOrNull() ?: return
-	val items = client.getRowItems(pageId = pageId, rowId = first.id, limit = 20)
+	val items = client.getRowItems(pageId = pageId, rowId = first.id, limit = 10)
 	for (item in items.items) {
 		// Narrow each Item to MediaItem / NavigationItem / ProviderItem (your generated SDK’s union helpers)
 		println(item)

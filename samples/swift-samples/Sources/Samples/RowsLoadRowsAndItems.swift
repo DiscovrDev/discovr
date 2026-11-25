@@ -14,7 +14,7 @@ func loadRails(client: DiscovrClient, pageId: String) async throws {
 		}
 	}
 	guard let first = bundle.rows.first else { return }
-	let items = try await client.getRowItems(pageId: pageId, rowId: first.id, limit: 20)
+	let items = try await client.getRowItems(pageId: pageId, rowId: first.id, limit: 10)
 	for item in items.items {
 		switch item {
 		case .typeMediaItem(let m):

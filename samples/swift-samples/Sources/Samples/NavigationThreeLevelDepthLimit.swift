@@ -6,11 +6,12 @@ func canDrillDeeper() -> Bool {
     return navigationStack.count < 3
 }
 
-// Before creating a new page on navigation tap:
-func drillDeeper(client: DiscovrClient, pageFilters: FilterSpec) async throws {
+// Before pushing a navigation tile onto your stack:
+func drillIntoTile(client: DiscovrClient, tile: NavigationItem) async throws {
     if canDrillDeeper() {
-        let newPage = try await client.createPage(pageFilters: pageFilters)
-        navigationStack.append(PageEntry(id: newPage.id))
+        let pageData = try await client.getPage(tile)
+        navigationStack.append(PageEntry(id: tile.pageId, name: pageData.name ?? tile.title))
+        renderPage(pageData)
     } else {
         showToast("Cannot drill deeper.")
     }

@@ -44,15 +44,16 @@ Those six steps are the order to build in, not the definition of done. A complet
 
 - A home page with its hero and rows, plus the Movies and Series tabs: [pages](https://docs.discovr.media/guides/pages).
 - Every row type: `media` and `top_n` open a title, `navigation` opens another page (draw the tile art as given, don't add the title on top), `provider` opens a streaming service's page: [rows](https://docs.discovr.media/guides/rows).
-- Drill-down pages with a way back: [navigation](https://docs.discovr.media/guides/navigation). Load the hero first and rows as they scroll into view: [lazy loading](https://docs.discovr.media/guides/navigation/lazy-loading).
+- Pass returned item and tile objects directly to SDK methods (`getMedia(item)`, `getTitleState(item)`, `setRating(item, ...)`, `getPage(tile)`, `trackPlayback(item)`) so attribution `ref` values flow automatically without manual plumbing.
+- Drill-down pages with a way back: [navigation](https://docs.discovr.media/guides/navigation). Load the hero first, keep row item fetches around `limit: 10`, and load rows only as they scroll near the viewport: [lazy loading](https://docs.discovr.media/guides/navigation/lazy-loading).
 - Refresh when recommendations turn over: [recommendations](https://docs.discovr.media/guides/recommendations).
 - Search, including people, not only titles: [search](https://docs.discovr.media/guides/media/search).
 
 **Title details**
 
 - Artwork, synopsis and metadata, plus seasons and episodes (with a checkmark on each finished episode) for a series, and similar titles when there are any: [media details](https://docs.discovr.media/guides/media), [finished episodes](https://docs.discovr.media/guides/profile-context/season-profile-meta).
-- Where to watch: `providers: true` on `getMediaProfileMeta` for the services the viewer picked, `watchProviders` on `getMedia` for every service that carries the title.
-- The viewer's own state on the title (lists, resume position, finished or not): [media state](https://docs.discovr.media/guides/profile-context/media-profile-meta).
+- Where to watch: `providers: true` on `getTitleState` for the services the viewer picked, `watchProviders` on `getMedia` for every service that carries the title.
+- The viewer's own state on the title (lists, resume position, finished or not): [media state](https://docs.discovr.media/guides/profile-context/media-profile-meta). Call `getTitleState` only when the title screen actually opens (never prefetch on hover/focus), and update UI directly from the `TitleState` returned by state writes instead of refetching.
 
 **Lists and ratings**
 
@@ -62,14 +63,19 @@ Those six steps are the order to build in, not the definition of done. A complet
 
 **Playback**
 
-- Scrobble while playing, about every 30 seconds and on every pause, seek and end: [scrobbling](https://docs.discovr.media/guides/profile-context/scrobbling).
-- Mark as watched (scrobble 100) and mark as unwatched (`markUnwatched`), per movie, season or episode: [scrobbling](https://docs.discovr.media/guides/profile-context/scrobbling).
+- Track playback with `client.trackPlayback(item)` — it handles the 30-second heartbeat throttle, serial ordering, episode handoff (`after`), and pause/resume/seek/stop transitions: [scrobbling](https://docs.discovr.media/guides/profile-context/scrobbling). Always send the real start position (never `0` on resume).
+- Mark as watched (`markWatched`) and mark as unwatched (`markUnwatched`), per movie, season or episode (both return the updated `TitleState`): [scrobbling](https://docs.discovr.media/guides/profile-context/scrobbling).
 - Watch history where it helps the viewer, for example a "Watch it again" row.
 
 **Quality**
 
 - Handle errors the way the SDK expects, including rate limits: [error handling](https://docs.discovr.media/guides/reference/error-handling).
 - Follow the [security](https://docs.discovr.media/guides/reference/security) guidance for stored credentials, and use the [Discovr branding](https://docs.discovr.media/guides/reference/branding) for the sign-in button.
+- **Before calling an integration done, run a line-by-line guide audit:**
+  1. Read every guide in the build order in full — including notes, warnings, and code samples — rather than relying on memory.
+  2. Open the code in the project doing each job and compare it line by line against the guide.
+  3. Report a table with one row per guide: **guide requirement**, **code location**, **status** (`match`, `differs`, or `not-checked`), plus a short note on any paths that were not executed (for example, live playback or device-only flows).
+  4. Explicitly check: `ref` passing (item/tile overloads or `refOrId` on every open, rating, watchlist, drill-down, search tap, and scrobble), credential tier (identity vs session), `401` / `409 cursor-expired` / `429` (`retryInSeconds`) handling, and swallowed errors (`try?`, empty `catch {}`, or silent fallbacks that hide typed SDK errors).
 
 ## Look up exact contracts in the references
 

@@ -20,13 +20,13 @@ export async function sample() {
 			// People have no detail view; open one of their credits instead.
 			const credit = first.knownFor?.[0];
 			if (credit) {
-				const media = await client.getMedia(credit.id);
+				const media = await client.getMedia(credit);
 				console.log(`${first.name} → ${media.movie?.title ?? media.tv?.name}`);
 			}
 			return;
 		}
 
-		const media = await client.getMedia(first.id);
+		const media = await client.getMedia(first);
 		const details = media.movie ?? media.tv;
 		console.log(media.movie?.title ?? media.tv?.name, details?.overview);
 	}

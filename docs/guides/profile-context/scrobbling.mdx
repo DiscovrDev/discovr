@@ -1,188 +1,274 @@
 ---
 title: "Tracking Playback with Scrobbling"
-description: "Keep watch history and Continue Watching in sync with real-time progress updates, plus one-call mark watched and unwatched."
+description: "Keep watch history and Continue Watching in sync with PlaybackTracker, plus one-call mark watched and unwatched."
 ---
 
-When someone watches a movie or episode, they pause, rewind, and scrub around. **Scrobbling** is how you tell Discovr about those moments—it's the everyday heartbeat that keeps watch history, completion, and resume position in sync.
+When someone watches a movie or episode, they pause, rewind, and scrub around. **Scrobbling** is how you tell Discovr about those moments—it keeps watch history, completion, and resume position in sync across devices.
 
-Every time the user starts, pauses, seeks, or finishes watching, you send a **scrobble** with their current progress. Discovr uses that data to:
+Use **`client.trackPlayback(item)`** to create a `PlaybackTracker` for each movie or episode you play. Report player lifecycle events as they happen, and the tracker handles the 30-second heartbeat throttle, strict serial ordering, episode handoff, pause/resume deduplication, and backoff on rate limits for you.
 
-- Keep the Continue Watching row up-to-date with how far they got
+Discovr uses those updates to:
+
+- Keep the Continue Watching row up to date with how far the viewer got
 - Automatically remove the title from the watchlist once progress reaches 20% (for both movies and TV shows)
 - Mark the movie or episode complete once progress reaches 80% — and return `completedSeasons` when a TV episode crosses 80%. See [Completion rules](/guides/profile-context/media-profile-meta#completion-rules) for the full picture, or [`getSeasonState()`](/guides/profile-context/season-profile-meta) for per-episode detail within a season.
 
 ---
 
-| Player event    | Call         | What to send                                            |
-| --------------- | ------------ | ------------------------------------------------------- |
-| Play starts     | `scrobble()` | The real start position (0–100 — not `0` when resuming) |
-| Pause or resume | `scrobble()` | Current progress (0–100)                                |
-| About every 30s | `scrobble()` | Current progress                                        |
-| Seek or rewind  | `scrobble()` | The landing progress (0–100)                            |
-| Playback ends   | `scrobble()` | `progress: 100`                                         |
+| Player event      | Call on `PlaybackTracker`            | What it does                                                            |
+| ----------------- | ------------------------------------ | ----------------------------------------------------------------------- |
+| Play starts       | `tracker.start(...)`                 | Sends immediately with the real start position (not `0` on resume)      |
+| Periodic tick     | `tracker.update(...)`                | Safe to call every second — throttled to every 30s automatically        |
+| Pause / resume    | `tracker.pause(...)` / `resume(...)` | Sends immediately; repeat pause/resume calls are deduplicated           |
+| Seek or rewind    | `tracker.seek(...)`                  | Sends immediately and resets the 30-second heartbeat timer              |
+| Stop early        | `await tracker.stop(...)`            | Once-only terminal send; awaits delivery and returns `ScrobbleResponse` |
+| Played to the end | `await tracker.finish()`             | Once-only terminal send at `100%`; returns `ScrobbleResponse`           |
 
 <Note>
-	Always send the viewer's **real** starting position when playback begins — if they resume a title
-	at 45%, send `45`, not `0`. Lower progress moves the saved resume position (so rewinds work),
-	while completion is never undone by playback — only [`markUnwatched()`](#undoing-a-watch) undoes
-	completion.
+	Always pass the viewer's **real** starting position when playback begins — if they resume a title
+	at 45%, call `tracker.start(45)`, not `0`. Lower progress moves the saved resume position (so
+	rewinds work), while completion is never undone by playback — only
+	[`markUnwatched()`](#undoing-a-watch) undoes completion.
 </Note>
 
-## Sending progress updates with `scrobble()`
+## Track playback with `client.trackPlayback()`
 
-Track progress as the user watches. Send the media ID (or `ref`) and current progress (0–100%).
+Create one `PlaybackTracker` per movie or episode by passing the item directly (so its `ref` is preserved automatically; a raw `mediaId` works too). Percentage (`0–100`) is the primary unit everywhere:
 
 {/* sample: profile-context-scrobbling-scrobble-progress-updates */}
 
 <CodeGroup>
 
 ```typescript TypeScript
-await client.scrobble(mediaId, progress);
+const tracker = client.trackPlayback(item);
+
+// Send the real starting position (e.g. 45 when resuming, never 0 on resume).
+tracker.start(0);
+
+// Safe to call every second while playing — throttled to 30s automatically.
+tracker.update(32.5);
+
+// Pause, resume, and seek send immediately and deduplicate repeat events.
+tracker.pause(42.0);
+tracker.resume(42.0);
+tracker.seek(60.0);
+
+// Terminal call: once-only, awaits delivery, and returns the ScrobbleResponse.
+const result = await tracker.stop(64.0); // or await tracker.finish() at 100%
 ```
 
 ```kotlin Kotlin
-client.scrobble(mediaId, progress)
+val tracker = client.trackPlayback(item)
+
+// Send the real starting position (e.g. 45.0 when resuming, never 0.0 on resume).
+tracker.start(0.0)
+
+// Safe to call every second while playing — throttled to 30s automatically.
+tracker.update(32.5)
+
+// Pause, resume, and seek send immediately and deduplicate repeat events.
+tracker.pause(42.0)
+tracker.resume(42.0)
+tracker.seek(60.0)
+
+// Terminal call: once-only, awaits delivery, and returns the ScrobbleResponse.
+val result = tracker.stop(64.0) // or tracker.finish() at 100%
 ```
 
 ```swift Swift
-try await client.scrobble(mediaId: mediaId, progress: progress)
+let tracker = client.trackPlayback(item)
+
+// Send the real starting position (e.g. 45 when resuming, never 0 on resume).
+tracker.start(progress: 0)
+
+// Safe to call every second while playing — throttled to 30s automatically.
+tracker.update(progress: 32.5)
+
+// Pause, resume, and seek send immediately and deduplicate repeat events.
+tracker.pause(progress: 42.0)
+tracker.resume(progress: 42.0)
+tracker.seek(progress: 60.0)
+
+// Terminal call: once-only, awaits delivery, and returns the ScrobbleResponse.
+let result = await tracker.stop(progress: 64.0) // or await tracker.finish() at 100%
 ```
 
 </CodeGroup>
 
-For TV, include the season and episode so progress lands on the right one:
+Both `stop()` and `finish()` are **once-only** and idempotent: if your player fires both an ended event and a teardown hook, only the first call sends a network request, and both calls resolve to the same `ScrobbleResponse`.
+
+### TV episodes and autoplay handoff
+
+For TV shows, pass `tv` with the season and episode (if you pass a `PlaybackItem` from Continue Watching, `tv` is filled in automatically). When auto-advancing to the next episode, pass the previous tracker in **`after`** so episode 5's `finish()` lands before episode 6's `start()` is sent:
 
 {/* sample: profile-context-scrobbling-scrobble-progress-updates-2 */}
 
 <CodeGroup>
 
 ```typescript TypeScript
-await client.scrobble(mediaId, progress, {
+const ep5 = client.trackPlayback(item, {
 	tv: { season: 1, episode: 5 },
+	onCompleted: (res) => console.log("Completed seasons:", res.completedSeasons),
 });
+ep5.start(0);
+await ep5.finish();
+
+// Next-episode autoplay: wait for ep5's final scrobble before ep6's start lands.
+const ep6 = client.trackPlayback(item, {
+	tv: { season: 1, episode: 6 },
+	after: ep5,
+});
+ep6.start(0);
 ```
 
 ```kotlin Kotlin
-client.scrobble(mediaId, progress, tv = EpisodeRef(season = 1, episode = 5))
+val ep5 = client.trackPlayback(
+    item,
+    tv = EpisodeRef(season = 1, episode = 5),
+    onCompleted = { res -> println("Completed seasons: ${res.completedSeasons}") },
+)
+ep5.start(0.0)
+ep5.finish()
+
+// Next-episode autoplay: wait for ep5's final scrobble before ep6's start lands.
+val ep6 = client.trackPlayback(
+    item,
+    tv = EpisodeRef(season = 1, episode = 6),
+    after = ep5,
+)
+ep6.start(0.0)
 ```
 
 ```swift Swift
-try await client.scrobble(
-    mediaId: mediaId,
-    progress: progress,
-    tv: EpisodeRef(season: 1, episode: 5)
+let ep5 = client.trackPlayback(
+    item,
+    tv: EpisodeRef(season: 1, episode: 5),
+    onCompleted: { res in print("Completed seasons:", res.completedSeasons ?? []) }
 )
+ep5.start(progress: 0)
+await ep5.finish()
+
+// Next-episode autoplay: wait for ep5's final scrobble before ep6's start lands.
+let ep6 = client.trackPlayback(
+    item,
+    tv: EpisodeRef(season: 1, episode: 6),
+    after: ep5
+)
+ep6.start(progress: 0)
 ```
 
 </CodeGroup>
 
+Use `onCompleted` to react once when a movie or episode first crosses the 80% completion threshold (for example, to refresh a season checkmark or badge), and `onError` to log or observe failures without throwing into your player loop.
+
 ---
 
-## When to call scrobble
+## Wiring a player with `(position, duration)`
 
-Your player already knows all of these moments — scrobbling is a matter of hooking each one:
+If your player reports current time and duration instead of a percentage, pass both on each call. The tracker computes the percentage per call and never caches a fixed duration across calls (so streams that switch quality or source stay accurate). Calls with `duration <= 0` or non-finite values are safely ignored instead of overwriting resume position with `0%`.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Playing: user hits play
-    Playing --> Paused: pause
-    Paused --> Playing: resume
-    Playing --> Playing: heartbeat every ~30s
-    Playing --> Seeking: scrub / seek
+    [*] --> Playing: tracker.start(...)
+    Playing --> Paused: tracker.pause(...)
+    Paused --> Playing: tracker.resume(...)
+    Playing --> Playing: tracker.update(...) (throttled to 30s)
+    Playing --> Seeking: tracker.seek(...)
     Seeking --> Playing: lands
-    Playing --> Finished: reaches the end
+    Playing --> Finished: await tracker.finish() / stop(...)
     Finished --> [*]
-
-    note right of Paused: scrobble(progress)
-    note right of Seeking: scrobble(landingProgress)
-    note right of Finished: scrobble(100)
 ```
-
-Call `scrobble()` at each of these points:
-
-| Event          | Example                             | What to send                                 |
-| -------------- | ----------------------------------- | -------------------------------------------- |
-| **Start**      | Playback begins                     | Real starting `progress` (not `0` on resume) |
-| **Pause**      | User pauses video                   | Current `progress`                           |
-| **Resume**     | User un-pauses                      | Current `progress`                           |
-| **Seek**       | User scrubs to new position         | New landing `progress`                       |
-| **Completion** | Video finishes or reaches threshold | `progress: 100`                              |
-
-**Don't spam.** A call every few hundred milliseconds only creates noise. Here's the rhythm to use:
-
-- On start, pause, resume, seek, and completion: scrobble immediately.
-- During playback: scrobble about every 30 seconds. That keeps "Continue Watching" within half a minute of where the viewer really is, which is as good as it needs to be.
-
----
-
-## Example: A simple player heartbeat
-
-Here's how you might wire a player to scrobble as the user watches:
 
 {/* sample: profile-context-scrobbling-example-a-simple-player-heartbeat */}
 
 <CodeGroup>
 
 ```typescript TypeScript
-// When playback starts — send the real start position (not 0 when resuming)
-async function onStart(mediaId: string, progress: number) {
-	await client.scrobble(mediaId, progress);
-}
+const tracker = client.trackPlayback(item, {
+	onError: (err) => console.warn("Scrobble failed:", err),
+});
 
-// When the user pauses or seeks to a new position
-async function onPauseOrSeek(mediaId: string, progress: number) {
-	await client.scrobble(mediaId, progress);
+// Pass the current stream's { position, duration } in any matching unit (seconds or ms).
+// Calls with duration <= 0 are ignored instead of overwriting resume position with 0%.
+function onPlay(position: number, duration: number) {
+	tracker.start({ position, duration });
 }
-
-// About every 30 seconds while playing
-async function heartbeat(mediaId: string, progress: number) {
-	await client.scrobble(mediaId, progress);
+function onTimeUpdate(position: number, duration: number) {
+	tracker.update({ position, duration }); // throttled to every 30s
+}
+function onPause(position: number, duration: number) {
+	tracker.pause({ position, duration });
+}
+function onSeek(position: number, duration: number) {
+	tracker.seek({ position, duration });
+}
+async function onStop(position: number, duration: number) {
+	await tracker.stop({ position, duration });
 }
 ```
 
 ```kotlin Kotlin
-// When playback starts — send the real start position (not 0 when resuming)
-suspend fun onStart(mediaId: String, progress: Double) {
-    client.scrobble(mediaId, progress)
-}
+val tracker = client.trackPlayback(
+    item,
+    onError = { err -> println("Scrobble failed: $err") },
+)
 
-// When the user pauses or seeks to a new position
-suspend fun onPauseOrSeek(mediaId: String, progress: Double) {
-    client.scrobble(mediaId, progress)
-}
-
-// About every 30 seconds while playing
-suspend fun heartbeat(mediaId: String, progress: Double) {
-    client.scrobble(mediaId, progress)
-}
+// Pass the current stream's (position, duration) in any matching unit (seconds or ms).
+// Calls with duration <= 0 are ignored instead of overwriting resume position with 0%.
+fun onPlay(position: Double, duration: Double) = tracker.start(position, duration)
+fun onTimeUpdate(position: Double, duration: Double) = tracker.update(position, duration) // throttled to every 30s
+fun onPause(position: Double, duration: Double) = tracker.pause(position, duration)
+fun onSeek(position: Double, duration: Double) = tracker.seek(position, duration)
+suspend fun onStop(position: Double, duration: Double) = tracker.stop(position, duration)
 ```
 
 ```swift Swift
-// When playback starts — send the real start position (not 0 when resuming)
-func onStart(mediaId: String, progress: Double) async throws {
-    try await client.scrobble(mediaId: mediaId, progress: progress)
-}
+let tracker = client.trackPlayback(
+    item,
+    onError: { err in print("Scrobble failed:", err) }
+)
 
-// When the user pauses or seeks to a new position
-func onPauseOrSeek(mediaId: String, progress: Double) async throws {
-    try await client.scrobble(mediaId: mediaId, progress: progress)
+// Pass the current stream's (position, duration) in any matching unit (seconds or ms).
+// Calls with duration <= 0 are ignored instead of overwriting resume position with 0%.
+func onPlay(position: Double, duration: Double) {
+    tracker.start(position: position, duration: duration)
 }
-
-// About every 30 seconds while playing
-func heartbeat(mediaId: String, progress: Double) async throws {
-    try await client.scrobble(mediaId: mediaId, progress: progress)
+func onTimeUpdate(position: Double, duration: Double) {
+    tracker.update(position: position, duration: duration) // throttled to every 30s
+}
+func onPause(position: Double, duration: Double) {
+    tracker.pause(position: position, duration: duration)
+}
+func onSeek(position: Double, duration: Double) {
+    tracker.seek(position: position, duration: duration)
+}
+func onStop(position: Double, duration: Double) async {
+    await tracker.stop(position: position, duration: duration)
 }
 ```
 
 </CodeGroup>
 
+<Tip>
+	**Low-level escape hatch:** If you are reporting playback from a backend service or already own a
+	serial scrobble queue and 30-second throttle, you can still call
+	[`client.scrobble()`](/sdk-reference/scrobble/scrobble) directly. For player integrations in an
+	app, prefer `client.trackPlayback(item)`.
+</Tip>
+
 ---
 
-## Playback vs History
+## `trackPlayback` vs `markWatched` vs `importHistory`
 
-**Scrobble** is the everyday path during viewing. Every call updates where the viewer is in the title, which is what Continue Watching (`getPlaybackItems()`) and your resume button (`getTitleState().playback`) read.
+Choose the right call for where the watch came from:
 
-Watch history (`getHistory()` / `getTitles({ watched: true })`) shows one entry per watched title, ordered most recently watched first. If you're migrating watch history from an external service, use [`importHistory()`](/sdk-reference/profile-lists/import-history) with an `imported` source name instead of `scrobble()`.
+| Scenario                                              | What to call                                                                                                          |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Live playback in your player                          | `client.trackPlayback(item)` (or low-level [`scrobble()`](/sdk-reference/scrobble/scrobble))                          |
+| Manual "Mark as watched" / "Mark as unwatched" button | [`markWatched()`](/sdk-reference/scrobble/mark-watched) / [`markUnwatched()`](/sdk-reference/scrobble/mark-unwatched) |
+| Backfilling watch history from an external service    | [`importHistory()`](/sdk-reference/profile-lists/import-history) with an `imported` source label                      |
+
+Watch history (`getHistory()` / `getTitles({ watched: true })`) returns one entry per watched title, ordered most recently watched first. Continue Watching (`getPlaybackItems()`) holds the viewer's live resume position.
 
 ---
 
@@ -198,35 +284,35 @@ One call marks a movie, an entire TV show (every aired episode across regular se
 
 ```typescript TypeScript
 // A movie, or every aired episode of a show.
-const state = await client.markWatched(mediaId);
+const state = await client.markWatched(item);
 
 // One season of a show.
-await client.markWatched(mediaId, { season: 2 });
+await client.markWatched(item, { season: 2 });
 
 // One episode.
-await client.markWatched(mediaId, { season: 2, episode: 5 });
+await client.markWatched(item, { season: 2, episode: 5 });
 ```
 
 ```kotlin Kotlin
 // A movie, or every aired episode of a show.
-val state = client.markWatched(mediaId)
+val state = client.markWatched(item)
 
 // One season of a show.
-client.markWatched(mediaId, season = 2)
+client.markWatched(item, season = 2)
 
 // One episode.
-client.markWatched(mediaId, season = 2, episode = 5)
+client.markWatched(item, season = 2, episode = 5)
 ```
 
 ```swift Swift
 // A movie, or every aired episode of a show.
-let state = try await client.markWatched(mediaId: mediaId)
+let state = try await client.markWatched(item)
 
 // One season of a show.
-try await client.markWatched(mediaId: mediaId, season: 2)
+try await client.markWatched(item, season: 2)
 
 // One episode.
-try await client.markWatched(mediaId: mediaId, season: 2, episode: 5)
+try await client.markWatched(item, season: 2, episode: 5)
 ```
 
 </CodeGroup>
@@ -243,35 +329,35 @@ For a "Mark as unwatched" button, call **[`markUnwatched()`](/sdk-reference/scro
 
 ```typescript TypeScript
 // A movie, or every season of a show.
-await client.markUnwatched(mediaId);
+const state = await client.markUnwatched(item);
 
 // One season of a show.
-await client.markUnwatched(mediaId, { season: 2 });
+await client.markUnwatched(item, { season: 2 });
 
 // One episode.
-await client.markUnwatched(mediaId, { season: 2, episode: 5 });
+await client.markUnwatched(item, { season: 2, episode: 5 });
 ```
 
 ```kotlin Kotlin
 // A movie, or every season of a show.
-client.markUnwatched(mediaId)
+val state = client.markUnwatched(item)
 
 // One season of a show.
-client.markUnwatched(mediaId, season = 2)
+client.markUnwatched(item, season = 2)
 
 // One episode.
-client.markUnwatched(mediaId, season = 2, episode = 5)
+client.markUnwatched(item, season = 2, episode = 5)
 ```
 
 ```swift Swift
 // A movie, or every season of a show.
-try await client.markUnwatched(mediaId: mediaId)
+let state = try await client.markUnwatched(item)
 
 // One season of a show.
-try await client.markUnwatched(mediaId: mediaId, season: 2)
+try await client.markUnwatched(item, season: 2)
 
 // One episode.
-try await client.markUnwatched(mediaId: mediaId, season: 2, episode: 5)
+try await client.markUnwatched(item, season: 2, episode: 5)
 ```
 
 </CodeGroup>

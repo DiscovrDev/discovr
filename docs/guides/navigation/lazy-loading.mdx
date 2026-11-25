@@ -176,8 +176,8 @@ Rows include pagination tokens (`nextPageToken`, `hasMore`). Don't fetch all ite
 
 ```typescript TypeScript
 async function loadRowItemsOnScroll(pageId: string, row: Row) {
-	// Fetch the first page of items
-	let page = await client.getRowItems(pageId, row.id);
+	// Fetch the first page of items (keep limit around 10 — every returned item counts as served)
+	let page = await client.getRowItems(pageId, row.id, { limit: 10 });
 	let items: RowItem[] = page.items;
 	renderItems(items);
 
@@ -188,6 +188,7 @@ async function loadRowItemsOnScroll(pageId: string, row: Row) {
 			if (entry.isIntersecting && page.hasMore && page.nextPageToken) {
 				// User scrolled near the end; fetch the next page
 				page = await client.getRowItems(pageId, row.id, {
+					limit: 10,
 					nextPageToken: page.nextPageToken,
 				});
 				items = [...items, ...page.items];
@@ -202,7 +203,8 @@ async function loadRowItemsOnScroll(pageId: string, row: Row) {
 
 ```kotlin Kotlin
 suspend fun loadRowItemsOnScroll(pageId: String, row: Row) {
-    var page = client.getRowItems(pageId, row.id)
+    // Fetch the first page of items (keep limit around 10 — every returned item counts as served)
+    var page = client.getRowItems(pageId, row.id, limit = 10)
     var items = page.items
     renderItems(items)
 
@@ -211,7 +213,7 @@ suspend fun loadRowItemsOnScroll(pageId: String, row: Row) {
         val token = page.nextPageToken
         if (page.hasMore && token != null) {
             viewModelScope.launch {
-                page = client.getRowItems(pageId, row.id, nextPageToken = token)
+                page = client.getRowItems(pageId, row.id, nextPageToken = token, limit = 10)
                 items = items + page.items
                 renderItems(items)
             }
@@ -223,7 +225,8 @@ suspend fun loadRowItemsOnScroll(pageId: String, row: Row) {
 ```swift Swift
 @MainActor
 func loadRowItemsOnScroll(pageId: String, row: Row) async throws {
-    var page = try await client.getRowItems(pageId: pageId, rowId: row.id)
+    // Fetch the first page of items (keep limit around 10 — every returned item counts as served)
+    var page = try await client.getRowItems(pageId: pageId, rowId: row.id, limit: 10)
     var items = page.items
     renderItems(items)
 
@@ -231,7 +234,7 @@ func loadRowItemsOnScroll(pageId: String, row: Row) async throws {
     observeScrollNearEnd(row: row) {
         guard page.hasMore, let token = page.nextPageToken else { return }
         Task {
-            guard let next = try? await client.getRowItems(pageId: pageId, rowId: row.id, nextPageToken: token) else { return }
+            guard let next = try? await client.getRowItems(pageId: pageId, rowId: row.id, nextPageToken: token, limit: 10) else { return }
             page = next
             items += next.items
             renderItems(items)
@@ -242,7 +245,17 @@ func loadRowItemsOnScroll(pageId: String, row: Row) async throws {
 
 </CodeGroup>
 
-**Why?** A row might have 100 items. The user might only see the first 10 before scrolling to a different row. Why download 90 items they'll never see?
+**Why?** Two reasons:
+
+1. **Recommendation quality (served signals).** Every item returned by `getRowItems()` counts as served to the viewer. Fetching unseen rows or pulling 40 items upfront tells Discovr the viewer saw and skipped titles that never reached their screen, which weakens future recommendations.
+2. **Bandwidth and responsiveness.** A row can hold dozens of items, while a viewer may glance at the first handful before scrolling on.
+
+**Good defaults to target:**
+
+- Fetch items only for rows in view plus roughly **1 row ahead** of the viewport.
+- Request **`limit: 10`** items per `getRowItems()` call rather than fetching 30–50 upfront.
+- Paginate only when the viewer scrolls within a few items of the end of a row.
+- Prefetching **images** for items you have already fetched is fine — image loads don't affect recommendation signals.
 
 ## Image Lazy Loading
 
@@ -563,44 +576,49 @@ func switchTab(_ tab: String) async throws {
 
 ### Navigation Drill
 
-When the user taps a navigation row item, create a new page (which takes a moment), then load it. Show a loading indicator while fetching:
+Navigation tiles already carry their pre-created destination `pageId` (and attribution `ref`) — there is no need to call `createPage()`. Show a loading indicator, then load the destination page and its row shells in parallel by passing the tile directly:
 
 {/* sample: navigation-lazy-loading-navigation-drill */}
 
 <CodeGroup>
 
 ```typescript TypeScript
-async function drillIntoGenre(genreFilter: FilterSpec) {
+async function drillIntoTile(tile: NavigationItem) {
 	showLoadingIndicator();
 
-	const newPage = await client.createPage({
-		pageFilters: genreFilter,
-	});
-	await loadPageEfficiently(newPage.id);
+	// Navigation tiles already carry their destination pageId (and ref) — no createPage needed.
+	const [page, { rows }] = await Promise.all([client.getPage(tile), client.getRows(tile)]);
+	renderHero(page.hero);
+	renderRow(rows);
 
 	hideLoadingIndicator();
 }
 ```
 
 ```kotlin Kotlin
-suspend fun drillIntoGenre(genreFilter: FilterSpec) {
+suspend fun drillIntoTile(tile: NavigationItem) {
     showLoadingIndicator()
 
-    val newPage = client.createPage(pageFilters = genreFilter)
-    loadPageEfficiently(newPage.id)
+    // Navigation tiles already carry their destination pageId (and ref) — no createPage needed.
+    val page = client.getPage(tile)
+    val rows = client.getRows(tile).rows
+    renderHero(page.hero)
+    renderRow(rows)
 
     hideLoadingIndicator()
 }
 ```
 
 ```swift Swift
-func drillIntoGenre(_ genreFilter: FilterSpec) async throws {
+func drillIntoTile(_ tile: NavigationItem) async throws {
     showLoadingIndicator()
 
-    let newPage = try await client.createPage(
-        pageFilters: genreFilter
-    )
-    try await loadPageEfficiently(pageId: newPage.id)
+    // Navigation tiles already carry their destination pageId (and ref) — no createPage needed.
+    async let page = client.getPage(tile)
+    async let rows = client.getRows(tile)
+    let (pageData, rowBundle) = try await (page, rows)
+    renderHero(pageData.hero)
+    renderRow(rowBundle.rows)
 
     hideLoadingIndicator()
 }

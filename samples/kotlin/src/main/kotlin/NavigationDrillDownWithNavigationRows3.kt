@@ -8,9 +8,9 @@ private suspend fun sample(items: List<RowItem>) {
     // User taps "Romance" in the navigation row
     val romance = items.filterIsInstance<NavigationItem>().first { it.title == "Romance" }
 
-    // Push the pre-existing page ID onto your navigation stack
+    // Push the tile's page ID onto your stack, and pass the tile so its ref is attributed
     navigationStack.add(PageEntry(id = romance.pageId, name = romance.title))
-    val pageData = client.getPage(romance.pageId)
+    val pageData = client.getPage(romance)
     renderPage(pageData)
     // docs:end
 }

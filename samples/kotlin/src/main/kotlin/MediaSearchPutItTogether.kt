@@ -16,13 +16,13 @@ suspend fun runSearch(query: String) {
     if (first.mediaType == SearchResult.MediaType.person) {
         // People have no detail view; open one of their credits instead.
         first.knownFor?.firstOrNull()?.let { credit ->
-            val media = client.getMedia(credit.id)
+            val media = client.getMedia(credit)
             println("${first.name} → ${media.movie?.title ?: media.tv?.name}")
         }
         return
     }
 
-    val media = client.getMedia(first.id)
+    val media = client.getMedia(first)
     println("${media.movie?.title ?: media.tv?.name} ${(media.movie?.overview ?: media.tv?.overview)}")
 }
 // docs:end

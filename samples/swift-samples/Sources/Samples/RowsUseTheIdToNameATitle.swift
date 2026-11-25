@@ -7,11 +7,13 @@ private func sample(client: DiscovrClient, route: TitleRoute) async throws {
     path.append(TitleRoute(id: item.id, ref: item.refOrId))
 
     // On the detail screen: act with the ref, name the title with the id
-    let details = try await client.getMedia(mediaId: route.ref)
-    let state = try await client.setRating(mediaId: route.ref, value: .liked)
+    async let details = client.getMedia(mediaId: route.ref)
+    async let state = client.getTitleState(mediaId: route.ref)
+    let (media, titleState) = try await (details, state)
+    let updated = try await client.setRating(mediaId: route.ref, value: .liked)
 
     // Holding only a ref, like a saved "recently viewed" entry? idOf gets the id back.
     let cacheKey = idOf(savedRef)
     // docs:end
-    _ = (details, state, cacheKey)
+    _ = (media, titleState, updated, cacheKey)
 }

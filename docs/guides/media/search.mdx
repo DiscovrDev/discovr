@@ -148,10 +148,11 @@ for result in response.results {
 
 <Note>
 	Each non-person result also carries a **`ref`** — its `id` with the search it came from attached.
-	Pass that instead of `result.id` when the user opens a result and Discovr learns which query led
-	them there, which sharpens the recommendations that profile sees next. The titles in a person's
-	`known_for` array carry one too. A bare `id` always works; `ref` is never required. See [passing
-	the `ref` when your user acts](/guides/rows#pass-the-ref-when-your-user-acts).
+	Pass the result object directly (`client.getMedia(result)`, `client.getTitleState(result)`) — or
+	its `ref` — when the user opens a result so Discovr learns which query led them there and sharpens
+	the recommendations that profile sees next. The titles in a person's `known_for` array work the
+	same way. A bare `id` always works; `ref` is never required. See [passing the `ref` when your user
+	acts](/guides/rows#pass-the-ref-when-your-user-acts).
 </Note>
 
 ## Give people somewhere to go
@@ -429,13 +430,13 @@ async function runSearch(query: string) {
 		// People have no detail view; open one of their credits instead.
 		const credit = first.knownFor?.[0];
 		if (credit) {
-			const media = await client.getMedia(credit.id);
+			const media = await client.getMedia(credit);
 			console.log(`${first.name} → ${media.movie?.title ?? media.tv?.name}`);
 		}
 		return;
 	}
 
-	const media = await client.getMedia(first.id);
+	const media = await client.getMedia(first);
 	const details = media.movie ?? media.tv;
 	console.log(media.movie?.title ?? media.tv?.name, details?.overview);
 }
@@ -456,13 +457,13 @@ suspend fun runSearch(query: String) {
     if (first.mediaType == SearchResult.MediaType.person) {
         // People have no detail view; open one of their credits instead.
         first.knownFor?.firstOrNull()?.let { credit ->
-            val media = client.getMedia(credit.id)
+            val media = client.getMedia(credit)
             println("${first.name} → ${media.movie?.title ?: media.tv?.name}")
         }
         return
     }
 
-    val media = client.getMedia(first.id)
+    val media = client.getMedia(first)
     println("${media.movie?.title ?: media.tv?.name} ${(media.movie?.overview ?: media.tv?.overview)}")
 }
 ```
@@ -482,13 +483,13 @@ func runSearch(query: String) async throws {
     if first.mediaType == .person {
         // People have no detail view; open one of their credits instead.
         if let credit = first.knownFor?.first {
-            let media = try await client.getMedia(mediaId: credit.id)
+            let media = try await client.getMedia(credit)
             print("\(first.name ?? "") → \(media.movie?.title ?? media.tv?.name ?? "")")
         }
         return
     }
 
-    let media = try await client.getMedia(mediaId: first.id)
+    let media = try await client.getMedia(first)
     print(media.movie?.title ?? media.tv?.name ?? "", media.movie?.overview ?? media.tv?.overview ?? "")
 }
 ```

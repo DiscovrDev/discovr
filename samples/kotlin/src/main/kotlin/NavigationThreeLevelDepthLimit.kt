@@ -6,11 +6,12 @@ import kotlinx.coroutines.*
 // docs:start
 fun canDrillDeeper(): Boolean = navigationStack.size < 3
 
-// Before creating a new page on navigation tap:
-suspend fun drillDeeper(client: DiscovrClient, pageFilters: FilterSpec) {
+// Before pushing a navigation tile onto your stack:
+suspend fun drillIntoTile(client: DiscovrClient, tile: NavigationItem) {
     if (canDrillDeeper()) {
-        val newPage = client.createPage(pageFilters = pageFilters)
-        navigationStack.add(PageEntry(id = newPage.id))
+        val pageData = client.getPage(tile)
+        navigationStack.add(PageEntry(id = tile.pageId, name = pageData.name ?: tile.title))
+        renderPage(pageData)
     } else {
         showToast("Cannot drill deeper.")
     }
